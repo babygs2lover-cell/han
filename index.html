@@ -108,9 +108,10 @@ a{color:var(--sky-d);}
 .center{text-align:center;}
 .row{display:flex; align-items:center; gap:10px;}
 .wrap{flex-wrap:wrap;}
-.grid{display:grid; gap:14px;}
+.grid{display:grid; gap:10px;}
 .grid.two{grid-template-columns:repeat(auto-fit,minmax(250px,1fr));}
-.grid.three{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));}
+.grid.three{grid-template-columns:repeat(2,minmax(0,1fr));}
+@media(min-width:720px){ .grid.three{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));} }
 .hide{display:none !important;}
 .spread{display:flex; align-items:center; justify-content:space-between; gap:10px;}
 hr.sep{border:0;border-top:1px dashed var(--line); margin:16px 0;}
@@ -1551,7 +1552,7 @@ var App = {
   mode: 'kid',
   kidArea: null,
   books: { ar: '전체', ch: '전체', age: '전체', q: '', ownedOnly: false, sort: 'AR 낮은 순' },
-  lib: { subject: '전체', sub: '전체', ch: '전체', q: '', onlyPrint: false, onlyPicked: false, stage: '전체', ar: '전체', sort: '기본', age: '전체', ownedOnly: false },
+  lib: { subject: '전체', sub: '전체', ch: '전체', q: '', onlyPrint: false, onlyPicked: false, stage: '전체', ar: '전체', sort: '기본', age: '전체', ownedOnly: false, showMore: false },
   learn: { subject: 'en', step: 1 },
   review: { songId: null, mode: 'card', idx: 0, flipped: false },
   rm: 'en',
@@ -3093,48 +3094,50 @@ function viewLibrary() {
     subs = (SUBTOPICS[App.lib.subject] || []).slice();
     allSongs().forEach(function (s) { if (s.subject === App.lib.subject && s.subtopic && subs.indexOf(s.subtopic) < 0) subs.push(s.subtopic); });
   }
-  html += '<div class="chips" style="margin-top:6px">' +
+  /* compact top bar: search + filter toggle + quick add */
+  html += '<div class="row" style="margin-top:6px;gap:6px;flex-wrap:wrap">' +
+    '<div class="searchbox" style="flex:1;min-width:140px;padding:7px 10px"><span>🔎</span><input id="lib-q" type="text" placeholder="제목·가사 찾기" value="' + esc(App.lib.q) + '"></div>' +
+    '<button class="btn sm ' + (App.lib.showMore ? 'primary' : 'ghost') + '" data-act="lib-more">필터 ' + (App.lib.showMore ? '▴' : '▾') + '</button>' +
+    '<button class="btn sm mint" data-act="add-song" data-ch="' + (App.lib.ch === '전체' ? (S.channels[0] ? S.channels[0].id : '') : App.lib.ch) + '">＋ 추가</button>' +
+    '<button class="btn sm sky" data-act="batch-audio">🎧 음원</button>' +
+    '</div>';
+
+  /* collapsible advanced filters */
+  html += '<div class="' + (App.lib.showMore ? '' : 'hide') + '" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">';
+  html += '<div class="chips">' +
     '<button class="chip ' + (App.lib.sub === '전체' ? 'on mint' : '') + '" data-act="lib-topic" data-k="전체">소주제 전체</button>' +
     subs.map(function (t) {
       return '<button class="chip ' + (App.lib.sub === t ? 'on mint' : '') + '" data-act="lib-topic" data-k="' + esc(t) + '">' + esc(t) + '</button>';
     }).join('') + '</div>';
-
-  /* search + channel */
-  html += '<div class="row wrap" style="margin-top:8px;gap:8px">' +
-    '<div class="searchbox" style="flex:1;min-width:180px"><span>🔎</span><input id="lib-q" type="text" placeholder="제목·가사로 찾기" value="' + esc(App.lib.q) + '"></div>' +
+  html += '<div class="row wrap" style="margin-top:8px;gap:6px">' +
     '<button class="chip ' + (App.lib.onlyPrint ? 'on sun' : '') + '" data-act="lib-print">🖨 프린트물</button>' +
     '<button class="chip ' + (App.lib.onlyPicked ? 'on coral' : '') + '" data-act="lib-picked">⭐ 고른 것만</button>' +
-    '</div>';
-
-  html += '<div class="row wrap" style="margin-top:8px;gap:8px">' +
-    '<select id="lib-ch" style="padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-weight:700">' +
+    '<button class="chip ' + (App.lib.ownedOnly ? 'on sun' : '') + '" data-act="lib-owned">🏠 보유한 책만</button>' +
+    '<select id="lib-ch" style="padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:12.5px">' +
     '<option value="전체"' + (App.lib.ch === '전체' ? ' selected' : '') + '>전체 채널</option>' +
     S.channels.map(function (ch) {
       return '<option value="' + ch.id + '"' + (App.lib.ch === ch.id ? ' selected' : '') + '>' + esc(ch.name) + '</option>';
     }).join('') + '</select>' +
-    '<select id="lib-stage" style="padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-weight:700">' +
+    '<select id="lib-stage" style="padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:12.5px">' +
     '<option value="전체"' + (App.lib.stage === '전체' ? ' selected' : '') + '>전체 Stage</option>' +
     stagesPresent().map(function (st) {
       return '<option value="' + esc(st) + '"' + (App.lib.stage === st ? ' selected' : '') + '>' + esc(st) + '</option>';
     }).join('') + '</select>' +
-    '<select id="lib-ar" style="padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-weight:700">' +
+    '<select id="lib-ar" style="padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:12.5px">' +
     [['전체', '전체 AR'], ['0-1', 'AR 0~1.0'], ['1.1-2', 'AR 1.1~2.0'], ['2+', 'AR 2.1 이상'], ['확인불가', 'AR 확인불가']].map(function (o) {
       return '<option value="' + o[0] + '"' + (App.lib.ar === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
     }).join('') + '</select>' +
-    '<select id="lib-age" style="padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-weight:700">' +
+    '<select id="lib-age" style="padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:12.5px">' +
     '<option value="전체"' + (App.lib.age === '전체' ? ' selected' : '') + '>전체 연령</option>' +
     AGE_GROUPS.map(function (g) {
       return '<option value="' + g.key + '"' + (App.lib.age === g.key ? ' selected' : '') + '>' + g.label + '</option>';
     }).join('') + '</select>' +
-    '<button class="chip ' + (App.lib.ownedOnly ? 'on sun' : '') + '" data-act="lib-owned">🏠 보유한 책만</button>' +
-    '<select id="lib-sort" style="padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-weight:700">' +
+    '<select id="lib-sort" style="padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:12.5px">' +
     ['기본', 'AR 낮은 순', 'AR 높은 순', 'Stage 순', '단어수 적은 순', '재생 많은 순', '재생 적은 순'].map(function (o) {
       return '<option value="' + o + '"' + (App.lib.sort === o ? ' selected' : '') + '>' + o + '</option>';
     }).join('') + '</select>' +
-    '<button class="btn sm mint" data-act="add-song" data-ch="' + (App.lib.ch === '전체' ? (S.channels[0] ? S.channels[0].id : '') : App.lib.ch) + '">＋ 영상 추가</button>' +
-    '<button class="btn sm sky" data-act="batch-audio">🎧 음원 연결</button>' +
     '<button class="btn sm ghost" data-act="add-channel">＋ 채널</button>' +
-    '</div></div>';
+    '</div></div></div>';
 
   html += '<div id="songlist">' + songListHtml() + '</div>';
   return html;
@@ -6341,6 +6344,8 @@ function onClick(e) {
         App.lib.onlyPrint = !App.lib.onlyPrint; render(); break;
       case 'lib-picked':
         App.lib.onlyPicked = !App.lib.onlyPicked; render(); break;
+      case 'lib-more':
+        App.lib.showMore = !App.lib.showMore; render(); break;
       case 'pick-toggle': {
         var ps = songById(id);
         if (!ps) break;
