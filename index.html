@@ -2915,8 +2915,12 @@ function viewKidArea(area) {
   }
 
   if (area === 'en') {
-    h += '<div class="vsec"><span>🎵 영어 동요 · 영상</span></div><div class="vlist">' +
-      chCardsFor('영어', false) +
+    var enSongCards = chCardsFor('영어', false);
+    h += '<div class="vsec"><span>🎵 영어동요</span></div><div class="vlist">' +
+      enSongCards +
+      '</div>';
+    h += '<div class="vsec"><span>🎬 영어영상</span></div><div class="vlist">' +
+      areaRowCard('영', '#FF7043', '영어영상', '아직 추가된 채널이 없어요 · 눌러서 추가', 'go', 'data-v', 'library') +
       '</div>';
     h += '<div class="vsec"><span>📚 영어 원서 서재</span></div><div class="vlist">' +
       areaRowCard('책', '#0EA5E9', '영어 원서 서재', '단계별(시리즈) · 지수별(AR) 보기', 'go', 'data-v', 'books') +
