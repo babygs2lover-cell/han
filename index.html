@@ -2796,23 +2796,22 @@ function viewHome() {
 
   if (kid) {
     if (App.kidArea) {
-      html += viewKidArea(App.kidArea);
-    } else {
-      var lch = S.lastChannelId ? S.channels.filter(function (x) { return x.id === S.lastChannelId; })[0] : null;
-      if (lch) {
-        html += '<button class="resume-banner" data-act="kid-resume-ch" data-id="' + lch.id + '">' +
-          '<span class="rb-ico">▶</span>' +
-          '<span class="rb-body"><b>' + esc(lch.name) + ' 이어서 보기</b><span>마지막에 본 채널</span></span>' +
-          '<span class="rb-arr">›</span></button>';
-      }
-      var c = counts();
-      html += '<div class="kareas">' +
-        '<button class="kbtn c1" data-act="kid-area" data-k="en"><span class="ke">🔤</span><b>영어</b><span>노래·낱말·문장·배우기 (' + c['영어'] + ')</span></button>' +
-        '<button class="kbtn c2" data-act="kid-area" data-k="ma"><span class="ke">🔢</span><b>수학</b><span>수세기·도형·패턴·영상 (' + c['수학'] + ')</span></button>' +
-        '<button class="kbtn c3" data-act="kid-area" data-k="ko"><span class="ke">가</span><b>한글</b><span>자음·통글자·의성어 (' + c['한글'] + ')</span></button>' +
-        '<button class="kbtn c4" data-act="kid-area" data-k="info"><span class="ke">🌍</span><b>정보</b><span>다큐·미술·생활·누리 (' + (c['다큐'] + c['기타']) + ')</span></button>' +
-        '</div>';
+      return viewKidArea(App.kidArea);
     }
+    var lch = S.lastChannelId ? S.channels.filter(function (x) { return x.id === S.lastChannelId; })[0] : null;
+    if (lch) {
+      html += '<button class="resume-banner" data-act="kid-resume-ch" data-id="' + lch.id + '">' +
+        '<span class="rb-ico">▶</span>' +
+        '<span class="rb-body"><b>' + esc(lch.name) + ' 이어서 보기</b><span>마지막에 본 채널</span></span>' +
+        '<span class="rb-arr">›</span></button>';
+    }
+    var c = counts();
+    html += '<div class="kareas">' +
+      '<button class="kbtn c1" data-act="kid-area" data-k="en"><span class="ke">🔤</span><b>영어</b><span>노래·낱말·문장·배우기 (' + c['영어'] + ')</span></button>' +
+      '<button class="kbtn c2" data-act="kid-area" data-k="ma"><span class="ke">🔢</span><b>수학</b><span>수세기·도형·패턴·영상 (' + c['수학'] + ')</span></button>' +
+      '<button class="kbtn c3" data-act="kid-area" data-k="ko"><span class="ke">가</span><b>한글</b><span>자음·통글자·의성어 (' + c['한글'] + ')</span></button>' +
+      '<button class="kbtn c4" data-act="kid-area" data-k="info"><span class="ke">🌍</span><b>지식</b><span>다큐·과학·누리 (' + c['다큐'] + ')</span></button>' +
+      '</div>';
   } else {
     html += '<div class="tiles" style="margin-top:14px">' +
       '<button class="tile c1" data-act="go" data-v="library"><span class="ico">🎵</span><b>노래·영상 관리</b><span>채널·가사·프린트물·낱말</span></button>' +
@@ -2840,34 +2839,8 @@ function viewHome() {
     }).join('') + '</div>';
   }
   html += '</div>';
-
-  /* today's song */
-  if (ts) {
-    html += '<div class="card cute" style="margin-top:16px"><div class="sectitle">오늘의 노래 <span class="sub">' + esc(ts.dur || '') + '</span></div>' +
-      '<div class="spread" style="align-items:flex-start;gap:14px">' +
-      '<div style="display:flex;gap:12px;flex:1;min-width:0;align-items:center">' +
-      '<div class="cover">' + coverEmoji(ts) + '</div>' +
-      '<div style="min-width:0"><b style="font-size:16px;display:block;line-height:1.35">' + esc(cleanTitle(ts.title)) + '</b>' +
-      '<div class="pills" style="margin-top:8px"><span class="pill ' + subjCls(ts.subject) + '">' + esc(ts.subject) + '</span>' +
-      '<span class="pill">' + esc(ts.subtopic || '') + '</span></div></div></div>' +
-      '<div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">' +
-      '<button class="btn primary sm" data-act="play" data-id="' + ts.id + '">▶ 보기</button>' +
-      '<button class="btn ghost sm" data-act="open-song" data-id="' + ts.id + '">📄 가사</button></div></div></div>';
-  }
-
-  /* sticker board */
-  var st = S.stickers || [];
-  var shown = st.slice(-40);
-  html += '<div class="card cute" style="margin-top:16px"><div class="sectitle">칭찬 스티커판 <span class="sub">스티커 ' + st.length + '개 · 이번 주 벌 ' + weekStars + '개</span></div>' +
-    '<div class="stickerboard cute">' + (function () {
-      var out = '';
-      for (var i = 0; i < 40; i++) {
-        var s = shown[i];
-        out += '<div class="sticker' + (s ? ' fill' : '') + '">' + (s ? s.e : '') + '</div>';
-      }
-      return out;
-    })() + '</div>' +
-    '<p class="tiny muted" style="margin:10px 0 0">놀이에서 정답을 맞히거나 계획을 마치면 스티커가 하나씩 붙어요. 40개를 모으면 엄마가 특별한 칭찬을 해 주세요!</p></div>';
+  return html;
+}
 
   return html;
 }
