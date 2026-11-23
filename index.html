@@ -2955,17 +2955,23 @@ function viewKidArea(area) {
       vcard('퀴', '#F59E0B', '수학 퀴즈 바로 풀기', '그림 보고 숫자 맞히기', 'kid-quiz-sub', 'data-k', 'ma') +
       '</div>';
   } else if (area === 'info') {
-    h += '<div class="vsec"><span>🌍 다큐 · 과학 영상</span></div><div class="vlist">' +
-      (chCardsFor('다큐', false) || '') +
-      vcard('탐', '#26A69A', '다큐·과학 영상 전체', '동물 · 자연 · 우주 탐구', 'kid-lib-sub', 'data-k', '다큐') +
+    h += '<div class="vsec"><span>🌍 주제별 지식 · 다큐</span></div><div class="vlist">' +
+      vcard('차', '#EF4444', '자동차 · 교통기관', '탈것 · 기차 · 비행기 · 공사장', 'kid-lib-topic', 'data-k', '다큐|교통기관') +
+      vcard('동', '#F59E0B', '동물 · 공룡', '동물원 · 바다생물 · 공룡', 'kid-lib-topic', 'data-k', '다큐|동물') +
+      vcard('자', '#10B981', '자연 · 식물 · 날씨', '사계절 · 숲 · 곤충', 'kid-lib-topic', 'data-k', '다큐|자연') +
+      vcard('우', '#6366F1', '우주 · 과학 실험', '별 · 행성 · 호기심 실험', 'kid-lib-topic', 'data-k', '다큐|과학') +
+      vcard('탐', '#26A69A', '지식 · 다큐 전체 보기', '모든 다큐 영상 한눈에', 'kid-lib-sub', 'data-k', '다큐') +
       '</div>';
     h += '<div class="vsec"><span>🌱 누리과정 활동</span></div><div class="vlist">' +
       vcard('누', '#10B981', '누리과정 5대 영역', '신체·의사소통·사회·예술·자연', 'kid-learn-sub', 'data-k', 'nu') +
       '</div>';
   } else {
-    h += '<div class="vsec"><span>🎨 미술 · 만들기 영상</span></div><div class="vlist">' +
-      (chCardsFor('기타', false) || '') +
-      vcard('미', '#EC407A', '미술·만들기·생활 영상 전체', '그리기 · 생활습관 · 놀이', 'kid-lib-sub', 'data-k', '기타') +
+    h += '<div class="vsec"><span>🎨 주제별 미술 · 만들기</span></div><div class="vlist">' +
+      vcard('그', '#EC407A', '그리기 · 색칠하기', '크레파스 · 물감 · 색깔 놀이', 'kid-lib-topic', 'data-k', '기타|그리기') +
+      vcard('접', '#F59E0B', '종이접기 · 만들기', '색종이 · 가위 · 풀 만들기', 'kid-lib-topic', 'data-k', '기타|만들기') +
+      vcard('블', '#0EA5E9', '듀플로 · 블록 놀이', '입체 구성 · 상상 놀이', 'kid-lib-topic', 'data-k', '기타|블록') +
+      vcard('생', '#10B981', '생활습관 · 역할놀이', '양치 · 정리 · 인사 예절', 'kid-lib-topic', 'data-k', '기타|생활') +
+      vcard('미', '#8B5CF6', '미술·만들기 전체 보기', '모든 미술·놀이 영상 한눈에', 'kid-lib-sub', 'data-k', '기타') +
       '</div>';
     h += '<div class="vsec"><span>✂️ 예술 · 만들기 놀이</span></div><div class="vlist">' +
       vcard('놀', '#F59E0B', '누리 예술경험 놀이', '색종이 · 찰흙 · 오감 활동', 'kid-learn-sub', 'data-k', 'nu') +
@@ -6111,6 +6117,13 @@ function onClick(e) {
         App.lib.subject = btn.getAttribute('data-k') || '전체';
         App.lib.sub = '전체'; App.lib.ch = '전체'; App.lib.stage = '전체';
         go('library'); break;
+      case 'kid-lib-topic': {
+        var parts = (btn.getAttribute('data-k') || '전체|전체').split('|');
+        App.lib.subject = parts[0] || '전체';
+        App.lib.sub = parts[1] || '전체';
+        App.lib.ch = '전체'; App.lib.stage = '전체';
+        go('library'); break;
+      }
       case 'kid-learn-sub':
         App.learn.subject = btn.getAttribute('data-k') || 'en';
         App.learn.step = 1; App.quiz = null;
