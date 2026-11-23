@@ -470,9 +470,9 @@ input[type=range]{width:100%;accent-color:var(--coral);}
   font-weight:800; font-size:13.5px; color:#7C6C62; text-align:center;
 }
 .modebtn:active{transform:scale(.98);}
-.tabbar.kid{background:rgba(255,252,246,.96);}
-.tabbar.kid button{font-size:11.5px;}
-.tabbar.kid button .ico{font-size:24px;}
+.tabbar.kid{background:rgba(255,252,246,.96); padding-left:4px; padding-right:4px;}
+.tabbar.kid button{font-size:10.5px; white-space:nowrap; padding:6px 2px;}
+.tabbar.kid button .ico{font-size:21px;}
 .tabbar.kid button.on{background:#FFE7E1; color:#D65B47;}
 
 .kchip{font-size:14px; padding:10px 15px; border-radius:999px;}
@@ -1628,18 +1628,39 @@ function render() {
   if (App.view === 'player' && typeof mountPlayerIfNeeded === 'function') mountPlayerIfNeeded();
 }
 
+var KID_TABS = [
+  { key: 'today', label: '오늘할일', ico: '✅' },
+  { key: 'en', label: '영어', ico: '🔤' },
+  { key: 'ko', label: '한글', ico: '가' },
+  { key: 'ma', label: '수학', ico: '🔢' },
+  { key: 'info', label: '지식', ico: '🌍' },
+  { key: 'art', label: '미술', ico: '🎨' }
+];
+function kidTabActiveKey() {
+  if (App.view === 'home' && !App.kidArea) return 'today';
+  if ((App.view === 'home' && App.kidArea === 'en') || App.view === 'books' || App.view === 'review' || App.view === 'pecs' || (App.view === 'library' && App.lib.subject === '영어') || (App.view === 'learn' && App.learn.subject === 'en')) return 'en';
+  if ((App.view === 'home' && App.kidArea === 'ko') || (App.view === 'library' && App.lib.subject === '한글') || (App.view === 'learn' && App.learn.subject === 'ko')) return 'ko';
+  if ((App.view === 'home' && App.kidArea === 'ma') || (App.view === 'library' && App.lib.subject === '수학') || (App.view === 'learn' && App.learn.subject === 'ma')) return 'ma';
+  if ((App.view === 'home' && App.kidArea === 'info') || (App.view === 'library' && App.lib.subject === '다큐') || (App.view === 'learn' && App.learn.subject === 'nu')) return 'info';
+  if (App.view === 'library' && App.lib.subject === '기타') return 'art';
+  return 'today';
+}
 function renderChrome() {
   var name = S ? S.childName : '한결';
   var kid = modeOf() === 'kid';
   var items = navItems();
+  var activeKid = kid ? kidTabActiveKey() : '';
   var side = document.getElementById('sidebar');
   if (side) {
     side.innerHTML =
       '<div class="brand"><div class="logo">' + mascotSVG('', 44) + '</div><div><b>' + esc(name) + ' 학습 놀이터</b><span>누리 · 영어 · 수학 · 한글</span></div></div>' +
-      items.map(function (x) {
+      (kid ? KID_TABS.map(function (x) {
+        return '<button class="navbtn' + (activeKid === x.key ? ' on' : '') + '" data-act="kid-tab" data-k="' + x.key + '">' +
+          '<span class="ico">' + x.ico + '</span>' + x.label + '</button>';
+      }).join('') : items.map(function (x) {
         return '<button class="navbtn' + (App.view === x.key ? ' on' : '') + '" data-act="go" data-v="' + x.key + '">' +
           '<span class="ico">' + navIco(x) + '</span>' + navLabel(x) + '</button>';
-      }).join('') +
+      }).join('')) +
       '<div class="spacer"></div>' +
       '<button class="modebtn" data-act="toggle-mode">' + (kid ? '👩‍🍳 엄마 모드로' : '🧒 아이 모드로') + '</button>' +
       '<div class="starbox" style="margin-top:8px">모은 스티커 <b id="star-count-side">' + (S ? S.stars : 0) + '</b>개<br><span class="tiny">' + (S ? totalSongs() : 0) + '개 노래·책</span></div>';
@@ -1647,10 +1668,13 @@ function renderChrome() {
   var tb = document.getElementById('tabbar');
   if (tb) {
     tb.className = 'tabbar' + (kid ? ' kid' : '');
-    tb.innerHTML = items.map(function (x) {
+    tb.innerHTML = (kid ? KID_TABS.map(function (x) {
+      return '<button class="' + (activeKid === x.key ? 'on' : '') + '" data-act="kid-tab" data-k="' + x.key + '">' +
+        '<span class="ico">' + x.ico + '</span>' + x.label + '</button>';
+    }).join('') : items.map(function (x) {
       return '<button class="' + (App.view === x.key ? 'on' : '') + '" data-act="go" data-v="' + x.key + '">' +
         '<span class="ico">' + navIco(x) + '</span>' + navLabel(x) + '</button>';
-    }).join('');
+    }).join(''));
   }
   var top = document.getElementById('topbar');
   if (top) {
@@ -2822,10 +2846,11 @@ function viewHome() {
 
 function viewKidArea(area) {
   var meta = {
-    en: { title: '🔤 영어 놀이터', sub: '노래 듣고 낱말·문장 놀이 해요' },
-    ma: { title: '🔢 수학 놀이터', sub: '숫자 세고 도형·규칙 찾아요' },
-    ko: { title: '가 한글 놀이터', sub: '가나다 통글자랑 이야기 봐요' },
-    info: { title: '🌍 정보 놀이터', sub: '자연 다큐·미술·생활 놀이예요' }
+    en: { title: '🔤 영어 놀이터', sub: '영어 노래·원서·낱말·문장 놀이를 해요' },
+    ma: { title: '🔢 수학 놀이터', sub: '숫자 세기·도형·패턴 놀이를 해요' },
+    ko: { title: '가 한글 놀이터', sub: '가나다 통글자·한글 동화 봐요' },
+    info: { title: '🌍 지식 놀이터', sub: '자연 다큐·과학·누리과정 탐구해요' },
+    art: { title: '🎨 미술 놀이터', sub: '만들기·그리기·종이접기 놀이해요' }
   }[area] || { title: '놀이터', sub: '' };
   var h = '<div class="card cute" style="margin-top:14px">' +
     '<div class="row" style="gap:10px;align-items:center;margin-bottom:12px">' +
@@ -2846,10 +2871,12 @@ function viewKidArea(area) {
     h += '<button class="kbtn c3" data-act="kid-lib-sub" data-k="한글"><span class="ke">📺</span><b>한글 영상·책</b><span>한글 동화·노래</span></button>' +
       '<button class="kbtn c1" data-act="kid-learn-sub" data-k="ko"><span class="ke">🎨</span><b>한글 배우기</b><span>5단계 자음·통글자</span></button>' +
       '<button class="kbtn c2" data-act="kid-quiz-sub" data-k="ko"><span class="ke">🎲</span><b>한글 퀴즈</b><span>바로 문제 풀기</span></button>';
-  } else {
-    h += '<button class="kbtn c4" data-act="kid-lib-sub" data-k="다큐"><span class="ke">🌍</span><b>다큐·과학 영상</b><span>동물·자연·우주</span></button>' +
-      '<button class="kbtn c1" data-act="kid-lib-sub" data-k="기타"><span class="ke">🎨</span><b>미술·생활·놀이</b><span>만들기·생활습관</span></button>' +
+  } else if (area === 'info') {
+    h += '<button class="kbtn c4" data-act="kid-lib-sub" data-k="다큐"><span class="ke">🌍</span><b>다큐·과학 영상</b><span>동물·자연·우주 탐구</span></button>' +
       '<button class="kbtn c3" data-act="kid-learn-sub" data-k="nu"><span class="ke">🌱</span><b>누리과정 놀이</b><span>5대 영역 활동</span></button>';
+  } else {
+    h += '<button class="kbtn c1" data-act="kid-lib-sub" data-k="기타"><span class="ke">🎨</span><b>미술·만들기 영상</b><span>그리기·생활·놀이</span></button>' +
+      '<button class="kbtn c4" data-act="kid-learn-sub" data-k="nu"><span class="ke">✂️</span><b>예술·만들기 놀이</b><span>색종이·찰흙·오감</span></button>';
   }
   return h + '</div></div>';
 }
@@ -5979,6 +6006,13 @@ function onClick(e) {
   try {
     switch (act) {
       case 'go': App.quiz = null; if (btn.getAttribute('data-v') === 'home') App.kidArea = null; stopSpeak(); go(btn.getAttribute('data-v')); break;
+      case 'kid-tab': {
+        var tk = btn.getAttribute('data-k');
+        App.quiz = null; stopSpeak();
+        if (tk === 'today') { App.kidArea = null; go('home'); }
+        else { App.kidArea = tk; go('home'); }
+        break;
+      }
       case 'kid-area': App.kidArea = btn.getAttribute('data-k') || null; render(); break;
       case 'kid-lib-sub':
         App.lib.subject = btn.getAttribute('data-k') || '전체';
