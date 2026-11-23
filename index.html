@@ -1462,16 +1462,25 @@ function pickVoice(lang) {
 }
 function speak(text, lang, rateOverride) {
   if (!text) return;
-  if (!window.speechSynthesis) { return; }
+  if (!window.speechSynthesis) { toast('이 기기에서는 음성 읽기를 지원하지 않아요'); return; }
   try {
-    window.speechSynthesis.cancel();
+    var ss = window.speechSynthesis;
     var u = new SpeechSynthesisUtterance(String(text));
     u.lang = lang || 'en-US';
     var v = pickVoice(u.lang);
     if (v) u.voice = v;
     u.rate = rateOverride || (S && S.settings ? S.settings.rate : 0.85);
-    u.pitch = 1.08;
-    window.speechSynthesis.speak(u);
+    u.pitch = 1.05;
+    u.volume = 1;
+    if (ss.paused) ss.resume();
+    if (ss.speaking || ss.pending) {
+      ss.cancel();
+      setTimeout(function () {
+        try { ss.speak(u); } catch (e) {}
+      }, 60);
+    } else {
+      ss.speak(u);
+    }
   } catch (e) { /* no speech available */ }
 }
 function stopSpeak() { try { window.speechSynthesis.cancel(); } catch (e) {} }
@@ -6315,11 +6324,13 @@ function onClick(e) {
       case 'say-word': speak(btn.getAttribute('data-w'), btn.getAttribute('data-lang') || 'en-US'); break;
       case 'say-text': speak(btn.getAttribute('data-t'), btn.getAttribute('data-lang') || 'en-US'); break;
       case 'say-line':
-        var sgl = songById(App.openSongId);
+        var sid = App.openSongId || (App.player && App.player.id);
+        var sgl = songById(sid);
         if (sgl) {
           var lns = String(sgl.lyrics || '').split('\n');
           var ln = lns[Number(btn.getAttribute('data-i'))] || '';
-          if (ln.trim()) speak(ln.trim(), 'en-US');
+          var cleanLn = ln.replace(/^\[?\d{1,2}:\d{2}(?::\d{2})?\]?\s*/, '').trim();
+          if (cleanLn) speak(cleanLn, 'en-US');
         }
         break;
       case 'speak-lyrics':
