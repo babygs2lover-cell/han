@@ -876,8 +876,8 @@ var PEC_IMG = {"a_an": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDA
 'use strict';
 
 var SEED = JSON.parse(document.getElementById('seed-data').textContent);
-var LS_KEY = 'hangyeol.learning.app.v3';
-var APP_VERSION = 5;
+var LS_KEY = 'hangyeol.learning.app.v4';
+var APP_VERSION = 6;
 
 /* ---------- subjects & subtopics ---------- */
 var SUBJECTS = [
@@ -1149,11 +1149,11 @@ function defaultPlan() {
 }
 
 function seedState() {
-  var omc = (SEED.channels || []).filter(function (c) { return c.id === 'ch-omc'; });
+  var chs = JSON.parse(JSON.stringify(SEED.channels || []));
   return {
     app: 'hangyeol-learning', v: APP_VERSION,
     childName: '한결',
-    channels: JSON.parse(JSON.stringify(omc)),
+    channels: chs,
     stars: 0,
     starLog: [],
     plan: { theme: null, mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
@@ -1565,7 +1565,7 @@ var App = {
   view: 'home',
   mode: 'kid',
   kidArea: null,
-  books: { ar: '전체', ch: '전체', age: '전체', q: '', ownedOnly: false, sort: 'AR 낮은 순' },
+  books: { viewMode: 'series', ar: '전체', ch: '전체', stage: '전체', age: '전체', q: '', showSearch: false, ownedOnly: false, sort: 'AR 낮은 순' },
   lib: { subject: '전체', sub: '전체', ch: '전체', q: '', onlyPrint: false, onlyPicked: false, stage: '전체', ar: '전체', sort: '기본', age: '전체', ownedOnly: false, showMore: false },
   learn: { subject: 'en', step: 1 },
   review: { songId: null, mode: 'card', idx: 0, flipped: false },
@@ -2919,8 +2919,7 @@ function viewKidArea(area) {
       chCardsFor('영어', false) +
       '</div>';
     h += '<div class="vsec"><span>📚 영어 원서 서재</span></div><div class="vlist">' +
-      chCardsFor('영어', true) +
-      areaRowCard('책', '#0EA5E9', '전체 원서 AR 지수별로 보기', '표지 · 연령별 · 책 퀴즈 10문제', 'go', 'data-v', 'books', 'NEW') +
+      areaRowCard('책', '#0EA5E9', '영어 원서 서재', '단계별(시리즈) · 지수별(AR) 보기', 'go', 'data-v', 'books') +
       '</div>';
   } else if (area === 'ko') {
     h += '<div class="vsec"><span>✏️ 한글 영상 · 동화</span></div><div class="vlist">' +
@@ -3405,6 +3404,29 @@ function isBookItem(s) {
   return !!(s && (s.kind === 'book' || s.ar !== undefined && s.ar !== null && s.ar !== '' || (s.stage || '').indexOf('Stage') >= 0));
 }
 
+var SERIES_INFO = {
+  'ch-ort': {
+    badge: 'Stage 1 ~ 9 · 198권',
+    color: '#0EA5E9',
+    summary: '영국 초등 80%가 쓰는 대표 리더스! 키퍼·비퍼·칩 가족과 강아지 플로피의 일상·마법 열쇠 모험이 Stage 1(그림책)부터 Stage 9(초등 고학년)까지 계단식으로 이어져요.'
+  },
+  'ch-usb': {
+    badge: 'Very First ~ Level 2 · 50권',
+    color: '#F59E0B',
+    summary: '파닉스 막 뗀 4~6세용 어스본 첫 읽기 세트! 앞부분은 엄마·아이가 한 줄씩 번갈아 읽고, 뒷단계로 갈수록 혼자 읽는 명작·창작 짧은 이야기가 펼쳐져요.'
+  },
+  'ch-my': {
+    badge: 'AR 0.3 ~ 2.0 · 67권',
+    color: '#10B981',
+    summary: '우리 집 소장 인기 원서 모음! 강아지 비스킷의 짧은 반복 문장, 핍 앤 포지 생활 동화, 피죤 유머 그림책, 마블 히어로 리더스까지 재미로 읽는 시리즈예요.'
+  },
+  'ch-pb': {
+    badge: 'AR 0.1 ~ 2.2 · 37권',
+    color: '#EC4899',
+    summary: '4세 눈높이에 딱 맞는 베스트셀러 영어 그림책! 에릭 칼·줄리아 도널드슨 등 리듬감 있는 반복 구문과 선명한 그림으로 귀가 트이는 단행본 모음이에요.'
+  }
+};
+
 function bookFiltered() {
   var out = [];
   var isKid = modeOf() === 'kid';
@@ -3418,9 +3440,12 @@ function bookFiltered() {
       if (isKid && ch.onlySelected && !s.picked) return;
       if (effOwned && !s.owned) return;
       if (effAge && effAge !== '전체' && ageGroupOf(s) !== effAge) return;
+      if (App.books.viewMode === 'series' && App.books.stage && App.books.stage !== '전체') {
+        if ((s.stage || '') !== App.books.stage) return;
+      }
       var ar = parseFloat(s.ar);
       var hasAr = (s.ar !== '' && s.ar !== null && !isNaN(ar));
-      if (App.books.ar !== '전체') {
+      if (App.books.viewMode === 'ar' && App.books.ar !== '전체') {
         if (App.books.ar === '확인불가' && hasAr) return;
         if (App.books.ar === '0.1-0.5' && !(hasAr && ar <= 0.5)) return;
         if (App.books.ar === '0.6-1.0' && !(hasAr && ar > 0.5 && ar <= 1.0)) return;
@@ -3466,44 +3491,47 @@ function renderBookCard(pair, isKid) {
     cover +
     '<span class="kdur">' + esc(arTxt) + '</span>' +
     (s.owned ? '<span class="kpin" style="background:#56B58B;color:#fff">보유</span>' : '') +
+    (s.vid ? '<span class="kplay" style="position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.62);color:#fff;font-size:10px;padding:2px 6px;border-radius:999px">▶</span>' : '') +
     '</div>' +
     '<div class="kcard-b">' +
-    '<b data-act="open-song" data-id="' + s.id + '">' + esc(short(s.title, 34)) + ' <span class="tiny muted">(' + esc(arTxt) + ')</span></b>' +
-    '<div class="tiny" style="color:#E06D3B;font-weight:700;margin-top:3px">📖 ' + pc + '번 읽었어요</div>' +
-    '<div class="tiny muted" style="margin-top:2px">' + esc(s.stage || pair.ch.name) + (s.author ? ' · ' + esc(short(s.author, 16)) : '') + '</div>' +
-    '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">' +
-    (s.vid ? '<button class="btn xs primary" data-act="play" data-id="' + s.id + '">▶ 영상</button>' : '') +
-    (hasAudio ? '<button class="btn xs mint" data-act="play" data-id="' + s.id + '">🎧 음성</button>' : '') +
-    (!isKid ? '<button class="btn xs ghost" data-act="edit-song" data-id="' + s.id + '">✏️ 관리</button>' : '') +
-    '</div></div></div>';
+    '<b data-act="' + (s.vid || hasAudio ? 'play' : 'open-song') + '" data-id="' + s.id + '">' + esc(short(s.title, 34)) + '</b>' +
+    '<div class="tiny muted" style="margin-top:2px">' + esc(arTxt) + (s.stage ? ' · ' + esc(s.stage) : '') + '</div>' +
+    '<div class="tiny" style="color:#E06D3B;font-weight:700;margin-top:2px">📖 ' + pc + '번 읽었어요</div>' +
+    '</div></div>';
 }
 
 function openBookSettingsModal() {
   var bs = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
+  var bookChs = S.channels.filter(function (ch) { return ch.songs.some(isBookItem); });
   var body =
-    '<div class="field"><label>📚 원서 노출 기준 (아이 화면)</label>' +
-    '<select id="bs-owned">' +
-    '<option value="0"' + (!bs.ownedOnly ? ' selected' : '') + '>전체 원서 다 보이기</option>' +
-    '<option value="1"' + (bs.ownedOnly ? ' selected' : '') + '>집에 있는(보유한) 책만 보이기</option>' +
-    '</select></div>' +
-    '<div class="field"><label>🎂 추천 연령별 영상·책만 보이기 (아이 화면)</label>' +
+    '<div class="field"><label style="display:flex;align-items:center;gap:8px;font-weight:800">' +
+    '<input type="checkbox" id="bs-owned"' + (bs.ownedOnly ? ' checked' : '') + '> 📚 가지고 있는(보유) 책만 보기</label></div>' +
+    '<div class="field"><label>🎂 추천 연령</label>' +
     '<select id="bs-age">' +
-    '<option value="전체"' + (bs.ageFilter === '전체' ? ' selected' : '') + '>전체 연령 모두 보기</option>' +
+    '<option value="전체"' + (bs.ageFilter === '전체' ? ' selected' : '') + '>전체 연령</option>' +
     AGE_GROUPS.map(function (g) {
       return '<option value="' + g.key + '"' + (bs.ageFilter === g.key ? ' selected' : '') + '>' + g.label + '</option>';
     }).join('') +
     '</select></div>' +
-    '<div class="field"><label><input type="checkbox" id="bs-group"' + (bs.groupBySet !== false ? ' checked' : '') + '> 원서북 모음(세트)끼리 묶어서 보기</label></div>';
+    '<div class="field"><label>✅ 시리즈별 보유 체크 (누르면 전체 보유/해제)</label>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">' +
+    bookChs.map(function (ch) {
+      var books = ch.songs.filter(isBookItem);
+      var ownedN = books.filter(function (s) { return !!s.owned; }).length;
+      return '<button type="button" class="btn xs ' + (ownedN === books.length && books.length ? 'mint' : 'ghost') + '" data-act="toggle-ch-owned" data-id="' + ch.id + '">' +
+        esc(short(ch.name, 14)) + ' (' + ownedN + '/' + books.length + ')</button>';
+    }).join('') +
+    '</div></div>';
 
   openModal('⚙️ 원서 서재 엄마 설정', body,
-    '<button class="btn ghost" data-act="close-modal">취소</button>' +
+    '<button class="btn ghost" data-act="close-modal">닫기</button>' +
     '<button class="btn primary" id="bs-save">저장</button>');
 
   document.getElementById('bs-save').onclick = function () {
     S.bookSettings = {
-      ownedOnly: document.getElementById('bs-owned').value === '1',
+      ownedOnly: !!document.getElementById('bs-owned').checked,
       ageFilter: document.getElementById('bs-age').value,
-      groupBySet: !!document.getElementById('bs-group').checked
+      groupBySet: true
     };
     save(); closeModal(); render();
     toast('원서 엄마 설정을 저장했어요');
@@ -3511,75 +3539,98 @@ function openBookSettingsModal() {
 }
 
 function viewBooks() {
-  var isKid = modeOf() === 'kid';
   var bs = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
   var bookChs = S.channels.filter(function (ch) { return ch.songs.some(isBookItem); });
-  var items = bookFiltered();
-  var arRanges = [
-    ['전체', '📚 전체'],
-    ['0.1-0.5', '🌱 0.1~0.5'],
-    ['0.6-1.0', '🌿 0.6~1.0'],
-    ['1.1-1.5', '🌳 1.1~1.5'],
-    ['1.6-2.0', '🚀 1.6~2.0'],
-    ['2.1+', '⭐ 2.1+'],
-    ['확인불가', '확인불가']
-  ];
+  var isSeries = App.books.viewMode !== 'ar';
+  var curCh = (isSeries && App.books.ch !== '전체') ? bookChs.filter(function (c) { return c.id === App.books.ch; })[0] : null;
+  var backAct = curCh ? 'data-act="books-ch" data-k="전체"' : 'data-act="go" data-v="home"';
 
-  var h = '<div class="row spread" style="gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">' +
-    '<div class="row" style="gap:8px;align-items:center">' +
-    '<button class="btn sm ghost" data-act="go" data-v="home">← 홈</button>' +
-    '<b style="font-size:18px">📚 영어 원서 서재</b></div>' +
-    '<div class="row" style="gap:6px">' +
-    (!isKid ? '<button class="btn sm sky" data-act="batch-audio">🎧 음원 연결</button>' : '') +
-    '<button class="btn sm ghost" data-act="books-mom-settings">⚙️ 엄마 설정</button>' +
+  var h = '<div class="row spread" style="gap:8px;align-items:center;margin-bottom:10px">' +
+    '<div class="row" style="gap:6px;align-items:center;min-width:0">' +
+    '<button class="btn xs ghost" style="padding:4px 8px;font-size:18px;border:0;background:transparent" ' + backAct + ' aria-label="뒤로">‹</button>' +
+    '<b style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (curCh ? esc(curCh.name) : '📚 영어 원서 서재') + '</b></div>' +
+    '<div class="row" style="gap:5px;flex-shrink:0">' +
+    '<button class="btn xs ghost" style="width:28px;height:28px;min-height:28px;padding:0;border-radius:999px" data-act="books-search-toggle" aria-label="검색">🔎</button>' +
+    '<button class="btn xs ghost" style="padding:4px 9px;font-size:11.5px;min-height:28px;border-radius:999px" data-act="books-mom-settings">⚙️ 엄마 설정</button>' +
     '</div></div>';
 
-  h += '<div class="chips" style="margin-bottom:6px">' +
-    '<button class="chip ' + (App.books.age === '전체' ? 'on mint' : '') + '" data-act="books-age" data-k="전체">🎂 전체 연령</button>' +
-    AGE_GROUPS.map(function (g) {
-      return '<button class="chip ' + (App.books.age === g.key ? 'on mint' : '') + '" data-act="books-age" data-k="' + g.key + '">' + g.label + '</button>';
+  if (!curCh) {
+    h += '<div class="chips" style="margin-bottom:8px">' +
+      '<button class="chip ' + (isSeries ? 'on sky' : '') + '" data-act="books-view-mode" data-k="series">📚 단계별(시리즈) 보기</button>' +
+      '<button class="chip ' + (!isSeries ? 'on mint' : '') + '" data-act="books-view-mode" data-k="ar">🔢 지수별(AR) 보기</button>' +
+      (bs.ownedOnly ? '<span class="chip on mint" data-act="books-mom-settings">보유한 책만 보는 중</span>' : '') +
+      '</div>';
+  }
+
+  h += '<div class="' + (App.books.showSearch || App.books.q ? '' : 'hide') + '" style="margin-bottom:8px">' +
+    '<div class="searchbox" style="padding:7px 10px">🔎<input id="books-q" type="text" placeholder="원서 제목·작가·AR 검색" value="' + esc(App.books.q) + '"></div></div>';
+
+  if (isSeries && !curCh) {
+    if (App.books.q) {
+      var qItems = bookFiltered();
+      if (!qItems.length) return h + '<div class="empty cute"><span class="big">📚</span>검색된 원서가 없어요.</div>';
+      return h + '<div class="kgrid">' + qItems.map(function (p) { return renderBookCard(p, true); }).join('') + '</div>';
+    }
+    h += '<div class="vlist">' + bookChs.map(function (ch) {
+      var books = ch.songs.filter(function (s) {
+        if (!isBookItem(s)) return false;
+        if (bs.ownedOnly && !s.owned) return false;
+        return true;
+      });
+      var info = SERIES_INFO[ch.id] || { badge: books.length + '권', color: '#0EA5E9', summary: '' };
+      var shortIco = esc((ch.name || '책').replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 1) || '📖');
+      return '<button class="vcard" style="align-items:flex-start" data-act="books-ch" data-k="' + ch.id + '">' +
+        '<span class="vc-ico" style="background:' + info.color + ';margin-top:2px">' + shortIco + '</span>' +
+        '<span class="vc-body"><b>' + esc(ch.name) + '</b>' +
+        '<span style="color:#0EA5E9;font-weight:700">' + esc(info.badge) + ' · 현재 ' + books.length + '권</span>' +
+        (info.summary ? '<span style="white-space:normal;line-height:1.4;margin-top:3px;display:block">' + esc(info.summary) + '</span>' : '') +
+        '</span><span class="vc-arr" style="align-self:center">›</span></button>';
     }).join('') + '</div>';
+    return h;
+  }
 
-  h += '<div class="chips" style="margin-bottom:6px">' +
-    arRanges.map(function (r) {
-      return '<button class="chip ' + (App.books.ar === r[0] ? 'on sky' : '') + '" data-act="books-ar" data-k="' + r[0] + '">' + r[1] + '</button>';
-    }).join('') + '</div>';
+  if (isSeries && curCh) {
+    var sInfo = SERIES_INFO[curCh.id];
+    if (sInfo && sInfo.summary) {
+      h += '<div class="tipbox" style="margin-bottom:8px;font-size:12.5px;line-height:1.45"><b>' + esc(sInfo.badge) + '</b><br>' + esc(sInfo.summary) + '</div>';
+    }
+    var stages = [];
+    var seenSt = {};
+    curCh.songs.forEach(function (s) {
+      if (!isBookItem(s)) return;
+      var st = s.stage || '';
+      if (st && !seenSt[st]) { seenSt[st] = true; stages.push(st); }
+    });
+    if (stages.length > 1) {
+      h += '<div class="chips" style="margin-bottom:8px">' +
+        '<button class="chip ' + (App.books.stage === '전체' ? 'on sky' : '') + '" data-act="books-stage" data-k="전체">전체 단계</button>' +
+        stages.map(function (st) {
+          return '<button class="chip ' + (App.books.stage === st ? 'on sky' : '') + '" data-act="books-stage" data-k="' + esc(st) + '">' + esc(st) + '</button>';
+        }).join('') + '</div>';
+    }
+  } else {
+    var arRanges = [
+      ['전체', '전체'],
+      ['0.1-0.5', '0.1~0.5'],
+      ['0.6-1.0', '0.6~1.0'],
+      ['1.1-1.5', '1.1~1.5'],
+      ['1.6-2.0', '1.6~2.0'],
+      ['2.1+', '2.1+'],
+      ['확인불가', '확인불가']
+    ];
+    h += '<div class="chips" style="margin-bottom:8px">' +
+      arRanges.map(function (r) {
+        return '<button class="chip ' + (App.books.ar === r[0] ? 'on mint' : '') + '" data-act="books-ar" data-k="' + r[0] + '">' + r[1] + '</button>';
+      }).join('') +
+      '<button class="chip" data-act="books-sort">' + (App.books.sort === 'AR 낮은 순' ? '↑ 낮은 순' : '↓ 높은 순') + '</button>' +
+      '</div>';
+  }
 
-  h += '<div class="chips" style="margin-bottom:8px">' +
-    '<button class="chip ' + (App.books.ch === '전체' ? 'on' : '') + '" data-act="books-ch" data-k="전체">전체 모음</button>' +
-    bookChs.map(function (ch) {
-      return '<button class="chip ' + (App.books.ch === ch.id ? 'on' : '') + '" data-act="books-ch" data-k="' + ch.id + '">' + esc(short(ch.name, 14)) + '</button>';
-    }).join('') + '</div>';
-
-  h += '<div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap">' +
-    '<div class="searchbox" style="flex:1;min-width:160px">🔎<input id="books-q" type="text" placeholder="원서 제목·작가·AR 검색" value="' + esc(App.books.q) + '"></div>' +
-    '<button class="chip ' + (App.books.ownedOnly ? 'on mint' : '') + '" data-act="books-owned">보유한 책만</button>' +
-    '<button class="btn ghost sm" data-act="books-sort">' + (App.books.sort === 'AR 낮은 순' ? '↑ AR 낮은 순' : '↓ AR 높은 순') + '</button>' +
-    '<button class="btn mint sm" data-act="books-play-all">▶ 전체 듣기 (' + items.length + ')</button>' +
-    '</div>';
-
+  var items = bookFiltered();
   if (!items.length) {
     return h + '<div class="empty cute"><span class="big">📚</span>조건에 맞는 원서가 없어요.</div>';
   }
-
-  if (bs.groupBySet !== false && App.books.ch === '전체') {
-    var groups = {};
-    var order = [];
-    items.forEach(function (pair) {
-      var cid = pair.ch.id;
-      if (!groups[cid]) { groups[cid] = { ch: pair.ch, list: [] }; order.push(cid); }
-      groups[cid].list.push(pair);
-    });
-    h += order.map(function (cid) {
-      var g = groups[cid];
-      return '<div class="sectitle" style="margin:14px 0 8px"><span>📚 ' + esc(g.ch.name) + '</span><span class="sub">' + g.list.length + '권</span></div>' +
-        '<div class="kgrid">' + g.list.map(function (p) { return renderBookCard(p, isKid); }).join('') + '</div>';
-    }).join('');
-  } else {
-    h += '<div class="kgrid">' + items.map(function (pair) { return renderBookCard(pair, isKid); }).join('') + '</div>';
-  }
-
-  return h;
+  return h + '<div class="kgrid">' + items.map(function (pair) { return renderBookCard(pair, true); }).join('') + '</div>';
 }
 
 
@@ -6158,10 +6209,26 @@ function onClick(e) {
       case 'lib-sub-k':
         App.lib.subject = btn.getAttribute('data-k') || '전체';
         App.lib.sub = '전체'; render(); break;
+      case 'books-view-mode': App.books.viewMode = btn.getAttribute('data-k') || 'series'; App.books.ch = '전체'; App.books.stage = '전체'; render(); break;
+      case 'books-stage': App.books.stage = btn.getAttribute('data-k') || '전체'; render(); break;
+      case 'books-search-toggle':
+        App.books.showSearch = !App.books.showSearch; render();
+        if (App.books.showSearch) { var bq = document.getElementById('books-q'); if (bq) bq.focus(); }
+        break;
+      case 'toggle-ch-owned': {
+        var tch = chById(id);
+        if (tch) {
+          var bks = tch.songs.filter(isBookItem);
+          var allOn = bks.length && bks.every(function (s) { return !!s.owned; });
+          bks.forEach(function (s) { s.owned = !allOn; });
+          save(); closeModal(); openBookSettingsModal(); render();
+        }
+        break;
+      }
       case 'books-age': App.books.age = btn.getAttribute('data-k') || '전체'; render(); break;
       case 'books-mom-settings': openBookSettingsModal(); break;
       case 'books-ar': App.books.ar = btn.getAttribute('data-k') || '전체'; render(); break;
-      case 'books-ch': App.books.ch = btn.getAttribute('data-k') || '전체'; render(); break;
+      case 'books-ch': App.books.ch = btn.getAttribute('data-k') || '전체'; App.books.stage = '전체'; render(); break;
       case 'books-owned': App.books.ownedOnly = !App.books.ownedOnly; render(); break;
       case 'books-sort': App.books.sort = App.books.sort === 'AR 낮은 순' ? 'AR 높은 순' : 'AR 낮은 순'; render(); break;
       case 'books-play-all': {
