@@ -2872,7 +2872,7 @@ function viewHome() {
   return html;
 }
 
-function vcard(ico, bg, title, sub, act, attrKey, attrVal, badge) {
+function areaRowCard(ico, bg, title, sub, act, attrKey, attrVal, badge) {
   return '<button class="vcard" data-act="' + act + '"' + (attrKey ? ' ' + attrKey + '="' + esc(attrVal) + '"' : '') + '>' +
     '<span class="vc-ico" style="background:' + bg + '">' + ico + '</span>' +
     '<span class="vc-body"><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></span>' +
@@ -2918,7 +2918,7 @@ function viewKidArea(area) {
       var shortIco = esc((ch.name || '영').replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 1) || '▶');
       var act = wantBooks ? 'kid-books-ch' : 'kid-resume-ch';
       var unit = wantBooks ? '권' : '편';
-      out += vcard(shortIco, col, ch.name, list.length + unit + ' · 눌러서 보기', act, 'data-id', ch.id);
+      out += areaRowCard(shortIco, col, ch.name, list.length + unit + ' · 눌러서 보기', act, 'data-id', ch.id);
     });
     return out;
   }
@@ -2926,56 +2926,56 @@ function viewKidArea(area) {
   if (area === 'en') {
     h += '<div class="vsec"><span>🎵 영어 동요 · 영상</span></div><div class="vlist">' +
       chCardsFor('영어', false) +
-      vcard('영', '#FF7043', '영어 영상 전체 보기', '영상 채널 한눈에', 'kid-lib-sub', 'data-k', '영어') +
+      areaRowCard('영', '#FF7043', '영어 영상 전체 보기', '영상 채널 한눈에', 'kid-lib-sub', 'data-k', '영어') +
       '</div>';
     h += '<div class="vsec"><span>📚 영어 원서 서재</span></div><div class="vlist">' +
       chCardsFor('영어', true) +
-      vcard('책', '#0EA5E9', '전체 원서 AR 지수별로 보기', '표지 · 연령별 · 책 퀴즈 10문제', 'go', 'data-v', 'books', 'NEW') +
+      areaRowCard('책', '#0EA5E9', '전체 원서 AR 지수별로 보기', '표지 · 연령별 · 책 퀴즈 10문제', 'go', 'data-v', 'books', 'NEW') +
       '</div>';
     h += '<div class="vsec"><span>⭐ 낱말 · 문장 · 배우기</span></div><div class="vlist">' +
-      vcard('별', '#10B981', '영어 낱말 퀴즈', '듣고 그림 고르기', 'go', 'data-v', 'review') +
-      vcard('말', '#8B5CF6', '영어 문장 만들기 (PECS)', '카드로 문장 톡톡', 'go', 'data-v', 'pecs') +
-      vcard('학', '#F59E0B', '영어 5단계 배우기', '알파벳 · 파닉스 · 인사', 'kid-learn-sub', 'data-k', 'en') +
+      areaRowCard('별', '#10B981', '영어 낱말 퀴즈', '듣고 그림 고르기', 'go', 'data-v', 'review') +
+      areaRowCard('말', '#8B5CF6', '영어 문장 만들기 (PECS)', '카드로 문장 톡톡', 'go', 'data-v', 'pecs') +
+      areaRowCard('학', '#F59E0B', '영어 5단계 배우기', '알파벳 · 파닉스 · 인사', 'kid-learn-sub', 'data-k', 'en') +
       '</div>';
   } else if (area === 'ko') {
     h += '<div class="vsec"><span>✏️ 한글 영상 · 동화</span></div><div class="vlist">' +
       (chCardsFor('한글', false) || '') +
-      vcard('한', '#5C6BC0', '한글 영상·책 전체', '한글 동화 · 노래 모음', 'kid-lib-sub', 'data-k', '한글') +
+      areaRowCard('한', '#5C6BC0', '한글 영상·책 전체', '한글 동화 · 노래 모음', 'kid-lib-sub', 'data-k', '한글') +
       '</div>';
     h += '<div class="vsec"><span>🎨 한글 배우기 · 퀴즈</span></div><div class="vlist">' +
-      vcard('가', '#EC4899', '한글 5단계 배우기', '자음 · 모음 · 통글자', 'kid-learn-sub', 'data-k', 'ko') +
-      vcard('퀴', '#10B981', '한글 퀴즈 바로 풀기', '재미있는 낱말 퀴즈', 'kid-quiz-sub', 'data-k', 'ko') +
+      areaRowCard('가', '#EC4899', '한글 5단계 배우기', '자음 · 모음 · 통글자', 'kid-learn-sub', 'data-k', 'ko') +
+      areaRowCard('퀴', '#10B981', '한글 퀴즈 바로 풀기', '재미있는 낱말 퀴즈', 'kid-quiz-sub', 'data-k', 'ko') +
       '</div>';
   } else if (area === 'ma') {
     h += '<div class="vsec"><span>🔢 수학 영상 · 책</span></div><div class="vlist">' +
       (chCardsFor('수학', false) || '') +
-      vcard('수', '#4CAF50', '수학 영상·책 전체', '숫자 노래 · 수 놀이', 'kid-lib-sub', 'data-k', '수학') +
+      areaRowCard('수', '#4CAF50', '수학 영상·책 전체', '숫자 노래 · 수 놀이', 'kid-lib-sub', 'data-k', '수학') +
       '</div>';
     h += '<div class="vsec"><span>🎲 수학 배우기 · 퀴즈</span></div><div class="vlist">' +
-      vcard('셈', '#0EA5E9', '수학 5단계 배우기', '1~10 세기 · 도형 · 패턴', 'kid-learn-sub', 'data-k', 'ma') +
-      vcard('퀴', '#F59E0B', '수학 퀴즈 바로 풀기', '그림 보고 숫자 맞히기', 'kid-quiz-sub', 'data-k', 'ma') +
+      areaRowCard('셈', '#0EA5E9', '수학 5단계 배우기', '1~10 세기 · 도형 · 패턴', 'kid-learn-sub', 'data-k', 'ma') +
+      areaRowCard('퀴', '#F59E0B', '수학 퀴즈 바로 풀기', '그림 보고 숫자 맞히기', 'kid-quiz-sub', 'data-k', 'ma') +
       '</div>';
   } else if (area === 'info') {
     h += '<div class="vsec"><span>🌍 주제별 지식 · 다큐</span></div><div class="vlist">' +
-      vcard('차', '#EF4444', '자동차 · 교통기관', '탈것 · 기차 · 비행기 · 공사장', 'kid-lib-topic', 'data-k', '다큐|교통기관') +
-      vcard('동', '#F59E0B', '동물 · 공룡', '동물원 · 바다생물 · 공룡', 'kid-lib-topic', 'data-k', '다큐|동물') +
-      vcard('자', '#10B981', '자연 · 식물 · 날씨', '사계절 · 숲 · 곤충', 'kid-lib-topic', 'data-k', '다큐|자연') +
-      vcard('우', '#6366F1', '우주 · 과학 실험', '별 · 행성 · 호기심 실험', 'kid-lib-topic', 'data-k', '다큐|과학') +
-      vcard('탐', '#26A69A', '지식 · 다큐 전체 보기', '모든 다큐 영상 한눈에', 'kid-lib-sub', 'data-k', '다큐') +
+      areaRowCard('차', '#EF4444', '자동차 · 교통기관', '탈것 · 기차 · 비행기 · 공사장', 'kid-lib-topic', 'data-k', '다큐|교통기관') +
+      areaRowCard('동', '#F59E0B', '동물 · 공룡', '동물원 · 바다생물 · 공룡', 'kid-lib-topic', 'data-k', '다큐|동물') +
+      areaRowCard('자', '#10B981', '자연 · 식물 · 날씨', '사계절 · 숲 · 곤충', 'kid-lib-topic', 'data-k', '다큐|자연') +
+      areaRowCard('우', '#6366F1', '우주 · 과학 실험', '별 · 행성 · 호기심 실험', 'kid-lib-topic', 'data-k', '다큐|과학') +
+      areaRowCard('탐', '#26A69A', '지식 · 다큐 전체 보기', '모든 다큐 영상 한눈에', 'kid-lib-sub', 'data-k', '다큐') +
       '</div>';
     h += '<div class="vsec"><span>🌱 누리과정 활동</span></div><div class="vlist">' +
-      vcard('누', '#10B981', '누리과정 5대 영역', '신체·의사소통·사회·예술·자연', 'kid-learn-sub', 'data-k', 'nu') +
+      areaRowCard('누', '#10B981', '누리과정 5대 영역', '신체·의사소통·사회·예술·자연', 'kid-learn-sub', 'data-k', 'nu') +
       '</div>';
   } else {
     h += '<div class="vsec"><span>🎨 주제별 미술 · 만들기</span></div><div class="vlist">' +
-      vcard('그', '#EC407A', '그리기 · 색칠하기', '크레파스 · 물감 · 색깔 놀이', 'kid-lib-topic', 'data-k', '기타|그리기') +
-      vcard('접', '#F59E0B', '종이접기 · 만들기', '색종이 · 가위 · 풀 만들기', 'kid-lib-topic', 'data-k', '기타|만들기') +
-      vcard('블', '#0EA5E9', '듀플로 · 블록 놀이', '입체 구성 · 상상 놀이', 'kid-lib-topic', 'data-k', '기타|블록') +
-      vcard('생', '#10B981', '생활습관 · 역할놀이', '양치 · 정리 · 인사 예절', 'kid-lib-topic', 'data-k', '기타|생활') +
-      vcard('미', '#8B5CF6', '미술·만들기 전체 보기', '모든 미술·놀이 영상 한눈에', 'kid-lib-sub', 'data-k', '기타') +
+      areaRowCard('그', '#EC407A', '그리기 · 색칠하기', '크레파스 · 물감 · 색깔 놀이', 'kid-lib-topic', 'data-k', '기타|그리기') +
+      areaRowCard('접', '#F59E0B', '종이접기 · 만들기', '색종이 · 가위 · 풀 만들기', 'kid-lib-topic', 'data-k', '기타|만들기') +
+      areaRowCard('블', '#0EA5E9', '듀플로 · 블록 놀이', '입체 구성 · 상상 놀이', 'kid-lib-topic', 'data-k', '기타|블록') +
+      areaRowCard('생', '#10B981', '생활습관 · 역할놀이', '양치 · 정리 · 인사 예절', 'kid-lib-topic', 'data-k', '기타|생활') +
+      areaRowCard('미', '#8B5CF6', '미술·만들기 전체 보기', '모든 미술·놀이 영상 한눈에', 'kid-lib-sub', 'data-k', '기타') +
       '</div>';
     h += '<div class="vsec"><span>✂️ 예술 · 만들기 놀이</span></div><div class="vlist">' +
-      vcard('놀', '#F59E0B', '누리 예술경험 놀이', '색종이 · 찰흙 · 오감 활동', 'kid-learn-sub', 'data-k', 'nu') +
+      areaRowCard('놀', '#F59E0B', '누리 예술경험 놀이', '색종이 · 찰흙 · 오감 활동', 'kid-learn-sub', 'data-k', 'nu') +
       '</div>';
   }
   return h;
