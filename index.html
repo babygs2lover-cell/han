@@ -1710,7 +1710,8 @@ function renderChrome() {
   var top = document.getElementById('topbar');
   if (top) {
     var title = VIEWS.filter(function (x) { return x.key === App.view; })[0];
-    top.innerHTML = '<h1>' + (title ? navLabel(title) : '') + '</h1>' +
+    var h1Txt = (kid && App.view === 'library') ? '' : (title ? navLabel(title) : '');
+    top.innerHTML = '<h1>' + h1Txt + '</h1>' +
       '<span class="pillstars">⭐ <b id="star-count">' + S.stars + '</b></span>' +
       '<button class="iconbtn mode-ico" data-act="toggle-mode" aria-label="' + (kid ? '엄마 모드' : '아이 모드') + '">' + (kid ? '👩' : '🧒') + '</button>' +
       (kid ? '' : '<button class="iconbtn" data-act="go" data-v="settings" aria-label="설정">⚙️</button>');
@@ -3191,13 +3192,16 @@ function viewLibraryKid() {
   var seen = {};
   (curCh ? curCh.songs : allSongs()).forEach(function (s) { if (s.subtopic && !seen[s.subtopic]) { seen[s.subtopic] = 1; subs.push(s.subtopic); } });
 
-  var html = '<div class="row spread" style="margin-bottom:8px;align-items:center;gap:8px">' +
-    '<div class="row" style="gap:6px;align-items:center;min-width:0">' +
-    '<button class="btn xs ghost" data-act="lib-pick-ch" data-id="전체">‹</button>' +
-    '<b style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(curCh ? curCh.name : '영상 목록') + '</b></div>' +
+  var chIco = esc(((curCh ? curCh.name : '영') || '영').replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 1) || '▶');
+  var html = '<div class="row spread" style="margin-bottom:10px;align-items:center;gap:8px">' +
+    '<div class="row" style="gap:8px;align-items:center;min-width:0">' +
+    '<button class="btn xs ghost" style="padding:6px 8px;font-size:18px;border:0;background:transparent" data-act="lib-pick-ch" data-id="전체" aria-label="뒤로">‹</button>' +
+    '<span class="vc-ico" style="width:36px;height:36px;border-radius:11px;font-size:16px;background:#5E60CE">' + chIco + '</span>' +
+    '<div style="min-width:0"><b style="font-size:16px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(curCh ? curCh.name : '영상 목록') + '</b>' +
+    '<span class="tiny muted">' + (curCh && curCh.songs.some(isBookItem) ? '원서 카드' : '영상 카드') + ' · ' + curSongs.length + '개</span></div></div>' +
     '<div class="row" style="gap:6px;flex-shrink:0">' +
-    '<button class="btn xs ghost" data-act="lib-search-toggle">🔎</button>' +
-    '<button class="btn xs ghost" data-act="toggle-mode">⚙️ 엄마 설정</button>' +
+    '<button class="btn xs ghost" style="width:34px;height:34px;padding:0;border-radius:999px" data-act="lib-search-toggle" aria-label="검색">🔎</button>' +
+    '<button class="btn xs ghost" style="padding:7px 11px;border-radius:999px" data-act="' + (curCh ? 'edit-channel' : 'toggle-mode') + '"' + (curCh ? ' data-id="' + curCh.id + '"' : '') + '>⚙️ 엄마 설정</button>' +
     '</div></div>';
   if (subs.length) {
     html += '<div class="chips compact-chips" style="margin-bottom:8px">' +
