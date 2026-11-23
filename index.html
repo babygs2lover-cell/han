@@ -2844,6 +2844,11 @@ function viewHome() {
     }).join('') + '</div>';
   }
   html += '</div>';
+  if (kid) {
+    html += '<div style="text-align:center;margin:14px 0 6px">' +
+      '<button class="btn xs ghost" style="padding:7px 14px;border-radius:999px" data-act="toggle-mode">⚙️ 엄마 설정</button>' +
+      '</div>';
+  }
   return html;
 }
 
