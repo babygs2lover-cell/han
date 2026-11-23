@@ -130,6 +130,7 @@ hr.sep{border:0;border-top:1px dashed var(--line); margin:16px 0;}
 .btn.sun{background:linear-gradient(145deg,#FFE08A,#F5B93B); color:#7A4E1B; border-color:transparent; box-shadow:0 10px 22px rgba(245,185,59,.28);}
 .btn.ghost{background:transparent; box-shadow:none; border-color:var(--line); color:var(--ink2);}
 .btn.sm{padding:8px 13px; font-size:13.5px; min-height:38px;}
+.btn.xs{padding:5px 10px; font-size:12px; min-height:28px; border-radius:999px;}
 .btn.big{padding:18px 28px; font-size:18px; min-height:62px;}
 .btn.block{width:100%;}
 .btn.danger{color:#D2483A; border-color:#F7D3CD;}
@@ -3185,9 +3186,9 @@ function viewLibraryKid() {
     '<span class="vc-ico" style="width:36px;height:36px;border-radius:11px;font-size:16px;background:#5E60CE">' + chIco + '</span>' +
     '<div style="min-width:0"><b style="font-size:16px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(curCh ? curCh.name : '영상 목록') + '</b>' +
     '<span class="tiny muted">' + (curCh && curCh.songs.some(isBookItem) ? '원서 카드' : '영상 카드') + ' · ' + curSongs.length + '개</span></div></div>' +
-    '<div class="row" style="gap:6px;flex-shrink:0">' +
-    '<button class="btn xs ghost" style="width:34px;height:34px;padding:0;border-radius:999px" data-act="lib-search-toggle" aria-label="검색">🔎</button>' +
-    '<button class="btn xs ghost" style="padding:7px 11px;border-radius:999px" data-act="' + (curCh ? 'edit-channel' : 'toggle-mode') + '"' + (curCh ? ' data-id="' + curCh.id + '"' : '') + '>⚙️ 엄마 설정</button>' +
+    '<div class="row" style="gap:5px;flex-shrink:0">' +
+    '<button class="btn xs ghost" style="width:28px;height:28px;min-height:28px;padding:0;border-radius:999px" data-act="lib-search-toggle" aria-label="검색">🔎</button>' +
+    '<button class="btn xs ghost" style="padding:4px 9px;font-size:11.5px;min-height:28px;border-radius:999px" data-act="' + (curCh ? 'edit-channel' : 'toggle-mode') + '"' + (curCh ? ' data-id="' + curCh.id + '"' : '') + '>⚙️ 엄마 설정</button>' +
     '</div></div>';
   if (subs.length) {
     html += '<div class="chips compact-chips" style="margin-bottom:8px">' +
@@ -3201,9 +3202,9 @@ function viewLibraryKid() {
   html += '<div class="row spread" style="gap:8px;margin-bottom:10px;align-items:center">' +
     '<div><b style="font-size:15px">' + esc(App.lib.sub === '전체' ? '전체' : App.lib.sub) + '</b>' +
     '<div class="tiny muted">카드를 누르면 바로 재생돼요</div></div>' +
-    '<div class="row" style="gap:6px;flex-shrink:0">' +
-    '<button class="btn xs ghost" style="padding:6px 10px;border-radius:12px" data-act="kid-shuffle-all">🔀<br><span style="font-size:10px">섞기</span></button>' +
-    '<button class="btn xs mint" style="padding:8px 12px;border-radius:12px" data-act="kid-play-all">▶ 전체 보기 (' + curSongs.length + ')</button>' +
+    '<div class="row" style="gap:5px;flex-shrink:0">' +
+    '<button class="btn xs ghost" style="padding:4px 8px;min-height:30px;border-radius:10px;line-height:1.1" data-act="kid-shuffle-all">🔀 <span style="font-size:11px">섞기</span></button>' +
+    '<button class="btn xs mint" style="padding:5px 10px;min-height:30px;font-size:12px;border-radius:10px" data-act="kid-play-all">▶ 전체 보기 (' + curSongs.length + ')</button>' +
     '</div></div>';
   html += '<div id="songlist">' + kidSongList() + '</div>';
   return html;
