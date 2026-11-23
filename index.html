@@ -1710,10 +1710,11 @@ function renderChrome() {
   var top = document.getElementById('topbar');
   if (top) {
     var title = VIEWS.filter(function (x) { return x.key === App.view; })[0];
-    var h1Txt = (kid && App.view === 'library') ? '' : (title ? navLabel(title) : '');
+    var h1Txt = (kid && (App.view === 'library' || App.kidArea)) ? '' : (title ? navLabel(title) : '');
+    var hideDupMom = kid && (App.kidArea || App.view === 'library' || App.view === 'books');
     top.innerHTML = '<h1>' + h1Txt + '</h1>' +
       '<span class="pillstars">⭐ <b id="star-count">' + S.stars + '</b></span>' +
-      '<button class="iconbtn mode-ico" data-act="toggle-mode" aria-label="' + (kid ? '엄마 모드' : '아이 모드') + '">' + (kid ? '👩' : '🧒') + '</button>' +
+      (hideDupMom ? '' : '<button class="iconbtn mode-ico" data-act="toggle-mode" aria-label="' + (kid ? '엄마 모드' : '아이 모드') + '">' + (kid ? '👩' : '🧒') + '</button>') +
       (kid ? '' : '<button class="iconbtn" data-act="go" data-v="settings" aria-label="설정">⚙️</button>');
   }
 }
