@@ -3155,55 +3155,59 @@ function viewLibrary() {
 }
 
 function viewLibraryKid() {
-  var subjChips = '<div class="chips" style="margin-bottom:6px">' +
-    '<button class="chip kchip ' + (App.lib.subject === '전체' ? 'on mint' : '') + '" data-act="lib-sub-k" data-k="전체">📚 전체</button>' +
-    SUBJECTS.map(function (s) {
-      return '<button class="chip kchip ' + (App.lib.subject === s.key ? 'on mint' : '') + '" data-act="lib-sub-k" data-k="' + s.key + '">' + s.ico + ' ' + s.key + '</button>';
-    }).join('') + '</div>';
+  if (App.lib.ch === '전체' && !App.lib.q) {
+    var palette = ['#EA580C', '#EC4899', '#F59E0B', '#10B981', '#2563EB', '#8B5CF6', '#0EA5E9'];
+    var chList = S.channels.filter(function (ch) {
+      if (App.lib.subject === '전체') return ch.songs.length > 0;
+      return ch.songs.some(function (s) { return songMatchesTopic(s, App.lib.subject, App.lib.sub); });
+    });
+    var videoChs = chList.filter(function (ch) { return !ch.songs.some(isBookItem); });
+    var bookChs = chList.filter(function (ch) { return ch.songs.some(isBookItem); });
+    var h = '<div class="row spread" style="margin-bottom:8px;align-items:center">' +
+      '<button class="btn sm ghost" data-act="go" data-v="home">← 돌아가기</button>' +
+      '<button class="btn sm ghost" data-act="toggle-mode">⚙️ 엄마 설정</button>' +
+      '</div>';
+    h += '<div class="searchbox" style="margin-bottom:10px">🔎<input id="lib-q" type="text" placeholder="제목으로 찾기" value="' + esc(App.lib.q) + '"></div>';
+    function renderKidChSec(title, arr) {
+      if (!arr.length) return '';
+      return '<div class="vsec"><span>' + title + '</span></div><div class="vlist">' +
+        arr.map(function (ch, ix) {
+          var cnt = App.lib.subject === '전체' ? ch.songs.length : ch.songs.filter(function (s) { return songMatchesTopic(s, App.lib.subject, App.lib.sub); }).length;
+          var ico = esc((ch.name || '영').replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 1) || '▶');
+          return areaRowCard(ico, palette[ix % palette.length], ch.name, cnt + (ch.songs.some(isBookItem) ? '권' : '편') + ' · 눌러서 보기', 'lib-pick-ch', 'data-id', ch.id);
+        }).join('') + '</div>';
+    }
+    h += renderKidChSec('🎵 영상 · 동요 채널', videoChs);
+    h += renderKidChSec('📚 영어 원서 세트', bookChs);
+    if (!videoChs.length && !bookChs.length) {
+      h += '<div class="empty cute"><span class="big">📂</span>아직 영상이 없어요.<br><span class="tiny">엄마 모드에서 영상을 추가해 주세요.</span></div>';
+    }
+    return h;
+  }
 
-  var chChips = subjChips + '<div class="chips" style="margin-bottom:6px">' +
-    '<button class="chip kchip ' + (App.lib.ch === '전체' ? 'on coral' : '') + '" data-act="lib-channel" data-k="전체">🌈 전체</button>' +
-    S.channels.map(function (c) {
-      return '<button class="chip kchip ' + (App.lib.ch === c.id ? 'on coral' : '') + '" data-act="lib-channel" data-k="' + c.id + '">' +
-        (c.id === 'ch-omc' ? '🎵' : c.id === 'ch-ort' ? '📗' : c.id === 'ch-pb' ? '📕' : '📚') + ' ' + esc(short(c.name, 12)) + '</button>';
-    }).join('') + '</div>';
+  var curCh = S.channels.filter(function (c) { return c.id === App.lib.ch; })[0];
+  var curSongs = libSongs();
+  var subs = [];
+  var seen = {};
+  (curCh ? curCh.songs : allSongs()).forEach(function (s) { if (s.subtopic && !seen[s.subtopic]) { seen[s.subtopic] = 1; subs.push(s.subtopic); } });
 
-  var ageRow = '<div class="chips" style="margin-bottom:6px">' +
-    '<button class="chip ' + (App.lib.age === '전체' ? 'on lav' : '') + '" data-act="lib-agek" data-k="전체">🎂 연령 전체</button>' +
-    AGE_GROUPS.map(function (g) {
-      return '<button class="chip ' + (App.lib.age === g.key ? 'on lav' : '') + '" data-act="lib-agek" data-k="' + g.key + '">' +
-        g.ico + ' ' + g.label + '</button>';
-    }).join('') +
-    '<button class="chip ' + (App.lib.ownedOnly ? 'on sun' : '') + '" data-act="lib-owned">🏠 보유한 책만</button>' +
+  var html = '<div class="row spread" style="margin-bottom:8px;align-items:center">' +
+    '<button class="btn sm ghost" data-act="lib-pick-ch" data-id="전체">← 채널 목록</button>' +
+    '<b style="font-size:16px">' + esc(curCh ? curCh.name : '영상 목록') + '</b>' +
+    '<button class="btn sm ghost" data-act="toggle-mode">⚙️ 엄마 설정</button>' +
     '</div>';
-
-  var stageRow = '';
-  var stages = stagesPresent();
-  if (stages.length && (App.lib.ch === '전체' || App.lib.ch === 'ch-ort' || App.lib.ch === 'ch-pb')) {
-    stageRow = '<div class="chips" style="margin-bottom:6px">' +
-      '<button class="chip ' + (App.lib.stage === '전체' ? 'on mint' : '') + '" data-act="lib-stagek" data-k="전체">전체 단계</button>' +
-      stages.map(function (st) {
-        return '<button class="chip ' + (App.lib.stage === st ? 'on mint' : '') + '" data-act="lib-stagek" data-k="' + esc(st) + '">' + esc(st) + '</button>';
+  if (subs.length) {
+    html += '<div class="chips" style="margin-bottom:8px">' +
+      '<button class="chip kchip ' + (App.lib.sub === '전체' ? 'on mint' : '') + '" data-act="lib-topic" data-k="전체">전체</button>' +
+      subs.map(function (t) {
+        return '<button class="chip kchip ' + (App.lib.sub === t ? 'on mint' : '') + '" data-act="lib-topic" data-k="' + esc(t) + '">' + esc(t) + '</button>';
       }).join('') + '</div>';
   }
-  var sortRow = '<div class="chips" style="margin-bottom:8px">' +
-    '<button class="chip ' + (App.lib.sort === '기본' ? 'on sun' : '') + '" data-act="lib-sortk" data-k="기본">🎞 영상 순</button>' +
-    '<button class="chip ' + (App.lib.sort === 'AR 낮은 순' ? 'on sun' : '') + '" data-act="lib-sortk" data-k="AR 낮은 순">🔤 AR 지수 순</button>' +
-    '</div>';
-
-  var html = chChips + ageRow + stageRow + sortRow;
-  var curSongs = libSongs();
   html += '<div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap">' +
-    '<div class="searchbox" style="flex:1;min-width:160px">🔎<input id="lib-q" type="text" placeholder="제목으로 찾기" value="' + esc(App.lib.q) + '"></div>' +
+    '<div class="searchbox" style="flex:1;min-width:140px">🔎<input id="lib-q" type="text" placeholder="제목으로 찾기" value="' + esc(App.lib.q) + '"></div>' +
     '<button class="btn ghost sm" data-act="kid-shuffle-all">🔀 섞기</button>' +
     '<button class="btn mint sm" data-act="kid-play-all">▶ 전체 보기 (' + curSongs.length + ')</button>' +
     '</div>';
-  if (App.lib.age && App.lib.age !== '전체') {
-    var g = AGE_GROUPS.filter(function (x) { return x.key === App.lib.age; })[0];
-    var n = libSongs().length;
-    html += '<div class="age-note">' + (g ? g.ico : '🎂') + ' <b>' + esc(g ? g.label : App.lib.age) + ' 추천 원서 ' + n + '권</b>' +
-      '<span>AR 지수 낮은 순서로 보여드려요. 아이가 재미있어 하는 책부터 시작해 주세요.</span></div>';
-  }
   html += '<div id="songlist">' + kidSongList() + '</div>';
   return html;
 }
