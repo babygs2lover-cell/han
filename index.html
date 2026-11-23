@@ -445,6 +445,33 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .resume-banner .rb-body b{display:block; font-size:15px; letter-spacing:-.2px;}
 .resume-banner .rb-body span{display:block; font-size:12px; color:#F5B74F; font-weight:700; margin-top:2px;}
 .resume-banner .rb-arr{font-size:22px; color:#A8B0BC; font-weight:700;}
+.vhead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px;}
+.vh-left{display:flex; align-items:center; gap:12px; min-width:0;}
+.vh-logo{
+  width:46px; height:46px; border-radius:15px; color:#fff; font-weight:800; font-size:21px;
+  display:grid; place-items:center; flex-shrink:0; box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+.vh-left b{font-size:20px; letter-spacing:-.4px; display:block;}
+.vsec{margin:16px 2px 8px; font-size:15px; font-weight:800; color:#332A24;}
+.vlist{display:flex; flex-direction:column; gap:10px;}
+.vcard{
+  position:relative; display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+  padding:14px 16px; border-radius:22px; background:#fff; border:1px solid #EFEAE2;
+  box-shadow:0 4px 12px rgba(90,70,50,.05); transition:transform .1s;
+}
+.vcard:active{transform:scale(.99);}
+.vc-ico{
+  width:48px; height:48px; border-radius:16px; color:#fff; font-weight:800; font-size:20px;
+  display:grid; place-items:center; flex-shrink:0; box-shadow:0 3px 8px rgba(0,0,0,.1);
+}
+.vc-body{flex:1; min-width:0;}
+.vc-body b{display:block; font-size:16px; color:#231F20; letter-spacing:-.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.vc-body span{display:block; font-size:12.5px; color:#8A7E76; margin-top:2px;}
+.vc-badge{
+  background:#4F46E5; color:#fff; font-size:10px; font-weight:800; padding:3px 7px;
+  border-radius:999px; margin-right:4px;
+}
+.vc-arr{font-size:20px; color:#C0B5AD; font-weight:700;}
 
 .card.cute{border-radius:30px; border:2px solid #FFF2E2; box-shadow:0 8px 0 rgba(180,140,90,.05), var(--sh-sm);}
 .empty.cute{border-radius:28px;}
@@ -2844,41 +2871,101 @@ function viewHome() {
   return html;
 }
 
+function vcard(ico, bg, title, sub, act, attrKey, attrVal, badge) {
+  return '<button class="vcard" data-act="' + act + '"' + (attrKey ? ' ' + attrKey + '="' + esc(attrVal) + '"' : '') + '>' +
+    '<span class="vc-ico" style="background:' + bg + '">' + ico + '</span>' +
+    '<span class="vc-body"><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></span>' +
+    (badge ? '<span class="vc-badge">' + esc(badge) + '</span>' : '') +
+    '<span class="vc-arr">›</span></button>';
+}
+
 function viewKidArea(area) {
   var meta = {
-    en: { title: '🔤 영어 놀이터', sub: '영어 노래·원서·낱말·문장 놀이를 해요' },
-    ma: { title: '🔢 수학 놀이터', sub: '숫자 세기·도형·패턴 놀이를 해요' },
-    ko: { title: '가 한글 놀이터', sub: '가나다 통글자·한글 동화 봐요' },
-    info: { title: '🌍 지식 놀이터', sub: '자연 다큐·과학·누리과정 탐구해요' },
-    art: { title: '🎨 미술 놀이터', sub: '만들기·그리기·종이접기 놀이해요' }
-  }[area] || { title: '놀이터', sub: '' };
-  var h = '<div class="card cute" style="margin-top:14px">' +
-    '<div class="row" style="gap:10px;align-items:center;margin-bottom:12px">' +
-    '<button class="btn sm ghost" data-act="kid-area" data-k="">← 대단원</button>' +
-    '<div><b style="font-size:17px">' + meta.title + '</b><div class="tiny muted">' + meta.sub + '</div></div>' +
-    '</div><div class="kareas">';
-  if (area === 'en') {
-    h += '<button class="kbtn c1" data-act="kid-lib-sub" data-k="영어"><span class="ke">🎵</span><b>영어 노래·영상</b><span>영상 보고 따라 불러요</span></button>' +
-      '<button class="kbtn c2" data-act="go" data-v="books"><span class="ke">📚</span><b>영어 원서 서재</b><span>AR 지수별 책·영상·음성</span></button>' +
-      '<button class="kbtn c3" data-act="go" data-v="review"><span class="ke">⭐</span><b>영어 낱말 퀴즈</b><span>듣고 그림 골라요</span></button>' +
-      '<button class="kbtn c4" data-act="go" data-v="pecs"><span class="ke">💬</span><b>영어 문장 만들기</b><span>카드로 문장 톡톡</span></button>' +
-      '<button class="kbtn c1" data-act="kid-learn-sub" data-k="en"><span class="ke">🎨</span><b>영어 배우기</b><span>5단계 놀이</span></button>';
-  } else if (area === 'ma') {
-    h += '<button class="kbtn c2" data-act="kid-lib-sub" data-k="수학"><span class="ke">📺</span><b>수학 영상·책</b><span>재미있는 수 놀이</span></button>' +
-      '<button class="kbtn c1" data-act="kid-learn-sub" data-k="ma"><span class="ke">🎨</span><b>수학 배우기</b><span>5단계 수세기·도형</span></button>' +
-      '<button class="kbtn c3" data-act="kid-quiz-sub" data-k="ma"><span class="ke">🎲</span><b>수학 퀴즈</b><span>바로 문제 풀기</span></button>';
-  } else if (area === 'ko') {
-    h += '<button class="kbtn c3" data-act="kid-lib-sub" data-k="한글"><span class="ke">📺</span><b>한글 영상·책</b><span>한글 동화·노래</span></button>' +
-      '<button class="kbtn c1" data-act="kid-learn-sub" data-k="ko"><span class="ke">🎨</span><b>한글 배우기</b><span>5단계 자음·통글자</span></button>' +
-      '<button class="kbtn c2" data-act="kid-quiz-sub" data-k="ko"><span class="ke">🎲</span><b>한글 퀴즈</b><span>바로 문제 풀기</span></button>';
-  } else if (area === 'info') {
-    h += '<button class="kbtn c4" data-act="kid-lib-sub" data-k="다큐"><span class="ke">🌍</span><b>다큐·과학 영상</b><span>동물·자연·우주 탐구</span></button>' +
-      '<button class="kbtn c3" data-act="kid-learn-sub" data-k="nu"><span class="ke">🌱</span><b>누리과정 놀이</b><span>5대 영역 활동</span></button>';
-  } else {
-    h += '<button class="kbtn c1" data-act="kid-lib-sub" data-k="기타"><span class="ke">🎨</span><b>미술·만들기 영상</b><span>그리기·생활·놀이</span></button>' +
-      '<button class="kbtn c4" data-act="kid-learn-sub" data-k="nu"><span class="ke">✂️</span><b>예술·만들기 놀이</b><span>색종이·찰흙·오감</span></button>';
+    en: { ico: '영', bg: '#FF7043', title: '영어', sub: '영어 동요 · 영어 원서 · 낱말 · 문장', desc: '원하는 카드를 고르면 바로 열려요.' },
+    ma: { ico: '수', bg: '#4CAF50', title: '수학', sub: '수학 영상 · 수세기 · 도형 · 퀴즈', desc: '숫자와 도형 놀이를 골라 보세요.' },
+    ko: { ico: '한', bg: '#5C6BC0', title: '한글', sub: '한글 영상 · 자음 · 통글자 · 퀴즈', desc: '재미있는 한글 놀이를 골라 보세요.' },
+    info: { ico: '지', bg: '#26A69A', title: '지식', sub: '자연 다큐 · 과학 · 누리과정', desc: '세상 궁금증을 탐구해 봐요.' },
+    art: { ico: '미', bg: '#EC407A', title: '미술', sub: '그리기 · 만들기 · 종이접기 · 생활', desc: '신나는 만들기 놀이를 골라 보세요.' }
+  }[area] || { ico: '놀', bg: '#FF7043', title: '놀이터', sub: '', desc: '' };
+
+  var h = '<div class="vhead">' +
+    '<div class="vh-left"><span class="vh-logo" style="background:' + meta.bg + '">' + meta.ico + '</span>' +
+    '<div><b>' + esc(meta.title) + '</b><div class="tiny muted">' + esc(meta.sub) + '</div></div></div>' +
+    '<button class="btn sm ghost" data-act="toggle-mode">⚙️ 엄마 설정</button>' +
+    '</div>' +
+    '<p class="tiny muted" style="margin:6px 2px 12px">' + esc(meta.desc) + '</p>';
+
+  var lch = S.lastChannelId ? S.channels.filter(function (x) { return x.id === S.lastChannelId; })[0] : null;
+  if (lch) {
+    h += '<button class="resume-banner" data-act="kid-resume-ch" data-id="' + lch.id + '">' +
+      '<span class="rb-ico">▶</span>' +
+      '<span class="rb-body"><b>' + esc(lch.name) + ' 이어서 보기</b><span>마지막에 본 채널</span></span>' +
+      '<span class="rb-arr">›</span></button>';
   }
-  return h + '</div></div>';
+
+  var palette = ['#5E60CE', '#F59E0B', '#EC4899', '#EA580C', '#10B981', '#0EA5E9'];
+  function chCardsFor(subj) {
+    var out = '';
+    var ix = 0;
+    S.channels.forEach(function (ch) {
+      var list = ch.songs.filter(function (s) { return s.subject === subj; });
+      if (!list.length) return;
+      var col = palette[ix++ % palette.length];
+      var shortIco = esc((ch.name || '영').replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 1) || '▶');
+      out += vcard(shortIco, col, ch.name, list.length + '편 · 눌러서 보기', 'kid-resume-ch', 'data-id', ch.id);
+    });
+    return out;
+  }
+
+  if (area === 'en') {
+    h += '<div class="vsec"><span>🎵 영어 동요 · 영상</span></div><div class="vlist">' +
+      chCardsFor('영어') +
+      vcard('영', '#FF7043', '영어 영상 전체 보기', '모든 채널 한눈에', 'kid-lib-sub', 'data-k', '영어') +
+      '</div>';
+    h += '<div class="vsec"><span>📚 영어 원서 서재</span></div><div class="vlist">' +
+      vcard('책', '#0EA5E9', '영어 원서 서재 (AR 지수별)', '표지 · 책 퀴즈 10문제 · 음원', 'go', 'data-v', 'books', 'NEW') +
+      '</div>';
+    h += '<div class="vsec"><span>⭐ 낱말 · 문장 · 배우기</span></div><div class="vlist">' +
+      vcard('별', '#10B981', '영어 낱말 퀴즈', '듣고 그림 고르기', 'go', 'data-v', 'review') +
+      vcard('말', '#8B5CF6', '영어 문장 만들기 (PECS)', '카드로 문장 톡톡', 'go', 'data-v', 'pecs') +
+      vcard('학', '#F59E0B', '영어 5단계 배우기', '알파벳 · 파닉스 · 인사', 'kid-learn-sub', 'data-k', 'en') +
+      '</div>';
+  } else if (area === 'ko') {
+    h += '<div class="vsec"><span>✏️ 한글 영상 · 동화</span></div><div class="vlist">' +
+      (chCardsFor('한글') || '') +
+      vcard('한', '#5C6BC0', '한글 영상·책 전체', '한글 동화 · 노래 모음', 'kid-lib-sub', 'data-k', '한글') +
+      '</div>';
+    h += '<div class="vsec"><span>🎨 한글 배우기 · 퀴즈</span></div><div class="vlist">' +
+      vcard('가', '#EC4899', '한글 5단계 배우기', '자음 · 모음 · 통글자', 'kid-learn-sub', 'data-k', 'ko') +
+      vcard('퀴', '#10B981', '한글 퀴즈 바로 풀기', '재미있는 낱말 퀴즈', 'kid-quiz-sub', 'data-k', 'ko') +
+      '</div>';
+  } else if (area === 'ma') {
+    h += '<div class="vsec"><span>🔢 수학 영상 · 책</span></div><div class="vlist">' +
+      (chCardsFor('수학') || '') +
+      vcard('수', '#4CAF50', '수학 영상·책 전체', '숫자 노래 · 수 놀이', 'kid-lib-sub', 'data-k', '수학') +
+      '</div>';
+    h += '<div class="vsec"><span>🎲 수학 배우기 · 퀴즈</span></div><div class="vlist">' +
+      vcard('셈', '#0EA5E9', '수학 5단계 배우기', '1~10 세기 · 도형 · 패턴', 'kid-learn-sub', 'data-k', 'ma') +
+      vcard('퀴', '#F59E0B', '수학 퀴즈 바로 풀기', '그림 보고 숫자 맞히기', 'kid-quiz-sub', 'data-k', 'ma') +
+      '</div>';
+  } else if (area === 'info') {
+    h += '<div class="vsec"><span>🌍 다큐 · 과학 영상</span></div><div class="vlist">' +
+      (chCardsFor('다큐') || '') +
+      vcard('탐', '#26A69A', '다큐·과학 영상 전체', '동물 · 자연 · 우주 탐구', 'kid-lib-sub', 'data-k', '다큐') +
+      '</div>';
+    h += '<div class="vsec"><span>🌱 누리과정 활동</span></div><div class="vlist">' +
+      vcard('누', '#10B981', '누리과정 5대 영역', '신체·의사소통·사회·예술·자연', 'kid-learn-sub', 'data-k', 'nu') +
+      '</div>';
+  } else {
+    h += '<div class="vsec"><span>🎨 미술 · 만들기 영상</span></div><div class="vlist">' +
+      (chCardsFor('기타') || '') +
+      vcard('미', '#EC407A', '미술·만들기·생활 영상 전체', '그리기 · 생활습관 · 놀이', 'kid-lib-sub', 'data-k', '기타') +
+      '</div>';
+    h += '<div class="vsec"><span>✂️ 예술 · 만들기 놀이</span></div><div class="vlist">' +
+      vcard('놀', '#F59E0B', '누리 예술경험 놀이', '색종이 · 찰흙 · 오감 활동', 'kid-learn-sub', 'data-k', 'nu') +
+      '</div>';
+  }
+  return h;
 }
 
 function planIco(it) {
