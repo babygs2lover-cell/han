@@ -875,8 +875,8 @@ var PEC_IMG = {"a_an": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDA
 'use strict';
 
 var SEED = JSON.parse(document.getElementById('seed-data').textContent);
-var LS_KEY = 'hangyeol.learning.app.v1';
-var APP_VERSION = 3;
+var LS_KEY = 'hangyeol.learning.app.v2';
+var APP_VERSION = 4;
 
 /* ---------- subjects & subtopics ---------- */
 var SUBJECTS = [
@@ -1148,14 +1148,13 @@ function defaultPlan() {
 }
 
 function seedState() {
-  var chs = JSON.parse(JSON.stringify(SEED.channels || [SEED.channel]));
   return {
     app: 'hangyeol-learning', v: APP_VERSION,
     childName: '한결',
-    channels: chs,
+    channels: [],
     stars: 0,
     starLog: [],
-    plan: defaultPlan(),
+    plan: { theme: null, mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
     done: {},                 /* plan item id -> true */
     nuri: {},
     review: {},               /* word -> {ok, no} */
@@ -1542,10 +1541,10 @@ function addStar(n, label) {
 /* ---------- router ---------- */
 var VIEWS = [
   { key: 'home', label: '오늘', kid: '놀이터', mom: '오늘', ico: '🏠', kidIco: '🎠' },
-  { key: 'library', label: '노래방', kid: '노래', mom: '관리', ico: '🎵', kidIco: '🎵' },
   { key: 'books', label: '원서 서재', mom: '원서', ico: '📚' },
   { key: 'plan', label: '계획표', mom: '계획', ico: '🗓️' },
   { key: 'settings', label: '설정', mom: '설정', ico: '⚙️' },
+  { key: 'library', label: '노래방', ico: '🎵' },
   { key: 'review', label: '단어놀이', ico: '⭐' },
   { key: 'pecs', label: '문장 만들기', ico: '💬' },
   { key: 'learn', label: '배우기', ico: '🎓' },
@@ -1710,13 +1709,15 @@ function renderChrome() {
   }
   var top = document.getElementById('topbar');
   if (top) {
-    var title = VIEWS.filter(function (x) { return x.key === App.view; })[0];
-    var h1Txt = (kid && (App.view === 'library' || App.kidArea)) ? '' : (title ? navLabel(title) : '');
-    var hideDupMom = kid && (App.kidArea || App.view === 'library' || App.view === 'books');
-    top.innerHTML = '<h1>' + h1Txt + '</h1>' +
-      '<span class="pillstars">⭐ <b id="star-count">' + S.stars + '</b></span>' +
-      (hideDupMom ? '' : '<button class="iconbtn mode-ico" data-act="toggle-mode" aria-label="' + (kid ? '엄마 모드' : '아이 모드') + '">' + (kid ? '👩' : '🧒') + '</button>') +
-      (kid ? '' : '<button class="iconbtn" data-act="go" data-v="settings" aria-label="설정">⚙️</button>');
+    if (kid) {
+      top.style.display = 'none';
+      top.innerHTML = '';
+    } else {
+      top.style.display = '';
+      var title = VIEWS.filter(function (x) { return x.key === App.view; })[0];
+      top.innerHTML = '<h1>' + (title ? navLabel(title) : '') + '</h1>' +
+        '<button class="btn xs ghost" style="padding:6px 11px;border-radius:999px" data-act="toggle-mode">🧒 아이 모드</button>';
+    }
   }
 }
 
