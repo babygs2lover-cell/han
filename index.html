@@ -1565,7 +1565,7 @@ var App = {
   view: 'home',
   mode: 'kid',
   kidArea: null,
-  books: { viewMode: 'series', ar: '전체', ch: '전체', stage: '전체', age: '전체', q: '', showSearch: false, ownedOnly: false, sort: 'AR 낮은 순' },
+  books: { viewMode: 'series', roadLvl: null, roadSer: null, ar: '전체', ch: '전체', stage: '전체', age: '전체', q: '', showSearch: false, ownedOnly: false, sort: 'AR 낮은 순' },
   lib: { subject: '전체', sub: '전체', ch: '전체', q: '', onlyPrint: false, onlyPicked: false, stage: '전체', ar: '전체', sort: '기본', age: '전체', ownedOnly: false, showMore: false },
   learn: { subject: 'en', step: 1 },
   review: { songId: null, mode: 'card', idx: 0, flipped: false },
@@ -1762,6 +1762,217 @@ function confirmBox(msg, onYes, yesLabel) {
   var b = document.getElementById('confirm-yes');
   if (b) b.onclick = function () { closeModal(); onYes(); };
 }
+
+/* ---- 18-book-roadmap.js ---- */
+/* 5단계 영어 원서 로드맵 (78개 시리즈 · AR 지수 · 추천도 · 줄거리/내용) */
+var BOOK_ROADMAP = [
+  {
+    id: 'L1',
+    num: '1',
+    title: '1단계 · 영어 노출·반복 그림책',
+    arHint: 'AR 0.0~0.9 중심 · 15개 시리즈',
+    color: '#FF8A65',
+    desc: '익숙한 생활 장면과 반복 리듬으로 귀를 여는 첫 그림책 단계예요. 글자 지수보다 그림·소리 노출에 딱 맞아요.',
+    series: [
+      { id: 'l1-ort', name: 'ORT Biff, Chip and Kipper', ar: 'AR 0.3~3.0', stars: 3, ico: '🔑', color: '#0EA5E9', chId: 'ch-ort',
+        why: '키퍼·비퍼·칩 가족과 강아지 플로피의 일상·마법 열쇠 모험이 Stage 1(그림책)부터 계단식으로 이어져요.' },
+      { id: 'l1-biscuit', name: 'Biscuit', ar: 'AR 0.7~1.5', stars: 3, ico: '🐶', color: '#F59E0B', chId: 'ch-my', kw: 'biscuit',
+        why: '귀여운 강아지 비스킷의 짧은 대화와 반복 문장("Woof, woof!")이 많아 첫 영어책으로 최고예요.' },
+      { id: 'l1-maisy', name: 'Maisy', ar: 'AR 1.4~2.3', stars: 3, ico: '🐭', color: '#EF4444',
+        why: '생쥐 메이지의 선명한 색감과 생활 어휘·그림 중심 소재로 영어 소리와 뜻을 바로 연결해요.' },
+      { id: 'l1-spot', name: 'Spot', ar: 'AR 0.6~1.2', stars: 3, ico: '🐾', color: '#10B981', chId: 'ch-pb', kw: 'spot',
+        why: '플랩을 열어 강아지 스팟을 찾는 질문·반복 형식이라 4세 아이가 까르르 웃으며 따라 말해요.' },
+      { id: 'l1-critter', name: 'Little Critter', ar: 'AR 1.3~2.2', stars: 3, ico: '🦔', color: '#8B5CF6',
+        why: '리틀 크리터의 가족·잠자리·유치원 감정 에피소드가 공감 가고 생활 표현이 풍부해요.' },
+      { id: 'l1-brownbear', name: 'Brown Bear, Brown Bear 시리즈', ar: 'AR 1.4~1.8', stars: 3, ico: '🐻', color: '#92400E', chId: 'ch-pb', kw: 'brown bear',
+        why: '색깔·동물·리듬 패턴이  노래처럼 반복돼서 아이가 금방 문장을 통째로 외워요.' },
+      { id: 'l1-dearzoo', name: 'Dear Zoo', ar: 'AR 미등록 (체감 0.3~0.7)', stars: 3, ico: '🦁', color: '#F97316', chId: 'ch-pb', kw: 'dear zoo',
+        why: '동물원에서 온 상자 플랩을 열어 보며 동물 이름과 형용사(big, tall, grumpy)를 익혀요.' },
+      { id: 'l1-carle', name: 'Eric Carle 그림책', ar: 'AR 1.0~2.9', stars: 3, ico: '🐛', color: '#22C55E', chId: 'ch-pb', kw: 'eric carle',
+        why: '배고픈 애벌레·머리부터 발끝까지 등 화려한 콜라주 그림과 요일·숫자·동작 반복이 돋보여요.' },
+      { id: 'l1-peppa', name: 'Peppa Pig', ar: 'AR 1.5~2.2', stars: 2, ico: '🐷', color: '#EC4899',
+        why: '영국식 가족 생활영어와 유쾌한 진흙 웅덩이 에피소드로 영상과 책을 함께 즐기기 좋아요.' },
+      { id: 'l1-pete', name: 'Pete the Cat', ar: 'AR 1.3~2.3', stars: 2, ico: '😎', color: '#3B82F6', chId: 'ch-pb', kw: 'pete the cat',
+        why: '하얀 운동화를 신은 피트 고양이의 신나는 노래·긍정 마인드가 중독성 있어요.' },
+      { id: 'l1-splat', name: 'Splat the Cat', ar: 'AR 1.8~2.5', stars: 2, ico: '🐱', color: '#6366F1',
+        why: '고양이 스플랫의 학교 첫날·친구·감정 소동을 유머러스한 그림과 함께 읽어요.' },
+      { id: 'l1-goodnight', name: 'Goodnight Moon', ar: 'AR 1.8', stars: 2, ico: '🌙', color: '#1E3A8A', chId: 'ch-pb', kw: 'goodnight moon',
+        why: '초록 방 안의 물건 하나하나에 잘 자라고 인사하는 잔잔한 잠자리 어휘 그림책이에요.' },
+      { id: 'l1-david', name: 'No, David!', ar: 'AR 미등록 (체감 0.5~0.9)', stars: 2, ico: '👦', color: '#DC2626', chId: 'ch-pb', kw: 'david',
+        why: '장난꾸러기 데이빗과 엄마의 짧은 한 마디("No, David!")가 유쾌해서 아이들이 빵 터져요.' },
+      { id: 'l1-llama', name: 'Llama Llama', ar: 'AR 1.2~2.0', stars: 2, ico: '🦙', color: '#A855F7',
+        why: '아기 라마가 엄마를 기다리거나 유치원에서 겪는 감정을 예쁜 라임(운율)으로 풀어내요.' },
+      { id: 'l1-pigeon', name: 'Pigeon 시리즈', ar: 'AR 0.7~1.5', stars: 2, ico: '🐦', color: '#06B6D4', chId: 'ch-my', kw: 'pigeon',
+        why: '버스 운전하고 싶고 목욕하기 싫은 고집불통 비둘기와 티키타카 대화하며 말하기가 트여요.' }
+    ]
+  },
+  {
+    id: 'L2',
+    num: '2',
+    title: '2단계 · 아주 쉬운 읽기·파닉스·리더스',
+    arHint: 'AR 0.5~1.5 중심 · 16개 시리즈',
+    color: '#F59E0B',
+    desc: '음가(파닉스)를 익히고 3~5단어 짧은 문장을 아이가 직접 소리 내어 읽어 보는 단계예요.',
+    series: [
+      { id: 'l2-bnr', name: 'Brand New Readers', ar: 'AR 미등록 (GRL A~C · 체감 0.3~0.7)', stars: 3, ico: '🌱', color: '#10B981',
+        why: '8쪽짜리 초단문과 마지막 쪽 반전 유머로 글 읽기를 막 시작한 아이가 성취감을 느껴요.' },
+      { id: 'l2-bob1', name: 'Bob Books Set 1', ar: 'AR 0.3~0.6 (GRL A~C)', stars: 3, ico: '🔤', color: '#EF4444',
+        why: '단모음 CVC(Mat, Sam 등) 4글자부터 시작해 아이 혼자 처음부터 끝까지 읽는 기적을 경험해요.' },
+      { id: 'l2-bob2', name: 'Bob Books Set 2', ar: 'AR 0.5~0.9 (GRL C~E)', stars: 3, ico: '📘', color: '#F97316',
+        why: 'Set 1에서 배운 단모음 3글자 단어를 조금 더 긴 2~3줄 문장으로 확장해 연습해요.' },
+      { id: 'l2-bob3', name: 'Bob Books Set 3', ar: 'AR 0.8~1.2 (GRL D~F)', stars: 3, ico: '📗', color: '#22C55E',
+        why: '자음군(bl, st)과 장모음(silent e) 규칙을 짧은 이야기 속에서 자연스럽게 익혀요.' },
+      { id: 'l2-bob45', name: 'Bob Books Set 4~5', ar: 'AR 1.0~1.5', stars: 3, ico: '📙', color: '#3B82F6',
+        why: '이중자음·복합 모음까지 파닉스 전 과정을 마무리하며 독립 읽기로 넘어가요.' },
+      { id: 'l2-sb12', name: 'Songbirds Phonics 1+~2', ar: 'AR 미등록 (체감 0.4~0.8)', stars: 3, ico: '🐦', color: '#0EA5E9',
+        why: '그루팔로 작가 줄리아 도널드슨이 쓴 리듬감 있는 파닉스 동화로 단모음을 익혀요.' },
+      { id: 'l2-sb34', name: 'Songbirds Phonics 3~4', ar: 'AR 미등록 (체감 0.8~1.2)', stars: 3, ico: '🎶', color: '#06B6D4',
+        why: '자음군과 장모음 철자 패턴이 들어간 재미있는 짧은 이야기를 소리 내어 읽어요.' },
+      { id: 'l2-sb56', name: 'Songbirds Phonics 5~6', ar: 'AR 미등록 (체감 1.2~1.6)', stars: 3, ico: '🎵', color: '#6366F1',
+        why: '이중모음과 연음 규칙까지 익히며 초기 리더스 수준으로 자연스럽게 올라가요.' },
+      { id: 'l2-floppy', name: "Floppy's Phonics", ar: 'AR 미등록 (체감 0.4~1.3)', stars: 3, ico: '🐕', color: '#F59E0B',
+        why: 'ORT 플로피 캐릭터와 함께 영국 초등 커리큘럼 음가를 체계적으로 짚어 줘요.' },
+      { id: 'l2-uvfr', name: 'Usborne Very First Reading', ar: 'AR 미등록 (체감 0.5~1.2)', stars: 3, ico: '🤝', color: '#EC4899', chId: 'ch-usb', kw: 'very first',
+        why: '왼쪽은 엄마가, 오른쪽은 아이가 큰 글씨로 한 줄씩 번갈아 읽는 2인용 파닉스 시리즈예요.' },
+      { id: 'l2-flrad', name: 'First Little Readers A~D', ar: 'AR 미등록 (GRL A~D · 체감 0.4~0.9)', stars: 3, ico: '📕', color: '#E11D48',
+        why: '한 줄 반복 문장 위주의 얇은 책들이라 다독 습관 들이기에 부담이 전혀 없어요.' },
+      { id: 'l2-flreh', name: 'First Little Readers E~H', ar: 'AR 미등록 (GRL E~H · 체감 0.9~1.4)', stars: 3, ico: '📗', color: '#16A34A',
+        why: '문장 패턴이 조금씩 변주되면서 자연스럽게 읽기 속도와 유창성을 키워 줘요.' },
+      { id: 'l2-ep', name: 'Elephant & Piggie', ar: 'AR 0.5~1.4', stars: 3, ico: '🐘', color: '#FB7185', chId: 'ch-pb', kw: 'elephant',
+        why: '코끼리 제럴드와 돼지 피기의 큰 말풍선 대화체가 연극놀이·말하기 연습에 최고예요.' },
+      { id: 'l2-ortdd', name: 'ORT Decode and Develop', ar: 'AR 미등록 (체감 0.4~1.5)', stars: 2, ico: '🏡', color: '#0284C7',
+        why: '친숙한 ORT 키퍼 가족 이야기에 파닉스 해독 규칙을 더해 복습용으로 좋아요.' },
+      { id: 'l2-upr', name: 'Usborne Phonics Readers', ar: 'AR 1.0~1.6', stars: 2, ico: '🦊', color: '#D97706',
+        why: '각운(라임)이 살아 있는 재치 있는 짧은 이야기와 플랩으로 소리 인식을 길러요.' },
+      { id: 'l2-flrp', name: 'First Little Readers: Phonics', ar: 'AR 미등록 (체감 0.4~1.0)', stars: 2, ico: '🔤', color: '#7C3AED',
+        why: '특정 음가가 반복되는 얇은 워크북형 리더스로 파닉스 집중 연습에 맞아요.' }
+    ]
+  },
+  {
+    id: 'L3',
+    num: '3',
+    title: '3단계 · 기초 리더스·다독',
+    arHint: 'AR 1.0~2.5 중심 · 12개 시리즈',
+    color: '#10B981',
+    desc: '기승전결이 있는 쉬운 리더스를 여러 권 읽으며 "나 혼자 영어책 읽었다!"는 자신감을 쌓는 단계예요.',
+    series: [
+      { id: 'l3-flril', name: 'First Little Readers I~L', ar: 'AR 미등록 (GRL I~L · 체감 1.5~2.2)', stars: 3, ico: '📘', color: '#2563EB',
+        why: '문장 길이와 어휘가 조금 더 늘어난 독립 읽기 단계로 넘어가기 좋은 다독 세트예요.' },
+      { id: 'l3-icrmf', name: 'I Can Read My First', ar: 'AR 0.9~1.6', stars: 3, ico: '🌟', color: '#F59E0B',
+        why: '비스킷·피트 더 캣 등 인기 캐릭터가 등장해 큰 글씨·쉬운 단어로 읽기 입문을 도와줘요.' },
+      { id: 'l3-icr1', name: 'I Can Read Level 1', ar: 'AR 1.0~2.4', stars: 3, ico: '🦖', color: '#10B981',
+        why: '대니와 공룡, 새미 더 실 등 고전 명작부터 유쾌한 이야기까지 혼자 읽기에 좋아요.' },
+      { id: 'l3-sir1', name: 'Step into Reading Step 1', ar: 'AR 0.8~1.8', stars: 3, ico: '👣', color: '#EC4899',
+        why: '운율 있는 짧은 문장과 디즈니·자동차 등 아이가 좋아하는 소재가 많아 술술 읽혀요.' },
+      { id: 'l3-flyguy', name: 'Fly Guy', ar: 'AR 1.0~2.1', stars: 3, ico: '🪰', color: '#84CC16',
+        why: '반려 파리 플라이 가이와 소년 버즈의 엉뚱한 챕터 형식 모험이 읽기 흥미를 확 끌어올려요.' },
+      { id: 'l3-littlebear', name: 'Little Bear', ar: 'AR 1.4~3.1', stars: 3, ico: '🧸', color: '#B45309',
+        why: '아기 곰과 엄마 곰의 다정하고 포근한 일상 에피소드가 4편씩 묶여 있어 마음이 따뜻해져요.' },
+      { id: 'l3-natgeo', name: 'National Geographic Kids Readers', ar: 'AR 1.5~3.5', stars: 3, ico: '🌍', color: '#EAB308',
+        why: '생생한 실사 사진과 동물·우주·공룡 논픽션 지식으로 남자아이·호기심 많은 아이가 열광해요.' },
+      { id: 'l3-acorn', name: 'Scholastic Acorn', ar: 'AR 1.2~2.4', stars: 3, ico: '🌰', color: '#D97706',
+        why: '유니콘과 예티 등 말풍선·만화 컷이 섞인 4~7세용 풀컬러 초기 독립 읽기 시리즈예요.' },
+      { id: 'l3-icr2', name: 'I Can Read Level 2', ar: 'AR 1.8~2.9', stars: 2, ico: '📖', color: '#0EA5E9',
+        why: '어밀리아 베델리아, 두꺼비와 개구리 등 문장력과 유머가 한 단계 깊어진 스토리북이에요.' },
+      { id: 'l3-sir23', name: 'Step into Reading Step 2~3', ar: 'AR 1.5~2.8', stars: 2, ico: '🚀', color: '#6366F1',
+        why: '줄거리가 탄탄한 문단 읽기로 넘어가며 독해 지구력을 자연스럽게 길러 줘요.' },
+      { id: 'l3-poppleton', name: 'Poppleton', ar: 'AR 1.9~2.5', stars: 2, ico: '🐖', color: '#F43F5E',
+        why: '도시에서 시골로 이사 온 다정한 돼지 포플턴과 친구들의 소소한 우정 이야기예요.' },
+      { id: 'l3-dk', name: 'DK Super Readers', ar: 'AR 1.8~3.2', stars: 2, ico: '🦕', color: '#14B8A6',
+        why: '탈것·공룡·바다 등 아이가 좋아하는 주제 사진과 함께 정보 글 읽기에 입문해요.' }
+    ]
+  },
+  {
+    id: 'L4',
+    num: '4',
+    title: '4단계 · 고급 리더스·초기 챕터북',
+    arHint: 'AR 2.0~3.5 중심 · 18개 시리즈',
+    color: '#6366F1',
+    desc: '그림 비중이 조금 줄고 문단·챕터가 나뉜 이야기로 독해력과 배경지식을 넓히는 단계예요.',
+    series: [
+      { id: 'l4-henry', name: 'Henry and Mudge', ar: 'AR 2.1~2.9', stars: 3, ico: '🐕', color: '#F59E0B',
+        why: '소년 헨리와 80kg 큰 개 머지의 따뜻한 우정 이야기! 첫 챕터북 입문으로 가장 유명해요.' },
+      { id: 'l4-frog', name: 'Frog and Toad', ar: 'AR 2.5~2.9', stars: 3, ico: '🐸', color: '#22C55E',
+        why: '성격이 다른 개구리와 두꺼비의 우정·감정을 다룬 명작 단편으로 문단 독해에 최고예요.' },
+      { id: 'l4-nate', name: 'Nate the Great', ar: 'AR 2.0~3.2', stars: 3, ico: '🕵️', color: '#64748B',
+        why: '팬케이크를 좋아하는 꼬마 탐정 네이트가 단서를 모아 사건을 푸는 첫 추리 챕터북이에요.' },
+      { id: 'l4-mercy', name: 'Mercy Watson', ar: 'AR 2.6~3.2', stars: 3, ico: '🐷', color: '#FB7185',
+        why: '버터 토스트에 진심인 돼지 머시의 엉뚱한 소동! 매 쪽 컬러 삽화가 있어 술술 읽혀요.' },
+      { id: 'l4-mth', name: 'Magic Tree House', ar: 'AR 2.6~4.1', stars: 3, ico: '🌳', color: '#0EA5E9',
+        why: '마법의 나무집을 타고 공룡·이집트·우주로 떠나는 잭과 애니의 모험 챕터북 바이블이에요.' },
+      { id: 'l4-owl', name: 'Owl Diaries', ar: 'AR 2.7~3.2', stars: 3, ico: '🦉', color: '#EC4899',
+        why: '아기 올빼미 에바가 쓰는 그림 일기장 형식이라 말풍선과 컬러 그림이 가득해 재미있어요.' },
+      { id: 'l4-dragon', name: 'Dragon Masters', ar: 'AR 2.5~3.5', stars: 3, ico: '🐉', color: '#EF4444',
+        why: '드래곤을 훈련하는 소년 드레이크의 판타지 모험! 다음 권이 궁금해 멈출 수 없어요.' },
+      { id: 'l4-press', name: 'Press Start!', ar: 'AR 2.4~3.1', stars: 3, ico: '🎮', color: '#8B5CF6',
+        why: '게임 속 슈퍼 래빗 보이 이야기! 게임을 좋아하는 아이가 첫 챕터북에 푹 빠지기 좋아요.' },
+      { id: 'l4-ivy', name: 'Ivy + Bean', ar: 'AR 2.9~3.6', stars: 3, ico: '👧', color: '#F97316',
+        why: '성격이 정반대인 두 단짝 아이비와 빈의 유쾌한 장난과 학교·동네 에피소드예요.' },
+      { id: 'l4-branches', name: 'Scholastic Branches', ar: 'AR 2.4~3.5', stars: 3, ico: '🌿', color: '#10B981',
+        why: '그림책에서 챕터북으로 넘어가는 다리 역할에 특화된 스콜라스틱 대표 초기 챕터북 라인이에요.' },
+      { id: 'l4-putter', name: 'Mr. Putter & Tabby', ar: 'AR 1.9~3.5', stars: 2, ico: '🐈', color: '#D97706',
+        why: '마음 따뜻한 퍼터 할아버지와 늙은 고양이 태비의 소소하고 유머러스한 일상이에요.' },
+      { id: 'l4-ycam', name: 'Young Cam Jansen', ar: 'AR 2.3~3.4', stars: 2, ico: '📸', color: '#06B6D4',
+        why: '찰칵! 사진 기억력을 가진 꼬마 탐정 캠이 잃어버린 물건을 찾는 쉬운 추리물이에요.' },
+      { id: 'l4-cam', name: 'Cam Jansen', ar: 'AR 3.0~3.9', stars: 2, ico: '🔍', color: '#0284C7',
+        why: 'Young Cam Jansen보다 문장이 길어진 본격 초등 저학년 추리 챕터북이에요.' },
+      { id: 'l4-unicorn', name: 'Unicorn Diaries', ar: 'AR 2.6~3.2', stars: 2, ico: '🦄', color: '#C084FC',
+        why: '마법 숲 유니콘 보의 우정과 일상을 예쁜 일러스트·일기 형식으로 따라가요.' },
+      { id: 'l4-firehawk', name: 'The Last Firehawk', ar: 'AR 2.8~3.5', stars: 2, ico: '🦅', color: '#EA580C',
+        why: '올빼미와 다람쥐 친구들이 마법 숲을 지키는 판타지 모험 챕터북이에요.' },
+      { id: 'l4-eerie', name: 'Eerie Elementary', ar: 'AR 2.8~3.6', stars: 2, ico: '🏫', color: '#475569',
+        why: '살아 움직이는 학교를 상대로 3총사가 맞서는 오싹하면서도 유쾌한 미스터리예요.' },
+      { id: 'l4-doom', name: 'The Notebook of Doom', ar: 'AR 2.7~3.4', stars: 2, ico: '👾', color: '#65A30D',
+        why: '전학생 알렉산더가 괴물 노트를 손에 넣고 동네 괴물들을 해결하는 유머 모험극이에요.' },
+      { id: 'l4-wrenly', name: 'The Kingdom of Wrenly', ar: 'AR 2.9~3.8', stars: 2, ico: '👑', color: '#E11D48',
+        why: '왕자 루카스와 친구 클라라가 렌리 왕국 곳곳을 탐험하는 정통 판타지 입문서예요.' }
+    ]
+  },
+  {
+    id: 'L5',
+    num: '5',
+    title: '5단계 · 챕터북·아동 문학',
+    arHint: 'AR 3.0 이상 · 17개 시리즈',
+    color: '#EC4899',
+    desc: '긴 글과 다양한 장르의 원서 소설을 스스로 즐겨 읽으며 어휘·추론 능력을 꽃피우는 단계예요.',
+    series: [
+      { id: 'l5-atoz', name: 'A to Z Mysteries', ar: 'AR 3.0~4.0', stars: 3, ico: '🔎', color: '#2563EB',
+        why: 'A부터 Z까지 알파벳 제목으로 이어지는 어린이 삼총사의 추리·문제 해결 챕터북이에요.' },
+      { id: 'l5-boxcar', name: 'The Boxcar Children', ar: 'AR 3.0~4.2', stars: 3, ico: '🚃', color: '#B45309',
+        why: '기차 칸에서 살던 4남매가 할아버지와 함께 곳곳의 미스터리를 푸는 고전 모험물이에요.' },
+      { id: 'l5-geronimo', name: 'Geronimo Stilton', ar: 'AR 2.8~4.5', stars: 3, ico: '🧀', color: '#F59E0B',
+        why: '신문사 편집장 생쥐 제로니모의 모험! 중요 단어마다 컬러·모양 폰트가 달라 눈이 즐거워요.' },
+      { id: 'l5-weird', name: 'My Weird School', ar: 'AR 3.0~3.8', stars: 3, ico: '🤪', color: '#10B981',
+        why: '엉뚱하고 괴짜 같은 선생님들이 등장하는 학교 코미디라 웃느라 시간 가는 줄 몰라요.' },
+      { id: 'l5-badguys', name: 'The Bad Guys', ar: 'AR 2.4~3.5', stars: 3, ico: '🐺', color: '#475569',
+        why: '착한 일을 하려는 악당 동물들의 그래픽 노블(만화형 소설)로 긴 책 입문용으로 인기예요.' },
+      { id: 'l5-whowas', name: 'Who Was?', ar: 'AR 4.0~5.5', stars: 3, ico: '🏛️', color: '#0284C7',
+        why: '아인슈타인·레오나르도 다빈치 등 인물·역사·사건을 쉽게 풀어낸 미국 대표 논픽션 전기예요.' },
+      { id: 'l5-msb', name: 'Magic School Bus Chapter Books', ar: 'AR 3.5~4.5', stars: 3, ico: '🚌', color: '#EAB308',
+        why: '프리즐 선생님의 신기한 스쿨버스를 타고 과학·우주·인체를 탐험하는 과학 챕터북이에요.' },
+      { id: 'l5-charlotte', name: "Charlotte's Web", ar: 'AR 4.4', stars: 3, ico: '🕸️', color: '#EC4899',
+        why: '아기 돼지 윌버와 거미 샬롯의 감동적인 우정을 그린 영미 아동 문학의 영원한 고전이에요.' },
+      { id: 'l5-matilda', name: 'Matilda', ar: 'AR 5.0', stars: 3, ico: '📚', color: '#7C3AED',
+        why: '책을 사랑하는 천재 소녀 마틸다가 통쾌하게 어른들을 혼내 주는 로알드 달 대표작이에요.' },
+      { id: 'l5-charlie', name: 'Charlie and the Chocolate Factory', ar: 'AR 4.8', stars: 3, ico: '🍫', color: '#92400E',
+        why: '황금 티켓을 뽑은 찰리가 윌리 웡카의 초콜릿 공장에 들어가 겪는 달콤하고 기상천외한 모험!' },
+      { id: 'l5-mouse', name: 'The Mouse and the Motorcycle', ar: 'AR 4.8~5.2', stars: 3, ico: '🏍️', color: '#EF4444',
+        why: '장난감 오토바이를 타는 꼬마 생쥐 랄프의 대담하고 따뜻한 우정과 모험 소설이에요.' },
+      { id: 'l5-ivan', name: 'The One and Only Ivan', ar: 'AR 3.6', stars: 3, ico: '🦍', color: '#0F766E',
+        why: '쇼핑몰 우리에 살던 고릴라 이반이 아기 코끼리를 지키려 마음먹는 뉴베리상 수상작이에요.' },
+      { id: 'l5-narnia', name: 'The Chronicles of Narnia', ar: 'AR 5.4~5.9', stars: 3, ico: '🦁', color: '#1D4ED8',
+        why: '옷장 문을 열면 펼쳐지는 나니아의 사자 아슬란과 네 남매의 웅장한 판타지 고전이에요.' },
+      { id: 'l5-hp', name: 'Harry Potter', ar: 'AR 5.5~7.2', stars: 3, ico: '⚡', color: '#4338CA',
+        why: '호그와트 마법학교에 입학한 해리 포터의 7년 대장정! 원서 읽기의 최종 꿈이에요.' },
+      { id: 'l5-junie', name: 'Junie B. Jones', ar: 'AR 2.6~3.1', stars: 2, ico: '🎀', color: '#F43F5E',
+        why: '유치원생 주니 비 존스의 솔직하고 톡톡 튀는 구어체 일기로 일상 영어가 생생해요.' },
+      { id: 'l5-judy', name: 'Judy Moody', ar: 'AR 3.1~3.8', stars: 2, ico: '😝', color: '#22C55E',
+        why: '기분이 오락가락하는 소녀 주디 무디의 유쾌한 학교·가족 소동을 따라가요.' },
+      { id: 'l5-stink', name: 'Stink', ar: 'AR 3.0~3.8', stars: 2, ico: '🧦', color: '#14B8A6',
+        why: '주디 무디의 남동생 스팅크가 주인공인 엉뚱 발랄 코믹·과학 호기심 챕터북이에요.' }
+    ]
+  }
+];
 
 /* ---- 20-curriculum.js ---- */
 /* ============================================================
@@ -3542,25 +3753,89 @@ function openBookSettingsModal() {
   };
 }
 
+function roadLevelById(id) {
+  if (typeof BOOK_ROADMAP === 'undefined') return null;
+  for (var i = 0; i < BOOK_ROADMAP.length; i++) if (BOOK_ROADMAP[i].id === id) return BOOK_ROADMAP[i];
+  return null;
+}
+
+function roadSeriesById(id) {
+  if (typeof BOOK_ROADMAP === 'undefined') return null;
+  for (var i = 0; i < BOOK_ROADMAP.length; i++) {
+    var ss = BOOK_ROADMAP[i].series || [];
+    for (var j = 0; j < ss.length; j++) if (ss[j].id === id) return { lvl: BOOK_ROADMAP[i], ser: ss[j] };
+  }
+  return null;
+}
+
+function booksMatchingRoadSeries(ser, ownedOnly) {
+  var out = [];
+  if (!ser || !ser.chId) return out;
+  var ch = chById(ser.chId);
+  if (!ch) return out;
+  var kw = (ser.kw || '').toLowerCase();
+  ch.songs.forEach(function (s) {
+    if (!isBookItem(s)) return;
+    if (ownedOnly && !s.owned) return;
+    if (kw) {
+      var hay = (s.title + ' ' + (s.author || '') + ' ' + (s.stage || '') + ' ' + ((s.kw || []).join(' '))).toLowerCase();
+      if (hay.indexOf(kw) < 0) return;
+    }
+    out.push({ ch: ch, s: s });
+  });
+  return out;
+}
+
+function openRoadSeriesModal(serId) {
+  var hit = roadSeriesById(serId);
+  if (!hit) return;
+  var ser = hit.ser;
+  var stars = ser.stars === 3 ? '★★★ 적극 추천' : '★★ 추천';
+  var ytSearch = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(ser.name + ' read aloud');
+  var body = '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">' +
+    '<span class="pill sky">' + esc(ser.ar) + '</span>' +
+    '<span class="pill sun">' + stars + '</span>' +
+    '<span class="pill">' + esc(hit.lvl.title.split('·')[0].trim()) + '</span></div>' +
+    '<div class="tipbox" style="margin-bottom:10px;line-height:1.5">' + esc(ser.why) + '</div>' +
+    '<p class="tiny muted">아직 이 시리즈의 권별 책 데이터가 앱에 등록되어 있지 않아요. 아래 버튼으로 유튜브 낭독 영상을 바로 찾아보거나, 엄마 설정에서 책을 추가할 수 있어요.</p>';
+  var footer = '<a class="btn primary" href="' + esc(ytSearch) + '" target="_blank" rel="noopener">🔎 유튜브에서 낭독 영상 찾기</a>' +
+    '<button class="btn ghost" data-act="close-modal">닫기</button>';
+  openModal(ser.ico + ' ' + ser.name, body, footer);
+}
+
 function viewBooks() {
   var bs = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
   var bookChs = S.channels.filter(function (ch) { return ch.songs.some(isBookItem); });
   var isSeries = App.books.viewMode !== 'ar';
-  var curCh = (isSeries && App.books.ch !== '전체') ? bookChs.filter(function (c) { return c.id === App.books.ch; })[0] : null;
-  var backAct = curCh ? 'data-act="books-ch" data-k="전체"' : 'data-act="go" data-v="home"';
+  var curLvl = isSeries && App.books.roadLvl ? roadLevelById(App.books.roadLvl) : null;
+  var curSerHit = isSeries && App.books.roadSer ? roadSeriesById(App.books.roadSer) : null;
+  var curCh = (isSeries && !curSerHit && App.books.ch !== '전체') ? bookChs.filter(function (c) { return c.id === App.books.ch; })[0] : null;
+
+  var backAct = 'data-act="go" data-v="home"';
+  var headTitle = '📚 영어 원서 서재';
+  if (curSerHit) {
+    backAct = 'data-act="books-road-ser" data-k=""';
+    headTitle = curSerHit.ser.ico + ' ' + curSerHit.ser.name;
+  } else if (curLvl) {
+    backAct = 'data-act="books-road-lvl" data-k=""';
+    headTitle = curLvl.title;
+  } else if (curCh) {
+    backAct = 'data-act="books-ch" data-k="전체"';
+    headTitle = curCh.name;
+  }
 
   var h = '<div class="row spread" style="gap:8px;align-items:center;margin-bottom:10px">' +
     '<div class="row" style="gap:6px;align-items:center;min-width:0">' +
     '<button class="btn xs ghost" style="padding:4px 8px;font-size:18px;border:0;background:transparent" ' + backAct + ' aria-label="뒤로">‹</button>' +
-    '<b style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (curCh ? esc(curCh.name) : '📚 영어 원서 서재') + '</b></div>' +
+    '<b style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(headTitle) + '</b></div>' +
     '<div class="row" style="gap:5px;flex-shrink:0">' +
     '<button class="btn xs ghost" style="width:28px;height:28px;min-height:28px;padding:0;border-radius:999px" data-act="books-search-toggle" aria-label="검색">🔎</button>' +
     '<button class="btn xs ghost" style="padding:4px 9px;font-size:11.5px;min-height:28px;border-radius:999px" data-act="books-mom-settings">⚙️ 엄마 설정</button>' +
     '</div></div>';
 
-  if (!curCh) {
+  if (!curLvl && !curSerHit && !curCh) {
     h += '<div class="chips" style="margin-bottom:8px">' +
-      '<button class="chip ' + (isSeries ? 'on sky' : '') + '" data-act="books-view-mode" data-k="series">📚 단계별(시리즈) 보기</button>' +
+      '<button class="chip ' + (isSeries ? 'on sky' : '') + '" data-act="books-view-mode" data-k="series">📚 단계별(1~5단계) 보기</button>' +
       '<button class="chip ' + (!isSeries ? 'on mint' : '') + '" data-act="books-view-mode" data-k="ar">🔢 지수별(AR) 보기</button>' +
       (bs.ownedOnly ? '<span class="chip on mint" data-act="books-mom-settings">보유한 책만 보는 중</span>' : '') +
       '</div>';
@@ -3569,28 +3844,85 @@ function viewBooks() {
   h += '<div class="' + (App.books.showSearch || App.books.q ? '' : 'hide') + '" style="margin-bottom:8px">' +
     '<div class="searchbox" style="padding:7px 10px">🔎<input id="books-q" type="text" placeholder="원서 제목·작가·AR 검색" value="' + esc(App.books.q) + '"></div></div>';
 
-  if (isSeries && !curCh) {
-    if (App.books.q) {
-      var qItems = bookFiltered();
-      if (!qItems.length) return h + '<div class="empty cute"><span class="big">📚</span>검색된 원서가 없어요.</div>';
-      return h + '<div class="kgrid">' + qItems.map(function (p) { return renderBookCard(p, true); }).join('') + '</div>';
-    }
-    h += '<div class="vlist">' + bookChs.map(function (ch) {
-      var books = ch.songs.filter(function (s) {
-        if (!isBookItem(s)) return false;
-        if (bs.ownedOnly && !s.owned) return false;
-        return true;
-      });
-      var info = SERIES_INFO[ch.id] || { badge: books.length + '권', color: '#0EA5E9', summary: '' };
-      var shortIco = esc((ch.name || '책').replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 1) || '📖');
-      return '<button class="vcard" style="align-items:flex-start" data-act="books-ch" data-k="' + ch.id + '">' +
-        '<span class="vc-ico" style="background:' + info.color + ';margin-top:2px">' + shortIco + '</span>' +
-        '<span class="vc-body"><b>' + esc(ch.name) + '</b>' +
-        '<span style="color:#0EA5E9;font-weight:700">' + esc(info.badge) + ' · 현재 ' + books.length + '권</span>' +
-        (info.summary ? '<span style="white-space:normal;line-height:1.4;margin-top:3px;display:block">' + esc(info.summary) + '</span>' : '') +
+  if (App.books.q) {
+    var qItems = bookFiltered();
+    if (!qItems.length) return h + '<div class="empty cute"><span class="big">📚</span>검색된 원서가 없어요.</div>';
+    return h + '<div class="kgrid">' + qItems.map(function (p) { return renderBookCard(p, true); }).join('') + '</div>';
+  }
+
+  // 1) 단계별 루트: 1단계~5단계 한 줄씩 + 단계 설명
+  if (isSeries && !curLvl && !curSerHit && !curCh && typeof BOOK_ROADMAP !== 'undefined') {
+    h += '<div class="vlist">' + BOOK_ROADMAP.map(function (lvl) {
+      return '<button class="vcard" style="align-items:flex-start" data-act="books-road-lvl" data-k="' + lvl.id + '">' +
+        '<span class="vc-ico" style="background:' + lvl.color + ';margin-top:2px">' + lvl.num + '</span>' +
+        '<span class="vc-body"><b>' + esc(lvl.title) + '</b>' +
+        '<span style="color:#0EA5E9;font-weight:700">' + esc(lvl.arHint) + '</span>' +
+        '<span style="white-space:normal;line-height:1.4;margin-top:2px;display:block">' + esc(lvl.desc) + '</span>' +
         '</span><span class="vc-arr" style="align-self:center">›</span></button>';
     }).join('') + '</div>';
     return h;
+  }
+
+  // 2) 단계 안쪽: 시리즈별 사진 카드 (추천도 + AR + 간단한 줄거리)
+  if (isSeries && curLvl && !curSerHit) {
+    h += '<div class="tipbox" style="margin-bottom:10px;font-size:12.5px;line-height:1.45"><b>' + esc(curLvl.arHint) + '</b><br>' + esc(curLvl.desc) + '</div>';
+    h += '<div class="kgrid">' + curLvl.series.map(function (ser) {
+      var matched = booksMatchingRoadSeries(ser, bs.ownedOnly);
+      var firstVid = '';
+      for (var i = 0; i < matched.length; i++) {
+        if (matched[i].s.vid) { firstVid = matched[i].s.vid; break; }
+      }
+      var starsTxt = ser.stars === 3 ? '★★★' : '★★';
+      var cover = firstVid
+        ? '<img class="kthumb" src="https://i.ytimg.com/vi/' + esc(firstVid) + '/mqdefault.jpg" alt="" loading="lazy" onerror="this.remove()">'
+        : '<div class="kthumb" style="display:grid;place-items:center;background:linear-gradient(145deg,' + ser.color + '22,' + ser.color + '44);padding:10px;text-align:center">' +
+          '<div><div style="font-size:28px;line-height:1.1">' + ser.ico + '</div><div style="font-size:11.5px;font-weight:800;color:#333;margin-top:4px">' + esc(short(ser.name, 22)) + '</div></div></div>';
+      var actAttr = matched.length
+        ? 'data-act="books-road-ser" data-k="' + ser.id + '"'
+        : 'data-act="books-road-info" data-k="' + ser.id + '"';
+      return '<div class="kcard">' +
+        '<div class="kcard-top" ' + actAttr + '>' +
+        cover +
+        '<span class="kdur" style="background:rgba(0,0,0,.68);color:#FFD54F">' + starsTxt + '</span>' +
+        (matched.length ? '<span class="kpin" style="background:#0EA5E9;color:#fff">' + matched.length + '권</span>' : '') +
+        '</div>' +
+        '<div class="kcard-b" ' + actAttr + ' style="cursor:pointer">' +
+        '<b>' + esc(ser.name) + '</b>' +
+        '<div class="tiny" style="color:#0EA5E9;font-weight:700;margin-top:2px">' + esc(ser.ar) + '</div>' +
+        '<div class="tiny muted" style="margin-top:2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + esc(ser.why) + '</div>' +
+        '</div></div>';
+    }).join('') + '</div>';
+    return h;
+  }
+
+  // 3) 시리즈 안쪽: 권별 목록 + 권별 AR
+  if (isSeries && curSerHit) {
+    var ser = curSerHit.ser;
+    var starsFull = ser.stars === 3 ? '★★★ 적극 추천' : '★★ 추천';
+    h += '<div class="tipbox" style="margin-bottom:8px;font-size:12.5px;line-height:1.45"><b>' + esc(ser.ar) + ' · ' + starsFull + '</b><br>' + esc(ser.why) + '</div>';
+    var serItems = booksMatchingRoadSeries(ser, bs.ownedOnly);
+    if (ser.chId === 'ch-ort' && !ser.kw) {
+      var ortStages = [];
+      var seenSt = {};
+      serItems.forEach(function (p) {
+        var st = p.s.stage || '';
+        if (st && !seenSt[st]) { seenSt[st] = true; ortStages.push(st); }
+      });
+      if (ortStages.length > 1) {
+        h += '<div class="chips" style="margin-bottom:8px">' +
+          '<button class="chip ' + (App.books.stage === '전체' ? 'on sky' : '') + '" data-act="books-stage" data-k="전체">전체 단계</button>' +
+          ortStages.map(function (st) {
+            return '<button class="chip ' + (App.books.stage === st ? 'on sky' : '') + '" data-act="books-stage" data-k="' + esc(st) + '">' + esc(st) + '</button>';
+          }).join('') + '</div>';
+        if (App.books.stage && App.books.stage !== '전체') {
+          serItems = serItems.filter(function (p) { return (p.s.stage || '') === App.books.stage; });
+        }
+      }
+    }
+    if (!serItems.length) {
+      return h + '<div class="empty cute"><span class="big">📚</span>조건에 맞는 책이 없어요.</div>';
+    }
+    return h + '<div class="kgrid">' + serItems.map(function (pair) { return renderBookCard(pair, true); }).join('') + '</div>';
   }
 
   if (isSeries && curCh) {
@@ -3599,11 +3931,11 @@ function viewBooks() {
       h += '<div class="tipbox" style="margin-bottom:8px;font-size:12.5px;line-height:1.45"><b>' + esc(sInfo.badge) + '</b><br>' + esc(sInfo.summary) + '</div>';
     }
     var stages = [];
-    var seenSt = {};
+    var seenSt2 = {};
     curCh.songs.forEach(function (s) {
       if (!isBookItem(s)) return;
       var st = s.stage || '';
-      if (st && !seenSt[st]) { seenSt[st] = true; stages.push(st); }
+      if (st && !seenSt2[st]) { seenSt2[st] = true; stages.push(st); }
     });
     if (stages.length > 1) {
       h += '<div class="chips" style="margin-bottom:8px">' +
@@ -6213,7 +6545,10 @@ function onClick(e) {
       case 'lib-sub-k':
         App.lib.subject = btn.getAttribute('data-k') || '전체';
         App.lib.sub = '전체'; render(); break;
-      case 'books-view-mode': App.books.viewMode = btn.getAttribute('data-k') || 'series'; App.books.ch = '전체'; App.books.stage = '전체'; render(); break;
+      case 'books-view-mode': App.books.viewMode = btn.getAttribute('data-k') || 'series'; App.books.ch = '전체'; App.books.stage = '전체'; App.books.roadLvl = null; App.books.roadSer = null; render(); break;
+      case 'books-road-lvl': App.books.roadLvl = btn.getAttribute('data-k') || null; App.books.roadSer = null; App.books.stage = '전체'; render(); break;
+      case 'books-road-ser': App.books.roadSer = btn.getAttribute('data-k') || null; App.books.stage = '전체'; render(); break;
+      case 'books-road-info': openRoadSeriesModal(btn.getAttribute('data-k')); break;
       case 'books-stage': App.books.stage = btn.getAttribute('data-k') || '전체'; render(); break;
       case 'books-search-toggle':
         App.books.showSearch = !App.books.showSearch; render();
