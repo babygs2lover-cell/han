@@ -508,10 +508,17 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .tabbar.kid button.on{background:#FFE7E1; color:#D65B47;}
 
 .kchip{font-size:14px; padding:10px 15px; border-radius:999px;}
-.kgrid{display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(158px,1fr));}
+.kgrid{display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr));}
+@media(min-width:720px){.kgrid{grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:12px;}}
 .kcard{
-  background:#fff; border-radius:26px; padding:10px; box-shadow:0 5px 0 rgba(180,140,90,.06), var(--sh-sm);
-  border:2px solid #FFF3E6; display:flex; flex-direction:column;
+  background:#fff; border-radius:22px; padding:8px; box-shadow:0 5px 0 rgba(180,140,90,.06), var(--sh-sm);
+  border:2px solid #FFF3E6; display:flex; flex-direction:column; min-width:0; overflow:hidden;
+}
+.kcard-b{min-width:0; padding:7px 4px 2px;}
+.kthumb{width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:14px; display:block; background:#EEF2FF;}
+.kdur{
+  position:absolute; left:6px; bottom:6px; z-index:2; background:rgba(0,0,0,.72); color:#fff;
+  font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:7px; line-height:1.25;
 }
 .kcard-main{display:flex; flex-direction:column; align-items:flex-start; gap:4px; text-align:left; padding:4px; border-radius:18px;}
 .kcard-main:active{transform:scale(.98);}
@@ -558,9 +565,9 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .stickerboard.cute .sticker{border-radius:14px; aspect-ratio:1/1;}
 
 /* ---------- thumbnail cards ---------- */
-.thumb-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:860px;}
+.thumb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:860px;}
 .thumb-grid.mom{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));max-width:none;}
-.tcard{background:#fff;border-radius:22px;padding:8px;box-shadow:0 5px 0 rgba(180,140,90,.06), var(--sh-sm);border:2px solid #FFF3E6;}
+.tcard{background:#fff;border-radius:22px;padding:8px;box-shadow:0 5px 0 rgba(180,140,90,.06), var(--sh-sm);border:2px solid #FFF3E6;min-width:0;overflow:hidden;}
 .tcard.compact{border-radius:18px;}
 .tthumb{
   position:relative;display:block;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;
