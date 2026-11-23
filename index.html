@@ -1413,6 +1413,11 @@ function songById(id) {
   S.channels.forEach(function (ch) { ch.songs.forEach(function (s) { if (s.id === id) found = s; }); });
   return found;
 }
+function chById(id) {
+  var f = null;
+  S.channels.forEach(function (ch) { if (ch.id === id) f = ch; });
+  return f;
+}
 function channelOf(songId) {
   var f = null;
   S.channels.forEach(function (ch) { ch.songs.forEach(function (s) { if (s.id === songId) f = ch; }); });
@@ -3692,7 +3697,6 @@ function bookFiltered() {
 function renderBookCard(pair, isKid) {
   var s = pair.s;
   var hasAr = s.ar !== '' && s.ar !== null && !isNaN(parseFloat(s.ar));
-  var arTxt = hasAr ? 'AR ' + s.ar : 'AR 확인불가';
   var hasAudio = !!(s.hasAudio || s.audioUrl);
   var pc = playCountOf(s.id);
   var cover = s.coverUrl
@@ -3701,16 +3705,19 @@ function renderBookCard(pair, isKid) {
       ? '<img class="kthumb" src="https://i.ytimg.com/vi/' + esc(s.vid) + '/mqdefault.jpg" alt="" loading="lazy" onerror="this.remove()">'
       : '<div class="kthumb" style="display:grid;place-items:center;background:linear-gradient(145deg,#FFF4DF,#FFE4CC);padding:12px;text-align:center"><b style="font-size:13px;line-height:1.3;color:#5A4332">📖<br>' + esc(short(s.title, 24)) + '</b></div>';
 
+  var subParts = [];
+  if (s.stage) subParts.push(esc(s.stage));
+  if (hasAr) subParts.push('<span style="color:#0EA5E9;font-weight:700">AR ' + esc(s.ar) + '</span>');
+
   return '<div class="kcard">' +
     '<div class="kcard-top" data-act="' + (s.vid || hasAudio ? 'play' : 'open-song') + '" data-id="' + s.id + '">' +
     cover +
-    '<span class="kdur">' + esc(arTxt) + '</span>' +
     (s.owned ? '<span class="kpin" style="background:#56B58B;color:#fff">보유</span>' : '') +
     (s.vid ? '<span class="kplay" style="position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.62);color:#fff;font-size:10px;padding:2px 6px;border-radius:999px">▶</span>' : '') +
     '</div>' +
     '<div class="kcard-b">' +
     '<b data-act="' + (s.vid || hasAudio ? 'play' : 'open-song') + '" data-id="' + s.id + '">' + esc(short(s.title, 34)) + '</b>' +
-    '<div class="tiny muted" style="margin-top:2px">' + esc(arTxt) + (s.stage ? ' · ' + esc(s.stage) : '') + '</div>' +
+    (subParts.length ? '<div class="tiny muted" style="margin-top:2px">' + subParts.join(' · ') + '</div>' : '') +
     '<div class="tiny" style="color:#E06D3B;font-weight:700;margin-top:2px">📖 ' + pc + '번 읽었어요</div>' +
     '</div></div>';
 }
@@ -3880,6 +3887,7 @@ function viewBooks() {
       var actAttr = matched.length
         ? 'data-act="books-road-ser" data-k="' + ser.id + '"'
         : 'data-act="books-road-info" data-k="' + ser.id + '"';
+      var arKnown = ser.ar && ser.ar.indexOf('미등록') < 0 ? ser.ar : '';
       return '<div class="kcard">' +
         '<div class="kcard-top" ' + actAttr + '>' +
         cover +
@@ -3888,8 +3896,8 @@ function viewBooks() {
         '</div>' +
         '<div class="kcard-b" ' + actAttr + ' style="cursor:pointer">' +
         '<b>' + esc(ser.name) + '</b>' +
-        '<div class="tiny" style="color:#0EA5E9;font-weight:700;margin-top:2px">' + esc(ser.ar) + '</div>' +
         '<div class="tiny muted" style="margin-top:2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + esc(ser.why) + '</div>' +
+        (arKnown ? '<div class="tiny" style="color:#0EA5E9;font-weight:700;margin-top:3px">' + esc(arKnown) + '</div>' : '') +
         '</div></div>';
     }).join('') + '</div>';
     return h;
