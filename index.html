@@ -473,6 +473,9 @@ input[type=range]{width:100%;accent-color:var(--coral);}
   border-radius:999px; margin-right:4px;
 }
 .vc-arr{font-size:20px; color:#C0B5AD; font-weight:700;}
+.compact-chips{display:flex; flex-wrap:nowrap; overflow-x:auto; gap:6px; padding-bottom:2px; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+.compact-chips::-webkit-scrollbar{display:none;}
+.chip.kchip.sm{padding:6px 11px; font-size:12px; border-radius:999px; white-space:nowrap; flex-shrink:0;}
 
 .card.cute{border-radius:30px; border:2px solid #FFF2E2; box-shadow:0 8px 0 rgba(180,140,90,.05), var(--sh-sm);}
 .empty.cute{border-radius:28px;}
@@ -3188,23 +3191,30 @@ function viewLibraryKid() {
   var seen = {};
   (curCh ? curCh.songs : allSongs()).forEach(function (s) { if (s.subtopic && !seen[s.subtopic]) { seen[s.subtopic] = 1; subs.push(s.subtopic); } });
 
-  var html = '<div class="row spread" style="margin-bottom:8px;align-items:center">' +
-    '<button class="btn sm ghost" data-act="lib-pick-ch" data-id="전체">← 채널 목록</button>' +
-    '<b style="font-size:16px">' + esc(curCh ? curCh.name : '영상 목록') + '</b>' +
-    '<button class="btn sm ghost" data-act="toggle-mode">⚙️ 엄마 설정</button>' +
-    '</div>';
+  var html = '<div class="row spread" style="margin-bottom:8px;align-items:center;gap:8px">' +
+    '<div class="row" style="gap:6px;align-items:center;min-width:0">' +
+    '<button class="btn xs ghost" data-act="lib-pick-ch" data-id="전체">‹</button>' +
+    '<b style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(curCh ? curCh.name : '영상 목록') + '</b></div>' +
+    '<div class="row" style="gap:6px;flex-shrink:0">' +
+    '<button class="btn xs ghost" data-act="lib-search-toggle">🔎</button>' +
+    '<button class="btn xs ghost" data-act="toggle-mode">⚙️ 엄마 설정</button>' +
+    '</div></div>';
   if (subs.length) {
-    html += '<div class="chips" style="margin-bottom:8px">' +
-      '<button class="chip kchip ' + (App.lib.sub === '전체' ? 'on mint' : '') + '" data-act="lib-topic" data-k="전체">전체</button>' +
+    html += '<div class="chips compact-chips" style="margin-bottom:8px">' +
+      '<button class="chip kchip sm ' + (App.lib.sub === '전체' ? 'on mint' : '') + '" data-act="lib-topic" data-k="전체">전체</button>' +
       subs.map(function (t) {
-        return '<button class="chip kchip ' + (App.lib.sub === t ? 'on mint' : '') + '" data-act="lib-topic" data-k="' + esc(t) + '">' + esc(t) + '</button>';
+        return '<button class="chip kchip sm ' + (App.lib.sub === t ? 'on mint' : '') + '" data-act="lib-topic" data-k="' + esc(t) + '">' + esc(t) + '</button>';
       }).join('') + '</div>';
   }
-  html += '<div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap">' +
-    '<div class="searchbox" style="flex:1;min-width:140px">🔎<input id="lib-q" type="text" placeholder="제목으로 찾기" value="' + esc(App.lib.q) + '"></div>' +
-    '<button class="btn ghost sm" data-act="kid-shuffle-all">🔀 섞기</button>' +
-    '<button class="btn mint sm" data-act="kid-play-all">▶ 전체 보기 (' + curSongs.length + ')</button>' +
-    '</div>';
+  html += '<div class="' + (App.lib.showSearch || App.lib.q ? '' : 'hide') + '" style="margin-bottom:8px">' +
+    '<div class="searchbox" style="padding:7px 10px">🔎<input id="lib-q" type="text" placeholder="제목으로 찾기" value="' + esc(App.lib.q) + '"></div></div>';
+  html += '<div class="row spread" style="gap:8px;margin-bottom:10px;align-items:center">' +
+    '<div><b style="font-size:15px">' + esc(App.lib.sub === '전체' ? '전체' : App.lib.sub) + '</b>' +
+    '<div class="tiny muted">카드를 누르면 바로 재생돼요</div></div>' +
+    '<div class="row" style="gap:6px;flex-shrink:0">' +
+    '<button class="btn xs ghost" style="padding:6px 10px;border-radius:12px" data-act="kid-shuffle-all">🔀<br><span style="font-size:10px">섞기</span></button>' +
+    '<button class="btn xs mint" style="padding:8px 12px;border-radius:12px" data-act="kid-play-all">▶ 전체 보기 (' + curSongs.length + ')</button>' +
+    '</div></div>';
   html += '<div id="songlist">' + kidSongList() + '</div>';
   return html;
 }
@@ -6358,6 +6368,10 @@ function onClick(e) {
         App.lib.onlyPicked = !App.lib.onlyPicked; render(); break;
       case 'lib-more':
         App.lib.showMore = !App.lib.showMore; render(); break;
+      case 'lib-search-toggle':
+        App.lib.showSearch = !App.lib.showSearch; render();
+        if (App.lib.showSearch) { var lq = document.getElementById('lib-q'); if (lq) lq.focus(); }
+        break;
       case 'lib-pick-ch':
         App.lib.ch = id || '전체';
         App.lib.sub = '전체';
