@@ -3139,6 +3139,44 @@ function viewLibrary() {
     '<button class="btn sm ghost" data-act="add-channel">＋ 채널</button>' +
     '</div></div></div>';
 
+  if (App.lib.ch === '전체' && !App.lib.q && !App.lib.onlyPicked && !App.lib.onlyPrint && !App.lib.ownedOnly && App.lib.sub === '전체' && App.lib.stage === '전체' && App.lib.ar === '전체' && App.lib.age === '전체') {
+    var palette = ['#EA580C', '#EC4899', '#F59E0B', '#10B981', '#2563EB', '#8B5CF6', '#0EA5E9'];
+    var chList = S.channels.filter(function (ch) {
+      if (App.lib.subject === '전체') return ch.songs.length > 0;
+      return ch.songs.some(function (s) { return songMatchesTopic(s, App.lib.subject, '전체'); });
+    });
+    var videoChs = chList.filter(function (ch) { return !ch.songs.some(isBookItem); });
+    var bookChs = chList.filter(function (ch) { return ch.songs.some(isBookItem); });
+    function renderChSection(title, arr) {
+      if (!arr.length) return '';
+      return '<div class="vsec"><span>' + title + '</span></div><div class="vlist">' +
+        arr.map(function (ch, ix) {
+          var cnt = App.lib.subject === '전체' ? ch.songs.length : ch.songs.filter(function (s) { return songMatchesTopic(s, App.lib.subject, '전체'); }).length;
+          var ico = esc((ch.name || '영').replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 1) || '▶');
+          var col = palette[ix % palette.length];
+          return '<button class="vcard" data-act="lib-pick-ch" data-id="' + ch.id + '">' +
+            '<span class="vc-ico" style="background:' + col + '">' + ico + '</span>' +
+            '<span class="vc-body"><b>' + esc(ch.name) + '</b><span>' + cnt + (ch.songs.some(isBookItem) ? '권' : '편') + (ch.onlySelected ? ' · ⭐고른 것만' : '') + (ch.dailyLimit ? ' · 하루 ' + ch.dailyLimit + '편' : '') + '</span></span>' +
+            '<span class="vc-arr">›</span></button>';
+        }).join('') + '</div>';
+    }
+    html += renderChSection('🎵 영상 · 동요 채널', videoChs);
+    html += renderChSection('📚 영어 원서 세트', bookChs);
+    if (!videoChs.length && !bookChs.length) {
+      html += '<div class="empty cute"><span class="big">📂</span>이 영역에 아직 등록된 채널이 없어요.<br><button class="btn sm mint" style="margin-top:10px" data-act="add-channel">＋ 새 채널 만들기</button></div>';
+    }
+    return html;
+  }
+
+  html += '<div class="row spread" style="margin:6px 0 8px;align-items:center">' +
+    (App.lib.ch !== '전체' ? '<button class="btn sm ghost" data-act="lib-pick-ch" data-id="전체">← 채널 목록</button>' : '<span></span>') +
+    (App.lib.ch !== '전체' ? '<button class="btn sm ghost" data-act="edit-channel" data-id="' + App.lib.ch + '">⚙️ 채널 설정</button>' : '') +
+    '</div>';
+  html += '<div class="chips" style="margin-bottom:8px">' +
+    '<button class="chip ' + (App.lib.sub === '전체' ? 'on mint' : '') + '" data-act="lib-topic" data-k="전체">주제 전체</button>' +
+    subs.map(function (t) {
+      return '<button class="chip ' + (App.lib.sub === t ? 'on mint' : '') + '" data-act="lib-topic" data-k="' + esc(t) + '">' + esc(t) + '</button>';
+    }).join('') + '</div>';
   html += '<div id="songlist">' + songListHtml() + '</div>';
   return html;
 }
@@ -6346,6 +6384,10 @@ function onClick(e) {
         App.lib.onlyPicked = !App.lib.onlyPicked; render(); break;
       case 'lib-more':
         App.lib.showMore = !App.lib.showMore; render(); break;
+      case 'lib-pick-ch':
+        App.lib.ch = id || '전체';
+        App.lib.sub = '전체';
+        render(); break;
       case 'pick-toggle': {
         var ps = songById(id);
         if (!ps) break;
