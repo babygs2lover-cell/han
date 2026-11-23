@@ -417,6 +417,7 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 
 .kbig{display:grid; gap:12px; margin-top:14px;}
 @media(min-width:700px){ .kbig{grid-template-columns:repeat(3,1fr);} }
+.kareas{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px;}
 .kbtn{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
   padding:18px 12px; border-radius:30px; background:#fff; border:0;
@@ -430,6 +431,20 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .kbtn.c1{background:linear-gradient(150deg,#FFE9E1,#FFD9CE);}
 .kbtn.c2{background:linear-gradient(150deg,#E6F8F0,#D6F2E8);}
 .kbtn.c3{background:linear-gradient(150deg,#E9F4FD,#DCECFB);}
+.kbtn.c4{background:linear-gradient(150deg,#FFF3D9,#F7E7FF);}
+.resume-banner{
+  display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+  margin-top:14px; padding:14px 16px; border-radius:22px;
+  background:#1E2025; color:#fff; box-shadow:var(--sh);
+}
+.resume-banner .rb-ico{
+  width:42px; height:42px; border-radius:14px; background:#FF4D4F; color:#fff;
+  display:grid; place-items:center; font-size:18px; flex-shrink:0;
+}
+.resume-banner .rb-body{flex:1; min-width:0;}
+.resume-banner .rb-body b{display:block; font-size:15px; letter-spacing:-.2px;}
+.resume-banner .rb-body span{display:block; font-size:12px; color:#F5B74F; font-weight:700; margin-top:2px;}
+.resume-banner .rb-arr{font-size:22px; color:#A8B0BC; font-weight:700;}
 
 .card.cute{border-radius:30px; border:2px solid #FFF2E2; box-shadow:0 8px 0 rgba(180,140,90,.05), var(--sh-sm);}
 .empty.cute{border-radius:28px;}
@@ -1149,6 +1164,9 @@ function ensurePlanShape() {
   S.stickers = S.stickers || [];
   S.sightDone = S.sightDone || {};
   S.playCounts = S.playCounts || {};
+  S.dailyPlays = S.dailyPlays || {};
+  S.lastChannelId = S.lastChannelId || null;
+  S.bookSettings = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
   S.settings = S.settings || { rate: 0.85, sound: true, autoSpeak: true };
   if (!S.settings.mode) S.settings.mode = 'kid';
 }
@@ -1168,6 +1186,7 @@ function normalizeSongs() {
     ch.songs = ch.songs || [];
     if (!ch.repeatMode) ch.repeatMode = 'next';
     if (ch.onlySelected === undefined) ch.onlySelected = false;
+    if (ch.dailyLimit === undefined) ch.dailyLimit = 0;
     ch.songs.forEach(function (s) {
       s.id = s.id || uid('s');
       if (!s.subject) s.subject = '영어';
@@ -1197,10 +1216,31 @@ function normalizeSongs() {
 function playCountOf(id) {
   return Number((S && S.playCounts && S.playCounts[id]) || 0);
 }
+function todayIso() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function dailyPlayCount(chId) {
+  if (!chId || !S || !S.dailyPlays) return 0;
+  var day = S.dailyPlays[todayIso()];
+  return day ? Number(day[chId] || 0) : 0;
+}
+function isDailyLimitReached(ch) {
+  if (!ch || !ch.dailyLimit || Number(ch.dailyLimit) <= 0) return false;
+  return dailyPlayCount(ch.id) >= Number(ch.dailyLimit);
+}
 function recordPlay(id) {
   if (!id || !S) return 0;
   S.playCounts = S.playCounts || {};
   S.playCounts[id] = Number(S.playCounts[id] || 0) + 1;
+  var ch = channelOf(id);
+  if (ch) {
+    S.lastChannelId = ch.id;
+    S.dailyPlays = S.dailyPlays || {};
+    var td = todayIso();
+    S.dailyPlays[td] = S.dailyPlays[td] || {};
+    S.dailyPlays[td][ch.id] = Number(S.dailyPlays[td][ch.id] || 0) + 1;
+  }
   save();
   return S.playCounts[id];
 }
@@ -1482,6 +1522,8 @@ var VIEWS = [
 var App = {
   view: 'home',
   mode: 'kid',
+  kidArea: null,
+  books: { ar: '전체', ch: '전체', age: '전체', q: '', ownedOnly: false, sort: 'AR 낮은 순' },
   lib: { subject: '전체', sub: '전체', ch: '전체', q: '', onlyPrint: false, onlyPicked: false, stage: '전체', ar: '전체', sort: '기본', age: '전체', ownedOnly: false },
   learn: { subject: 'en', step: 1 },
   review: { songId: null, mode: 'card', idx: 0, flipped: false },
@@ -1568,6 +1610,7 @@ function render() {
   try {
     if (App.view === 'home') html = viewHome();
     else if (App.view === 'library') html = viewLibrary();
+    else if (App.view === 'books') html = viewBooks();
     else if (App.view === 'review') html = viewReview();
     else if (App.view === 'learn') html = viewLearn();
     else if (App.view === 'pecs') html = viewPecs();
@@ -2700,18 +2743,31 @@ function viewHome() {
     '</div>';
 
   if (kid) {
-    /* big kid buttons */
-    html += '<div class="kbig">' +
-      '<button class="kbtn c1" data-act="go" data-v="library"><span class="ke">🎵</span><b>노래 들려줘</b><span>' + totalSongs() + '개 노래·책</span></button>' +
-      '<button class="kbtn c2" data-act="go" data-v="review"><span class="ke">⭐</span><b>낱말 놀이</b><span>듣고 골라요</span></button>' +
-      '<button class="kbtn c3" data-act="go" data-v="learn"><span class="ke">🎨</span><b>배우기</b><span>영어·수학·한글</span></button>' +
-      '</div>';
+    if (App.kidArea) {
+      html += viewKidArea(App.kidArea);
+    } else {
+      var lch = S.lastChannelId ? S.channels.filter(function (x) { return x.id === S.lastChannelId; })[0] : null;
+      if (lch) {
+        html += '<button class="resume-banner" data-act="kid-resume-ch" data-id="' + lch.id + '">' +
+          '<span class="rb-ico">▶</span>' +
+          '<span class="rb-body"><b>' + esc(lch.name) + ' 이어서 보기</b><span>마지막에 본 채널</span></span>' +
+          '<span class="rb-arr">›</span></button>';
+      }
+      var c = counts();
+      html += '<div class="kareas">' +
+        '<button class="kbtn c1" data-act="kid-area" data-k="en"><span class="ke">🔤</span><b>영어</b><span>노래·낱말·문장·배우기 (' + c['영어'] + ')</span></button>' +
+        '<button class="kbtn c2" data-act="kid-area" data-k="ma"><span class="ke">🔢</span><b>수학</b><span>수세기·도형·패턴·영상 (' + c['수학'] + ')</span></button>' +
+        '<button class="kbtn c3" data-act="kid-area" data-k="ko"><span class="ke">가</span><b>한글</b><span>자음·통글자·의성어 (' + c['한글'] + ')</span></button>' +
+        '<button class="kbtn c4" data-act="kid-area" data-k="info"><span class="ke">🌍</span><b>정보</b><span>다큐·미술·생활·누리 (' + (c['다큐'] + c['기타']) + ')</span></button>' +
+        '</div>';
+    }
   } else {
     html += '<div class="tiles" style="margin-top:14px">' +
       '<button class="tile c1" data-act="go" data-v="library"><span class="ico">🎵</span><b>노래·영상 관리</b><span>채널·가사·프린트물·낱말</span></button>' +
-      '<button class="tile c2" data-act="go" data-v="plan"><span class="ico">🗓️</span><b>주간 계획</b><span>주제별 주차·누리 체크</span></button>' +
-      '<button class="tile c3" data-act="go" data-v="learn"><span class="ico">🎓</span><b>단계별 커리큘럼</b><span>영어·수학·한글·누리</span></button>' +
-      '<button class="tile c4" data-act="go" data-v="settings"><span class="ico">⚙️</span><b>설정·백업</b><span>이름·목소리·JSON</span></button>' +
+      '<button class="tile c2" data-act="go" data-v="books"><span class="ico">📚</span><b>영어 원서 서재</b><span>AR 지수·표지·영상·음원</span></button>' +
+      '<button class="tile c3" data-act="go" data-v="plan"><span class="ico">🗓️</span><b>주간 계획</b><span>주제별 주차·누리 체크</span></button>' +
+      '<button class="tile c4" data-act="go" data-v="learn"><span class="ico">🎓</span><b>단계별 커리큘럼</b><span>영어·수학·한글·누리</span></button>' +
+      '<button class="tile c1" data-act="go" data-v="settings"><span class="ico">⚙️</span><b>설정·백업</b><span>이름·목소리·JSON</span></button>' +
       '</div>';
   }
 
@@ -2764,6 +2820,40 @@ function viewHome() {
   return html;
 }
 
+function viewKidArea(area) {
+  var meta = {
+    en: { title: '🔤 영어 놀이터', sub: '노래 듣고 낱말·문장 놀이 해요' },
+    ma: { title: '🔢 수학 놀이터', sub: '숫자 세고 도형·규칙 찾아요' },
+    ko: { title: '가 한글 놀이터', sub: '가나다 통글자랑 이야기 봐요' },
+    info: { title: '🌍 정보 놀이터', sub: '자연 다큐·미술·생활 놀이예요' }
+  }[area] || { title: '놀이터', sub: '' };
+  var h = '<div class="card cute" style="margin-top:14px">' +
+    '<div class="row" style="gap:10px;align-items:center;margin-bottom:12px">' +
+    '<button class="btn sm ghost" data-act="kid-area" data-k="">← 대단원</button>' +
+    '<div><b style="font-size:17px">' + meta.title + '</b><div class="tiny muted">' + meta.sub + '</div></div>' +
+    '</div><div class="kareas">';
+  if (area === 'en') {
+    h += '<button class="kbtn c1" data-act="kid-lib-sub" data-k="영어"><span class="ke">🎵</span><b>영어 노래·영상</b><span>영상 보고 따라 불러요</span></button>' +
+      '<button class="kbtn c2" data-act="go" data-v="books"><span class="ke">📚</span><b>영어 원서 서재</b><span>AR 지수별 책·영상·음성</span></button>' +
+      '<button class="kbtn c3" data-act="go" data-v="review"><span class="ke">⭐</span><b>영어 낱말 퀴즈</b><span>듣고 그림 골라요</span></button>' +
+      '<button class="kbtn c4" data-act="go" data-v="pecs"><span class="ke">💬</span><b>영어 문장 만들기</b><span>카드로 문장 톡톡</span></button>' +
+      '<button class="kbtn c1" data-act="kid-learn-sub" data-k="en"><span class="ke">🎨</span><b>영어 배우기</b><span>5단계 놀이</span></button>';
+  } else if (area === 'ma') {
+    h += '<button class="kbtn c2" data-act="kid-lib-sub" data-k="수학"><span class="ke">📺</span><b>수학 영상·책</b><span>재미있는 수 놀이</span></button>' +
+      '<button class="kbtn c1" data-act="kid-learn-sub" data-k="ma"><span class="ke">🎨</span><b>수학 배우기</b><span>5단계 수세기·도형</span></button>' +
+      '<button class="kbtn c3" data-act="kid-quiz-sub" data-k="ma"><span class="ke">🎲</span><b>수학 퀴즈</b><span>바로 문제 풀기</span></button>';
+  } else if (area === 'ko') {
+    h += '<button class="kbtn c3" data-act="kid-lib-sub" data-k="한글"><span class="ke">📺</span><b>한글 영상·책</b><span>한글 동화·노래</span></button>' +
+      '<button class="kbtn c1" data-act="kid-learn-sub" data-k="ko"><span class="ke">🎨</span><b>한글 배우기</b><span>5단계 자음·통글자</span></button>' +
+      '<button class="kbtn c2" data-act="kid-quiz-sub" data-k="ko"><span class="ke">🎲</span><b>한글 퀴즈</b><span>바로 문제 풀기</span></button>';
+  } else {
+    h += '<button class="kbtn c4" data-act="kid-lib-sub" data-k="다큐"><span class="ke">🌍</span><b>다큐·과학 영상</b><span>동물·자연·우주</span></button>' +
+      '<button class="kbtn c1" data-act="kid-lib-sub" data-k="기타"><span class="ke">🎨</span><b>미술·생활·놀이</b><span>만들기·생활습관</span></button>' +
+      '<button class="kbtn c3" data-act="kid-learn-sub" data-k="nu"><span class="ke">🌱</span><b>누리과정 놀이</b><span>5대 영역 활동</span></button>';
+  }
+  return h + '</div></div>';
+}
+
 function planIco(it) {
   if (it.type === 'song') return '🎵';
   if (it.type === 'book') return '📖';
@@ -2790,7 +2880,7 @@ function libSongs() {
       if (App.lib.ar !== '전체') {
         var ar = parseFloat(s.ar);
         var hasAr = (s.ar !== '' && s.ar !== null && !isNaN(ar));
-        if (App.lib.ar === '미등록' && hasAr) return;
+        if (App.lib.ar === '확인불가' && hasAr) return;
         if (App.lib.ar === '0-1' && !(hasAr && ar <= 1.0)) return;
         if (App.lib.ar === '1.1-2' && !(hasAr && ar > 1.0 && ar <= 2.0)) return;
         if (App.lib.ar === '2+' && !(hasAr && ar > 2.0)) return;
@@ -2902,7 +2992,7 @@ function viewLibrary() {
       return '<option value="' + esc(st) + '"' + (App.lib.stage === st ? ' selected' : '') + '>' + esc(st) + '</option>';
     }).join('') + '</select>' +
     '<select id="lib-ar" style="padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-weight:700">' +
-    [['전체', '전체 AR'], ['0-1', 'AR 0~1.0'], ['1.1-2', 'AR 1.1~2.0'], ['2+', 'AR 2.1 이상'], ['미등록', 'AR 미등록']].map(function (o) {
+    [['전체', '전체 AR'], ['0-1', 'AR 0~1.0'], ['1.1-2', 'AR 1.1~2.0'], ['2+', 'AR 2.1 이상'], ['확인불가', 'AR 확인불가']].map(function (o) {
       return '<option value="' + o[0] + '"' + (App.lib.ar === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
     }).join('') + '</select>' +
     '<select id="lib-age" style="padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-weight:700">' +
@@ -2925,7 +3015,13 @@ function viewLibrary() {
 }
 
 function viewLibraryKid() {
-  var chChips = '<div class="chips" style="margin-bottom:6px">' +
+  var subjChips = '<div class="chips" style="margin-bottom:6px">' +
+    '<button class="chip kchip ' + (App.lib.subject === '전체' ? 'on mint' : '') + '" data-act="lib-sub-k" data-k="전체">📚 전체</button>' +
+    SUBJECTS.map(function (s) {
+      return '<button class="chip kchip ' + (App.lib.subject === s.key ? 'on mint' : '') + '" data-act="lib-sub-k" data-k="' + s.key + '">' + s.ico + ' ' + s.key + '</button>';
+    }).join('') + '</div>';
+
+  var chChips = subjChips + '<div class="chips" style="margin-bottom:6px">' +
     '<button class="chip kchip ' + (App.lib.ch === '전체' ? 'on coral' : '') + '" data-act="lib-channel" data-k="전체">🌈 전체</button>' +
     S.channels.map(function (c) {
       return '<button class="chip kchip ' + (App.lib.ch === c.id ? 'on coral' : '') + '" data-act="lib-channel" data-k="' + c.id + '">' +
@@ -2956,9 +3052,12 @@ function viewLibraryKid() {
     '</div>';
 
   var html = chChips + ageRow + stageRow + sortRow;
-  html += '<div class="row" style="gap:8px;margin-bottom:12px">' +
-    '<div class="searchbox" style="flex:1">🔎<input id="lib-q" type="text" placeholder="제목으로 찾기" value="' + esc(App.lib.q) + '"></div>' +
-    '<button class="btn sun sm" data-act="kid-random">🎲</button></div>';
+  var curSongs = libSongs();
+  html += '<div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap">' +
+    '<div class="searchbox" style="flex:1;min-width:160px">🔎<input id="lib-q" type="text" placeholder="제목으로 찾기" value="' + esc(App.lib.q) + '"></div>' +
+    '<button class="btn ghost sm" data-act="kid-shuffle-all">🔀 섞기</button>' +
+    '<button class="btn mint sm" data-act="kid-play-all">▶ 전체 보기 (' + curSongs.length + ')</button>' +
+    '</div>';
   if (App.lib.age && App.lib.age !== '전체') {
     var g = AGE_GROUPS.filter(function (x) { return x.key === App.lib.age; })[0];
     var n = libSongs().length;
@@ -2984,7 +3083,7 @@ function tcard(s, mode, compact) {
   var badges = '';
   if (s.stage) badges += '<span class="tb stage">' + esc(s.stage) + '</span>';
   if (s.ar !== '' && s.ar !== null && s.ar !== undefined) badges += '<span class="tb ar">AR ' + esc(s.ar) + '</span>';
-  else if (s.kind === 'book') badges += '<span class="tb ar off">AR 미등록</span>';
+  else if (s.kind === 'book') badges += '<span class="tb ar off">AR 확인불가</span>';
   if (!compact && s.prints && s.prints.length) badges += '<span class="tb print">🖨</span>';
   if (!compact && (s.hasAudio || s.audioUrl)) badges += '<span class="tb audio">🎧</span>';
   if (!compact && s.parts && s.parts.length) badges += '<span class="tb parts">📑' + s.parts.length + '</span>';
@@ -3146,6 +3245,191 @@ function openPrints(id) {
     }).join('');
   openModal('프린트물 · ' + short(s.title, 22), body, '<button class="btn ghost" data-act="close-modal">닫기</button>');
 }
+
+/* ============================================================
+   영어 원서 서재 (AR 지수별 · 표지 · 영상 · 음원 관리)
+   ============================================================ */
+function isBookItem(s) {
+  return !!(s && (s.kind === 'book' || s.ar !== undefined && s.ar !== null && s.ar !== '' || (s.stage || '').indexOf('Stage') >= 0));
+}
+
+function bookFiltered() {
+  var out = [];
+  var isKid = modeOf() === 'kid';
+  var bs = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
+  var effOwned = App.books.ownedOnly || (isKid && bs.ownedOnly);
+  var effAge = (isKid && bs.ageFilter && bs.ageFilter !== '전체') ? bs.ageFilter : App.books.age;
+  S.channels.forEach(function (ch) {
+    if (App.books.ch !== '전체' && ch.id !== App.books.ch) return;
+    ch.songs.forEach(function (s) {
+      if (!isBookItem(s)) return;
+      if (isKid && ch.onlySelected && !s.picked) return;
+      if (effOwned && !s.owned) return;
+      if (effAge && effAge !== '전체' && ageGroupOf(s) !== effAge) return;
+      var ar = parseFloat(s.ar);
+      var hasAr = (s.ar !== '' && s.ar !== null && !isNaN(ar));
+      if (App.books.ar !== '전체') {
+        if (App.books.ar === '확인불가' && hasAr) return;
+        if (App.books.ar === '0.1-0.5' && !(hasAr && ar <= 0.5)) return;
+        if (App.books.ar === '0.6-1.0' && !(hasAr && ar > 0.5 && ar <= 1.0)) return;
+        if (App.books.ar === '1.1-1.5' && !(hasAr && ar > 1.0 && ar <= 1.5)) return;
+        if (App.books.ar === '1.6-2.0' && !(hasAr && ar > 1.5 && ar <= 2.0)) return;
+        if (App.books.ar === '2.1+' && !(hasAr && ar > 2.0)) return;
+      }
+      if (App.books.q) {
+        var q = App.books.q.toLowerCase();
+        var hay = (s.title + ' ' + (s.author || '') + ' ' + (s.stage || '') + ' ' + (s.ar === null ? '' : s.ar) + ' ' + ((s.kw || []).join(' '))).toLowerCase();
+        if (hay.indexOf(q) < 0) return;
+      }
+      out.push({ ch: ch, s: s });
+    });
+  });
+  out.sort(function (a, b) {
+    if (App.books.sort === 'AR 높은 순') {
+      var x = parseFloat(a.s.ar), y = parseFloat(b.s.ar);
+      if (isNaN(x)) x = -1; if (isNaN(y)) y = -1;
+      return y - x;
+    }
+    var ax = parseFloat(a.s.ar), ay = parseFloat(b.s.ar);
+    if (isNaN(ax)) ax = 99; if (isNaN(ay)) ay = 99;
+    return ax - ay;
+  });
+  return out;
+}
+
+function renderBookCard(pair, isKid) {
+  var s = pair.s;
+  var hasAr = s.ar !== '' && s.ar !== null && !isNaN(parseFloat(s.ar));
+  var arTxt = hasAr ? 'AR ' + s.ar : 'AR 확인불가';
+  var hasAudio = !!(s.hasAudio || s.audioUrl);
+  var pc = playCount(s.id);
+  var cover = s.coverUrl
+    ? '<img class="kthumb" src="' + esc(s.coverUrl) + '" alt="" loading="lazy">'
+    : s.vid
+      ? '<img class="kthumb" src="' + thumbUrl(s.vid) + '" alt="" loading="lazy">'
+      : '<div class="kthumb" style="display:grid;place-items:center;background:linear-gradient(145deg,#FFF4DF,#FFE4CC);padding:12px;text-align:center"><b style="font-size:13px;line-height:1.3;color:#5A4332">📖<br>' + esc(short(s.title, 24)) + '</b></div>';
+
+  return '<div class="kcard">' +
+    '<div class="kcard-top" data-act="' + (s.vid || hasAudio ? 'play' : 'open-song') + '" data-id="' + s.id + '">' +
+    cover +
+    '<span class="kdur">' + esc(arTxt) + '</span>' +
+    (s.owned ? '<span class="kpin" style="background:#56B58B;color:#fff">보유</span>' : '') +
+    '</div>' +
+    '<div class="kcard-b">' +
+    '<b data-act="open-song" data-id="' + s.id + '">' + esc(short(s.title, 34)) + ' <span class="tiny muted">(' + esc(arTxt) + ')</span></b>' +
+    '<div class="tiny" style="color:#E06D3B;font-weight:700;margin-top:3px">📖 ' + pc + '번 읽었어요</div>' +
+    '<div class="tiny muted" style="margin-top:2px">' + esc(s.stage || pair.ch.name) + (s.author ? ' · ' + esc(short(s.author, 16)) : '') + '</div>' +
+    '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">' +
+    (s.vid ? '<button class="btn xs primary" data-act="play" data-id="' + s.id + '">▶ 영상</button>' : '') +
+    (hasAudio ? '<button class="btn xs mint" data-act="play" data-id="' + s.id + '">🎧 음성</button>' : '') +
+    (!isKid ? '<button class="btn xs ghost" data-act="edit-song" data-id="' + s.id + '">✏️ 관리</button>' : '') +
+    '</div></div></div>';
+}
+
+function openBookSettingsModal() {
+  var bs = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
+  var body =
+    '<div class="field"><label>📚 원서 노출 기준 (아이 화면)</label>' +
+    '<select id="bs-owned">' +
+    '<option value="0"' + (!bs.ownedOnly ? ' selected' : '') + '>전체 원서 다 보이기</option>' +
+    '<option value="1"' + (bs.ownedOnly ? ' selected' : '') + '>집에 있는(보유한) 책만 보이기</option>' +
+    '</select></div>' +
+    '<div class="field"><label>🎂 추천 연령별 영상·책만 보이기 (아이 화면)</label>' +
+    '<select id="bs-age">' +
+    '<option value="전체"' + (bs.ageFilter === '전체' ? ' selected' : '') + '>전체 연령 모두 보기</option>' +
+    AGE_GROUPS.map(function (g) {
+      return '<option value="' + g.key + '"' + (bs.ageFilter === g.key ? ' selected' : '') + '>' + g.label + '</option>';
+    }).join('') +
+    '</select></div>' +
+    '<div class="field"><label><input type="checkbox" id="bs-group"' + (bs.groupBySet !== false ? ' checked' : '') + '> 원서북 모음(세트)끼리 묶어서 보기</label></div>';
+
+  openModal('⚙️ 원서 서재 엄마 설정', body,
+    '<button class="btn ghost" data-act="close-modal">취소</button>' +
+    '<button class="btn primary" id="bs-save">저장</button>');
+
+  document.getElementById('bs-save').onclick = function () {
+    S.bookSettings = {
+      ownedOnly: document.getElementById('bs-owned').value === '1',
+      ageFilter: document.getElementById('bs-age').value,
+      groupBySet: !!document.getElementById('bs-group').checked
+    };
+    save(); closeModal(); render();
+    toast('원서 엄마 설정을 저장했어요');
+  };
+}
+
+function viewBooks() {
+  var isKid = modeOf() === 'kid';
+  var bs = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
+  var bookChs = S.channels.filter(function (ch) { return ch.songs.some(isBookItem); });
+  var items = bookFiltered();
+  var arRanges = [
+    ['전체', '📚 전체'],
+    ['0.1-0.5', '🌱 0.1~0.5'],
+    ['0.6-1.0', '🌿 0.6~1.0'],
+    ['1.1-1.5', '🌳 1.1~1.5'],
+    ['1.6-2.0', '🚀 1.6~2.0'],
+    ['2.1+', '⭐ 2.1+'],
+    ['확인불가', '확인불가']
+  ];
+
+  var h = '<div class="row spread" style="gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">' +
+    '<div class="row" style="gap:8px;align-items:center">' +
+    '<button class="btn sm ghost" data-act="go" data-v="home">← 홈</button>' +
+    '<b style="font-size:18px">📚 영어 원서 서재</b></div>' +
+    '<div class="row" style="gap:6px">' +
+    (!isKid ? '<button class="btn sm sky" data-act="batch-audio">🎧 음원 연결</button>' : '') +
+    '<button class="btn sm ghost" data-act="books-mom-settings">⚙️ 엄마 설정</button>' +
+    '</div></div>';
+
+  h += '<div class="chips" style="margin-bottom:6px">' +
+    '<button class="chip ' + (App.books.age === '전체' ? 'on mint' : '') + '" data-act="books-age" data-k="전체">🎂 전체 연령</button>' +
+    AGE_GROUPS.map(function (g) {
+      return '<button class="chip ' + (App.books.age === g.key ? 'on mint' : '') + '" data-act="books-age" data-k="' + g.key + '">' + g.label + '</button>';
+    }).join('') + '</div>';
+
+  h += '<div class="chips" style="margin-bottom:6px">' +
+    arRanges.map(function (r) {
+      return '<button class="chip ' + (App.books.ar === r[0] ? 'on sky' : '') + '" data-act="books-ar" data-k="' + r[0] + '">' + r[1] + '</button>';
+    }).join('') + '</div>';
+
+  h += '<div class="chips" style="margin-bottom:8px">' +
+    '<button class="chip ' + (App.books.ch === '전체' ? 'on' : '') + '" data-act="books-ch" data-k="전체">전체 모음</button>' +
+    bookChs.map(function (ch) {
+      return '<button class="chip ' + (App.books.ch === ch.id ? 'on' : '') + '" data-act="books-ch" data-k="' + ch.id + '">' + esc(short(ch.name, 14)) + '</button>';
+    }).join('') + '</div>';
+
+  h += '<div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap">' +
+    '<div class="searchbox" style="flex:1;min-width:160px">🔎<input id="books-q" type="text" placeholder="원서 제목·작가·AR 검색" value="' + esc(App.books.q) + '"></div>' +
+    '<button class="chip ' + (App.books.ownedOnly ? 'on mint' : '') + '" data-act="books-owned">보유한 책만</button>' +
+    '<button class="btn ghost sm" data-act="books-sort">' + (App.books.sort === 'AR 낮은 순' ? '↑ AR 낮은 순' : '↓ AR 높은 순') + '</button>' +
+    '<button class="btn mint sm" data-act="books-play-all">▶ 전체 듣기 (' + items.length + ')</button>' +
+    '</div>';
+
+  if (!items.length) {
+    return h + '<div class="empty cute"><span class="big">📚</span>조건에 맞는 원서가 없어요.</div>';
+  }
+
+  if (bs.groupBySet !== false && App.books.ch === '전체') {
+    var groups = {};
+    var order = [];
+    items.forEach(function (pair) {
+      var cid = pair.ch.id;
+      if (!groups[cid]) { groups[cid] = { ch: pair.ch, list: [] }; order.push(cid); }
+      groups[cid].list.push(pair);
+    });
+    h += order.map(function (cid) {
+      var g = groups[cid];
+      return '<div class="sectitle" style="margin:14px 0 8px"><span>📚 ' + esc(g.ch.name) + '</span><span class="sub">' + g.list.length + '권</span></div>' +
+        '<div class="kgrid">' + g.list.map(function (p) { return renderBookCard(p, isKid); }).join('') + '</div>';
+    }).join('');
+  } else {
+    h += '<div class="kgrid">' + items.map(function (pair) { return renderBookCard(pair, isKid); }).join('') + '</div>';
+  }
+
+  return h;
+}
+
 
 /* ---- 40-review.js ---- */
 /* ============================================================
@@ -3868,9 +4152,17 @@ function currentPlayerList() {
 function playSong(id, list, startSec) {
   var s = songById(id);
   if (!s) { toast('영상을 찾을 수 없어요'); return; }
+  var ch = channelOf(id);
+  if (modeOf() === 'kid' && ch && isDailyLimitReached(ch)) {
+    openModal('🌙 오늘은 여기까지!',
+      '<div style="text-align:center;padding:12px 0"><div style="font-size:48px;margin-bottom:8px">🌙</div>' +
+      '<b style="font-size:17px;display:block;margin-bottom:6px">' + esc(ch.name) + ' 오늘 목표(' + ch.dailyLimit + '편)를 다 봤어요!</b>' +
+      '<p class="tiny muted">내일 또 만나요. 다른 놀이도 해 볼까요?</p></div>',
+      '<button class="btn primary" data-act="close-modal">알겠어요</button>');
+    return;
+  }
   if (!s.vid && !s.hasAudio && !s.audioUrl) { openSong(id); return; }
   stopSpeak();
-  var ch = channelOf(id);
   var sec = (startSec !== undefined && startSec !== null) ? Number(startSec) : firstMatchingPartSec(s, App.lib.subject, App.lib.sub);
   App.player = {
     id: id,
@@ -4147,18 +4439,36 @@ function showPlayerFallback(msg) {
 }
 
 function onVideoEnded() {
+  var curCh = App.player ? channelOf(App.player.id) : null;
+  if (modeOf() === 'kid' && curCh && isDailyLimitReached(curCh)) {
+    var ov0 = document.getElementById('next-overlay');
+    if (ov0) {
+      var tt = ov0.querySelector('.nx-title'); if (tt) tt.textContent = '🌙 오늘은 여기까지!';
+      var sub = ov0.querySelector('.nx-sub'); if (sub) sub.textContent = '오늘 볼 편수(' + curCh.dailyLimit + '편)를 다 봤어요';
+      var nc = document.getElementById('nx-count'); if (nc) nc.textContent = '🌙';
+      var btns0 = ov0.querySelector('.nx-btns');
+      if (btns0) btns0.innerHTML = '<button class="btn primary" data-act="player-close">목록으로</button>';
+      ov0.classList.add('on');
+    }
+    return;
+  }
   if (playerRepeatMode() === 'loop-one') {
     YTP.countedId = null;
     var au = document.getElementById('audio-player');
     if (au) { au.currentTime = 0; try { au.play(); } catch (e) { } return; }
     if (YTP.player && YTP.player.seekTo) { try { YTP.player.seekTo(0, true); YTP.player.playVideo(); return; } catch (e) { } }
   }
+  var curSong = App.player ? songById(App.player.id) : null;
   var nx = nextInList();
   var ov = document.getElementById('next-overlay');
   if (!ov) return;
+  var ns = nx ? songById(nx) : null;
+  if (curSong && isBookItem(curSong)) {
+    showBookEndQuiz(ov, curSong, ns);
+    return;
+  }
   /* next title */
   var t = ov.querySelector('.nx-next');
-  var ns = nx ? songById(nx) : null;
   if (t) t.textContent = ns ? cleanTitle(ns.title) : '마지막 영상이에요';
   var btns = ov.querySelector('.nx-btns');
   if (btns) {
@@ -4183,6 +4493,92 @@ function onVideoEnded() {
       playNext();
     }
   }, 1000);
+}
+
+function showBookEndQuiz(ov, curSong, ns) {
+  var pool = (typeof songWords === 'function' ? songWords(curSong) : []) || [];
+  var allPool = (S.words || []).slice();
+  if (!pool.length && curSong.kw && curSong.kw.length) {
+    pool = curSong.kw.map(function (k) { return { w: k, k: k, e: '📖' }; });
+  }
+  var qPool = pool.slice();
+  allPool.forEach(function (x) {
+    if (qPool.length < 10 && x && !qPool.some(function (p) { return p.w.toLowerCase() === x.w.toLowerCase(); })) {
+      qPool.push(x);
+    }
+  });
+  qPool.sort(function () { return Math.random() - 0.5; });
+  var questions = qPool.slice(0, Math.min(10, qPool.length));
+  var qi = 0;
+  var score = 0;
+
+  var btns = ov.querySelector('.nx-btns');
+  if (btns) {
+    btns.innerHTML = '<button class="btn ghost" data-act="player-close">⏹️ 그만하기</button>' +
+      (ns ? '<button class="btn primary" data-act="player-next">▶ 다음 영상으로</button>' : '');
+  }
+  ov.classList.add('on');
+  YTP.overlayOn = true;
+  clearInterval(YTP.timer); YTP.timer = null;
+
+  function renderQ() {
+    var tt = ov.querySelector('.nx-title');
+    var sub = ov.querySelector('.nx-sub');
+    var nc = document.getElementById('nx-count');
+    var nxn = ov.querySelector('.nx-next');
+    if (qi >= questions.length) {
+      if (tt) tt.textContent = '🎉 책 퀴즈 완료!';
+      if (sub) sub.textContent = short(curSong.title, 28);
+      if (nc) nc.textContent = '🏆';
+      if (nxn) {
+        nxn.innerHTML = '<div style="padding:10px 0;font-size:16px"><b>' + questions.length + '문제 중 ' + score + '개 맞혔어요! ⭐</b></div>';
+      }
+      return;
+    }
+    var target = questions[qi];
+    var opts = [target];
+    var cand = qPool.concat(allPool).filter(function (x) { return x && x.w && x.w.toLowerCase() !== target.w.toLowerCase(); });
+    while (opts.length < 3 && cand.length) {
+      var idx = Math.floor(Math.random() * cand.length);
+      var pick = cand.splice(idx, 1)[0];
+      if (!opts.some(function (o) { return o.w.toLowerCase() === pick.w.toLowerCase(); })) opts.push(pick);
+    }
+    opts.sort(function () { return Math.random() - 0.5; });
+
+    if (tt) tt.textContent = '📖 책 퀴즈 (' + (qi + 1) + ' / ' + questions.length + ')';
+    if (sub) sub.textContent = short(curSong.title, 28);
+    if (nc) nc.textContent = String(qi + 1);
+    if (nxn) {
+      nxn.innerHTML =
+        '<div style="margin:6px 0 8px;font-size:15px"><b>' + esc(target.w) + '</b>' +
+        (target.k && target.k !== target.w ? ' <span style="opacity:.8">(' + esc(target.k) + ')</span>' : '') +
+        ' <button type="button" class="btn xs sky" id="bq-say" style="margin-left:6px">🔊 듣기</button></div>' +
+        '<div id="bq-opts" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">' +
+        opts.map(function (o) {
+          return '<button type="button" class="btn sm ghost bq-opt" data-w="' + esc(o.w) + '">' + (o.e || '📖') + ' ' + esc(o.w) + '</button>';
+        }).join('') +
+        '</div><div id="bq-msg" style="margin-top:8px;font-size:13px;font-weight:700;min-height:18px"></div>';
+    }
+    var sayBtn = document.getElementById('bq-say');
+    if (sayBtn) sayBtn.onclick = function () { speak(target.w, 'en-US'); };
+    try { speak(target.w, 'en-US'); } catch (e) { }
+
+    ov.querySelectorAll('.bq-opt').forEach(function (b) {
+      b.onclick = function () {
+        var msg = document.getElementById('bq-msg');
+        if (b.getAttribute('data-w') === target.w) {
+          b.classList.remove('ghost'); b.classList.add('mint');
+          score++;
+          if (msg) msg.innerHTML = '🎉 맞았어요! 별 +1 ⭐';
+          if (typeof addStars === 'function') addStars(1);
+          setTimeout(function () { qi++; renderQ(); }, 700);
+        } else {
+          if (msg) msg.innerHTML = '다시 한번 골라 볼까요?';
+        }
+      };
+    });
+  }
+  renderQ();
 }
 
 function stopAutoNext() {
@@ -5187,6 +5583,7 @@ function openSongEditor(id, channelId, presetSubject, presetSubtopic) {
   var body =
     '<div class="field"><label>제목 *</label><input type="text" id="ed-title" value="' + esc(s ? s.title : '') + '" placeholder="영상·책 제목"></div>' +
     '<div class="field"><label>유튜브 링크</label><input type="url" id="ed-url" value="' + esc(s ? s.url : '') + '" placeholder="https://www.youtube.com/watch?v=..."></div>' +
+    '<div class="field"><label>책 표지 그림·사진 URL (원서일 때 선택)</label><input type="url" id="ed-cover" value="' + esc(s && s.coverUrl ? s.coverUrl : '') + '" placeholder="https://... (비워 두면 유튜브 썸네일/기본 표지)"></div>' +
     '<div class="row" style="gap:10px;flex-wrap:wrap">' +
     '<div class="field" style="flex:1;min-width:130px"><label>영역</label><select id="ed-subject">' + subjectOptions(subj) + '</select></div>' +
     '<div class="field" style="flex:1;min-width:130px"><label>소주제</label><select id="ed-subtopic"></select></div>' +
@@ -5195,7 +5592,7 @@ function openSongEditor(id, channelId, presetSubject, presetSubtopic) {
     '<div class="row" style="gap:10px;flex-wrap:wrap">' +
     '<div class="field" style="flex:1;min-width:100px"><label>재생시간</label><input type="text" id="ed-dur" value="' + esc(s ? s.dur : '') + '" placeholder="1:46"></div>' +
     '<div class="field" style="flex:1;min-width:100px"><label>Stage</label><input type="text" id="ed-stage" value="' + esc(s ? s.stage : '') + '" placeholder="Stage 1+"></div>' +
-    '<div class="field" style="flex:1;min-width:100px"><label>AR 지수</label><input type="text" id="ed-ar" value="' + esc(s ? (s.ar === null ? '' : s.ar) : '') + '" placeholder="0.6 / 미등록"></div>' +
+    '<div class="field" style="flex:1;min-width:100px"><label>AR 지수</label><input type="text" id="ed-ar" value="' + esc(s ? (s.ar === null ? '' : s.ar) : '') + '" placeholder="0.6 / 확인불가"></div>' +
     '</div>' +
     '<div class="row" style="gap:10px;flex-wrap:wrap">' +
     '<div class="field" style="flex:1;min-width:100px"><label>단어 수</label><input type="text" id="ed-wc" value="' + esc(s ? (s.wordCount === null ? '' : s.wordCount) : '') + '" placeholder="34"></div>' +
@@ -5366,6 +5763,8 @@ function openSongEditor(id, channelId, presetSubject, presetSubtopic) {
     }
     target.title = title;
     target.url = document.getElementById('ed-url').value.trim();
+    var covEl = document.getElementById('ed-cover');
+    target.coverUrl = covEl ? covEl.value.trim() : '';
     var vidm = String(target.url).match(/v=([A-Za-z0-9_-]{11})/);
     target.vid = vidm ? vidm[1] : (target.vid || '');
     target.subject = sub;
@@ -5435,7 +5834,10 @@ function openChannelEditor(id) {
     '<option value="loop-one"' + (rMode === 'loop-one' ? ' selected' : '') + '>🔂 1곡 반복 재생</option>' +
     '<option value="loop-all"' + (rMode === 'loop-all' ? ' selected' : '') + '>🔁 채널 전체 반복</option>' +
     '</select></div>' +
-    '<div class="field"><label><input type="checkbox" id="ch-only-selected"' + (ch && ch.onlySelected ? ' checked' : '') + '> ⭐ 아이 모드에서 엄마가 고른 영상만 보이기</label></div>' +
+    '<div class="field"><label><input type="checkbox" id="ch-only-selected"' + (ch && ch.onlySelected ? ' checked' : '') + '> ⭐ 아이 모드에서 고른 영상만 열기 (꺼두면 전부 열어둠)</label></div>' +
+    '<div class="field"><label>⏰ 하루에 볼 영상 제한 (편까지 · 비워 두면 제한 없음)</label>' +
+    '<input type="number" id="ch-daily-limit" min="0" max="99" value="' + esc(ch && ch.dailyLimit ? ch.dailyLimit : '') + '" placeholder="제한 없음"></div>' +
+    (ch ? '<div class="field"><button type="button" class="btn sm ghost" id="ch-clear-plays">들은 기록 지우기 (오늘 ' + dailyPlayCount(ch.id) + '편)</button></div>' : '') +
     '<p class="hint">채널을 만들고 나면 그 안에 영상·책을 추가할 수 있어요. 영역(영어/한글/수학/다큐/기타)은 영상마다 따로 정해요.</p>';
   openModal(ch ? '채널 수정' : '채널 추가', body,
     '<button class="btn ghost" data-act="close-modal">취소</button>' +
@@ -5445,7 +5847,7 @@ function openChannelEditor(id) {
     var name = document.getElementById('ch-name').value.trim();
     if (!name) { toast('채널 이름을 적어 주세요'); return; }
     if (!ch) {
-      ch = { id: uid('ch'), name: name, memo: document.getElementById('ch-memo').value.trim(), url: document.getElementById('ch-url').value.trim(), repeatMode: document.getElementById('ch-repeat').value, onlySelected: !!document.getElementById('ch-only-selected').checked, songs: [] };
+      ch = { id: uid('ch'), name: name, memo: document.getElementById('ch-memo').value.trim(), url: document.getElementById('ch-url').value.trim(), repeatMode: document.getElementById('ch-repeat').value, onlySelected: !!document.getElementById('ch-only-selected').checked, dailyLimit: Math.max(0, parseInt(document.getElementById('ch-daily-limit').value, 10) || 0), songs: [] };
       S.channels.push(ch);
     } else {
       ch.name = name;
@@ -5453,10 +5855,22 @@ function openChannelEditor(id) {
       ch.url = document.getElementById('ch-url').value.trim();
       ch.repeatMode = document.getElementById('ch-repeat').value;
       ch.onlySelected = !!document.getElementById('ch-only-selected').checked;
+      ch.dailyLimit = Math.max(0, parseInt(document.getElementById('ch-daily-limit').value, 10) || 0);
     }
     save(); closeModal(); render(); toast('저장했어요');
   };
   if (ch) {
+    var cp = document.getElementById('ch-clear-plays');
+    if (cp) {
+      cp.onclick = function () {
+        var td = todayIso();
+        if (S.dailyPlays && S.dailyPlays[td]) delete S.dailyPlays[td][ch.id];
+        ch.songs.forEach(function (x) { if (S.playCounts) delete S.playCounts[x.id]; });
+        save();
+        cp.textContent = '들은 기록 지우기 (오늘 0편)';
+        toast('이 채널 들은 기록을 지웠어요');
+      };
+    }
     document.getElementById('ch-del').onclick = function () {
       var n = ch.songs.length;
       confirmBox('‘' + esc(ch.name) + '’ 채널과 그 안의 ' + n + '개 항목을 모두 지울까요?', function () {
@@ -5564,8 +5978,34 @@ function onClick(e) {
 
   try {
     switch (act) {
-      case 'go': App.quiz = null; stopSpeak(); go(btn.getAttribute('data-v')); break;
-      case 'play': stopSpeak(); playSong(id, libSongs().map(function (x) { return x.id; })); break;
+      case 'go': App.quiz = null; if (btn.getAttribute('data-v') === 'home') App.kidArea = null; stopSpeak(); go(btn.getAttribute('data-v')); break;
+      case 'kid-area': App.kidArea = btn.getAttribute('data-k') || null; render(); break;
+      case 'kid-lib-sub':
+        App.lib.subject = btn.getAttribute('data-k') || '전체';
+        App.lib.sub = '전체'; App.lib.ch = '전체'; App.lib.stage = '전체';
+        go('library'); break;
+      case 'kid-learn-sub':
+        App.learn.subject = btn.getAttribute('data-k') || 'en';
+        App.learn.step = 1; App.quiz = null;
+        go('learn'); break;
+      case 'kid-quiz-sub':
+        launchStepQuiz(btn.getAttribute('data-k') || 'ma', 1); break;
+      case 'lib-sub-k':
+        App.lib.subject = btn.getAttribute('data-k') || '전체';
+        App.lib.sub = '전체'; render(); break;
+      case 'books-age': App.books.age = btn.getAttribute('data-k') || '전체'; render(); break;
+      case 'books-mom-settings': openBookSettingsModal(); break;
+      case 'books-ar': App.books.ar = btn.getAttribute('data-k') || '전체'; render(); break;
+      case 'books-ch': App.books.ch = btn.getAttribute('data-k') || '전체'; render(); break;
+      case 'books-owned': App.books.ownedOnly = !App.books.ownedOnly; render(); break;
+      case 'books-sort': App.books.sort = App.books.sort === 'AR 낮은 순' ? 'AR 높은 순' : 'AR 낮은 순'; render(); break;
+      case 'books-play-all': {
+        var blist = bookFiltered().map(function (p) { return p.s; }).filter(function (x) { return !!(x.vid || x.hasAudio || x.audioUrl); });
+        if (!blist.length) { toast('재생할 영상·음성이 없어요'); break; }
+        playSong(blist[0].id, blist.map(function (x) { return x.id; }));
+        break;
+      }
+      case 'play': stopSpeak(); playSong(id, (App.view === 'books' ? bookFiltered().map(function (p) { return p.s; }) : libSongs()).map(function (x) { return x.id; })); break;
       case 'player-close': stopSpeak(); closePlayer(); break;
       case 'player-expand': toggleTheater(); break;
       case 'player-next': playNext(); break;
@@ -5664,6 +6104,27 @@ function onClick(e) {
         if (!all.length) break;
         var r = all[Math.floor(Math.random() * all.length)];
         playSong(r.id, all.map(function (x) { return x.id; }));
+        break;
+      }
+      case 'kid-resume-ch':
+        App.lib.ch = id || '전체';
+        App.lib.subject = '전체'; App.lib.sub = '전체'; App.lib.stage = '전체';
+        go('library');
+        break;
+      case 'kid-play-all': {
+        var listA = libSongs().filter(function (x) { return !!(x.vid || x.hasAudio || x.audioUrl); });
+        if (!listA.length) { toast('재생할 영상이 없어요'); break; }
+        playSong(listA[0].id, listA.map(function (x) { return x.id; }));
+        break;
+      }
+      case 'kid-shuffle-all': {
+        var listS = libSongs().filter(function (x) { return !!(x.vid || x.hasAudio || x.audioUrl); }).slice();
+        if (!listS.length) { toast('재생할 영상이 없어요'); break; }
+        for (var si = listS.length - 1; si > 0; si--) {
+          var sj = Math.floor(Math.random() * (si + 1));
+          var tmp = listS[si]; listS[si] = listS[sj]; listS[sj] = tmp;
+        }
+        playSong(listS[0].id, listS.map(function (x) { return x.id; }));
         break;
       }
       case 'close-modal': stopSpeak(); closeModal(); break;
@@ -5954,6 +6415,12 @@ function onInput(e) {
   if (t.id === 'lib-q') {
     App.lib.q = t.value;
     refreshList();
+  } else if (t.id === 'books-q') {
+    App.books.q = t.value;
+    var pos = t.selectionStart;
+    render();
+    var nb = document.getElementById('books-q');
+    if (nb) { nb.focus(); try { nb.setSelectionRange(pos, pos); } catch (err) {} }
   }
 }
 
