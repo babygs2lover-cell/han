@@ -3483,7 +3483,7 @@ function renderBookCard(pair, isKid) {
   var hasAr = s.ar !== '' && s.ar !== null && !isNaN(parseFloat(s.ar));
   var arTxt = hasAr ? 'AR ' + s.ar : 'AR 확인불가';
   var hasAudio = !!(s.hasAudio || s.audioUrl);
-  var pc = playCount(s.id);
+  var pc = playCountOf(s.id);
   var cover = s.coverUrl
     ? '<img class="kthumb" src="' + esc(s.coverUrl) + '" alt="" loading="lazy">'
     : s.vid
