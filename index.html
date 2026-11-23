@@ -3487,7 +3487,7 @@ function renderBookCard(pair, isKid) {
   var cover = s.coverUrl
     ? '<img class="kthumb" src="' + esc(s.coverUrl) + '" alt="" loading="lazy">'
     : s.vid
-      ? '<img class="kthumb" src="' + thumbUrl(s.vid) + '" alt="" loading="lazy">'
+      ? '<img class="kthumb" src="https://i.ytimg.com/vi/' + esc(s.vid) + '/mqdefault.jpg" alt="" loading="lazy" onerror="this.remove()">'
       : '<div class="kthumb" style="display:grid;place-items:center;background:linear-gradient(145deg,#FFF4DF,#FFE4CC);padding:12px;text-align:center"><b style="font-size:13px;line-height:1.3;color:#5A4332">📖<br>' + esc(short(s.title, 24)) + '</b></div>';
 
   return '<div class="kcard">' +
