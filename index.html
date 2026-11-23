@@ -520,6 +520,8 @@ input[type=range]{width:100%;accent-color:var(--coral);}
   position:absolute; left:6px; bottom:6px; z-index:2; background:rgba(0,0,0,.72); color:#fff;
   font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:7px; line-height:1.25;
 }
+.watch-pill{border:1px solid #E5E7EB;background:#F9FAFB;color:#6B7280;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;cursor:pointer;flex-shrink:0;line-height:1.4;}
+.watch-pill.on{border-color:#6EE7B7;background:#ECFDF5;color:#059669;}
 .kcard-main{display:flex; flex-direction:column; align-items:flex-start; gap:4px; text-align:left; padding:4px; border-radius:18px;}
 .kcard-main:active{transform:scale(.98);}
 .kcover{
@@ -3483,16 +3485,21 @@ function kidSongList() {
   if (songs.some(function (s) { return !!s.ep; })) {
     return '<div class="kgrid">' + songs.map(function (s) {
       var act = (s.vid || s.hasAudio || s.audioUrl) ? 'play' : 'open-song';
+      var pc = playCountOf(s.id);
       return '<div class="kcard">' +
         '<div class="kcard-top" data-act="' + act + '" data-id="' + s.id + '">' +
         (s.vid ? '<img class="kthumb" src="https://i.ytimg.com/vi/' + esc(s.vid) + '/mqdefault.jpg" alt="" loading="lazy">' : '<div class="kthumb" style="display:grid;place-items:center;background:#EEF2FF;font-size:28px">📺</div>') +
         (s.dur ? '<span class="kdur">' + esc(s.dur) + '</span>' : '') +
         '</div>' +
-        '<div class="kcard-b" data-act="' + act + '" data-id="' + s.id + '" style="cursor:pointer">' +
+        '<div class="kcard-b">' +
+        '<div data-act="' + act + '" data-id="' + s.id + '" style="cursor:pointer">' +
         '<b style="font-size:15px">' + esc(s.title) + '</b>' +
-        (s.ep ? '<div class="tiny" style="color:#6B7280;font-weight:700;margin-top:2px">' + esc(s.ep) + '</div>' : '') +
         (s.subFull ? '<div class="tiny muted" style="margin-top:4px;font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + esc(s.subFull) + '</div>' : '') +
-        '</div></div>';
+        '</div>' +
+        '<div class="row spread" style="margin-top:6px;align-items:center;gap:4px">' +
+        '<span class="tiny" style="color:#6B7280;font-weight:700">' + esc(s.ep || '') + '</span>' +
+        '<button class="watch-pill' + (pc > 0 ? ' on' : '') + '" data-act="watch-bump" data-id="' + s.id + '" title="누르면 본 횟수 +1">👀 ' + pc + '회</button>' +
+        '</div></div></div>';
     }).join('') + '</div>';
   }
   return '<div class="thumb-grid">' + songs.map(function (s) { return tcard(s, 'kid'); }).join('') + '</div>';
@@ -3509,13 +3516,14 @@ function tcard(s, mode, compact) {
   if (!compact && s.parts && s.parts.length) badges += '<span class="tb parts">📑' + s.parts.length + '</span>';
   var pc = playCountOf(s.id);
   var sub = [];
-  if (s.series && /[A-Za-z]/.test(s.series)) sub.push(short(s.series, 22));
-  else if (s.subtopic) sub.push(s.subtopic);
-  if (s.extraTopics && s.extraTopics.length) sub.push('+' + s.extraTopics.length + '주제');
+  if (s.kind === 'book') {
+    if (s.series && /[A-Za-z]/.test(s.series)) sub.push(short(s.series, 22));
+    else if (s.subtopic) sub.push(s.subtopic);
+    if (s.extraTopics && s.extraTopics.length) sub.push('+' + s.extraTopics.length + '주제');
+    sub.push(ageGroupOf(s));
+  }
   if (s.dur) sub.push(s.dur);
   if (s.wordCount !== '' && s.wordCount !== null && s.wordCount !== undefined) sub.push(s.wordCount + '단어');
-  if (s.kind === 'book') sub.push(ageGroupOf(s));
-  if (mode === 'mom' && pc > 0) sub.push('▶ ' + pc + '회');
   var actions = '';
   if (mode === 'mom') {
     actions = '<div class="tactions">' +
@@ -3532,11 +3540,15 @@ function tcard(s, mode, compact) {
     '<span class="emo">' + coverEmoji(s) + '</span>' +
     (s.vid ? '<img loading="lazy" src="https://i.ytimg.com/vi/' + s.vid + '/mqdefault.jpg" alt="" onerror="this.remove()">' : '') +
     (hasPlayable ? '<span class="tplay">' + (s.vid ? '▶' : '🎧') + '</span>' : '<span class="tplay none">📖</span>') + badges +
-    '<button class="ownbtn' + (s.owned ? ' on' : '') + '" data-act="own-toggle" data-id="' + s.id + '" aria-label="집에 있어요" title="집에 있어요">' +
+    (isBookItem(s) ? '<button class="ownbtn' + (s.owned ? ' on' : '') + '" data-act="own-toggle" data-id="' + s.id + '" aria-label="집에 있어요" title="집에 있어요">' +
       '<svg width="15" height="15" viewBox="0 0 24 24" fill="' + (s.owned ? '#C4713F' : 'none') + '" stroke="' + (s.owned ? '#C4713F' : '#9A8478') + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.8V20h13V9.8"/></svg></button>' +
+      '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.8V20h13V9.8"/></svg></button>' : '') +
     '</div>' +
-    '<div class="tmeta"><b>' + esc(cleanTitle(s.title)) + '</b><span>' + esc(sub.join(' · ')) + '</span></div>' +
+    '<div class="tmeta"><b>' + esc(cleanTitle(s.title)) + '</b>' +
+    '<div class="row spread" style="margin-top:4px;align-items:center;gap:4px">' +
+    '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(sub.join(' · ')) + '</span>' +
+    '<button class="watch-pill' + (pc > 0 ? ' on' : '') + '" data-act="watch-bump" data-id="' + s.id + '" title="누르면 본 횟수 +1">👀 ' + pc + '회</button>' +
+    '</div></div>' +
     actions + '</div>';
 }
 
@@ -6701,6 +6713,14 @@ function onClick(e) {
         os.owned = !os.owned;
         save(); render();
         if (os.owned) { chime(true); toast('🏠 집에 있어요!'); } else toast('보유 표시를 껐어요');
+        break;
+      }
+      case 'watch-bump': {
+        var wid = btn.getAttribute('data-id');
+        if (!wid) break;
+        recordPlay(wid);
+        render();
+        toast('👀 ' + playCountOf(wid) + '회 봤어요');
         break;
       }
       case 'lib-stagek':
