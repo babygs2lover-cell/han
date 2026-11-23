@@ -876,8 +876,8 @@ var PEC_IMG = {"a_an": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDA
 'use strict';
 
 var SEED = JSON.parse(document.getElementById('seed-data').textContent);
-var LS_KEY = 'hangyeol.learning.app.v2';
-var APP_VERSION = 4;
+var LS_KEY = 'hangyeol.learning.app.v3';
+var APP_VERSION = 5;
 
 /* ---------- subjects & subtopics ---------- */
 var SUBJECTS = [
@@ -1149,10 +1149,11 @@ function defaultPlan() {
 }
 
 function seedState() {
+  var omc = (SEED.channels || []).filter(function (c) { return c.id === 'ch-omc'; });
   return {
     app: 'hangyeol-learning', v: APP_VERSION,
     childName: '한결',
-    channels: [],
+    channels: JSON.parse(JSON.stringify(omc)),
     stars: 0,
     starLog: [],
     plan: { theme: null, mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
