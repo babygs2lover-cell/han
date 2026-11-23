@@ -1210,6 +1210,7 @@ function load() {
           if (sd.subtopic) s.subtopic = sd.subtopic;
           if (sd.ep !== undefined) s.ep = sd.ep;
           if (sd.subFull !== undefined) s.subFull = sd.subFull;
+          if (sd.kind) s.kind = sd.kind;
           if (sd.dur && !s.dur) s.dur = sd.dur;
         }
       });
@@ -3187,8 +3188,17 @@ function viewKidArea(area) {
       areaRowCard('책', '#0EA5E9', '영어 원서 서재', '단계별(시리즈) · 지수별(AR) 보기', 'go', 'data-v', 'books') +
       '</div>';
   } else if (area === 'ko') {
-    h += '<div class="vsec"><span>✏️ 한글 영상 · 동화</span></div><div class="vlist">' +
-      (chCardsFor('한글', false) || '') +
+    var koSongCards = chCardsFor('한글', false, 'song');
+    var koVideoCards = chCardsFor('한글', false, 'video');
+    var koBookCards = chCardsFor('한글', true);
+    h += '<div class="vsec"><span>🎵 한글동요</span></div><div class="vlist">' +
+      (koSongCards || '<div class="tiny muted" style="padding:8px 4px">아직 추가된 한글동요가 없어요.</div>') +
+      '</div>';
+    h += '<div class="vsec"><span>🎬 한글영상</span></div><div class="vlist">' +
+      (koVideoCards || '<div class="tiny muted" style="padding:8px 4px">아직 추가된 한글영상이 없어요.</div>') +
+      '</div>';
+    h += '<div class="vsec"><span>📚 한글책</span></div><div class="vlist">' +
+      (koBookCards || '<div class="tiny muted" style="padding:8px 4px">아직 추가된 한글책이 없어요.</div>') +
       '</div>';
   } else if (area === 'ma') {
     h += '<div class="vsec"><span>🔢 수학 영상 · 책</span></div><div class="vlist">' +
