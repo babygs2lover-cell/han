@@ -2904,26 +2904,32 @@ function viewKidArea(area) {
   }
 
   var palette = ['#5E60CE', '#F59E0B', '#EC4899', '#EA580C', '#10B981', '#0EA5E9'];
-  function chCardsFor(subj) {
+  function chCardsFor(subj, wantBooks) {
     var out = '';
     var ix = 0;
     S.channels.forEach(function (ch) {
-      var list = ch.songs.filter(function (s) { return s.subject === subj; });
+      var list = ch.songs.filter(function (s) {
+        if (s.subject !== subj) return false;
+        return wantBooks ? isBookItem(s) : !isBookItem(s);
+      });
       if (!list.length) return;
       var col = palette[ix++ % palette.length];
       var shortIco = esc((ch.name || '영').replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 1) || '▶');
-      out += vcard(shortIco, col, ch.name, list.length + '편 · 눌러서 보기', 'kid-resume-ch', 'data-id', ch.id);
+      var act = wantBooks ? 'kid-books-ch' : 'kid-resume-ch';
+      var unit = wantBooks ? '권' : '편';
+      out += vcard(shortIco, col, ch.name, list.length + unit + ' · 눌러서 보기', act, 'data-id', ch.id);
     });
     return out;
   }
 
   if (area === 'en') {
     h += '<div class="vsec"><span>🎵 영어 동요 · 영상</span></div><div class="vlist">' +
-      chCardsFor('영어') +
-      vcard('영', '#FF7043', '영어 영상 전체 보기', '모든 채널 한눈에', 'kid-lib-sub', 'data-k', '영어') +
+      chCardsFor('영어', false) +
+      vcard('영', '#FF7043', '영어 영상 전체 보기', '영상 채널 한눈에', 'kid-lib-sub', 'data-k', '영어') +
       '</div>';
     h += '<div class="vsec"><span>📚 영어 원서 서재</span></div><div class="vlist">' +
-      vcard('책', '#0EA5E9', '영어 원서 서재 (AR 지수별)', '표지 · 책 퀴즈 10문제 · 음원', 'go', 'data-v', 'books', 'NEW') +
+      chCardsFor('영어', true) +
+      vcard('책', '#0EA5E9', '전체 원서 AR 지수별로 보기', '표지 · 연령별 · 책 퀴즈 10문제', 'go', 'data-v', 'books', 'NEW') +
       '</div>';
     h += '<div class="vsec"><span>⭐ 낱말 · 문장 · 배우기</span></div><div class="vlist">' +
       vcard('별', '#10B981', '영어 낱말 퀴즈', '듣고 그림 고르기', 'go', 'data-v', 'review') +
@@ -2932,7 +2938,7 @@ function viewKidArea(area) {
       '</div>';
   } else if (area === 'ko') {
     h += '<div class="vsec"><span>✏️ 한글 영상 · 동화</span></div><div class="vlist">' +
-      (chCardsFor('한글') || '') +
+      (chCardsFor('한글', false) || '') +
       vcard('한', '#5C6BC0', '한글 영상·책 전체', '한글 동화 · 노래 모음', 'kid-lib-sub', 'data-k', '한글') +
       '</div>';
     h += '<div class="vsec"><span>🎨 한글 배우기 · 퀴즈</span></div><div class="vlist">' +
@@ -2941,7 +2947,7 @@ function viewKidArea(area) {
       '</div>';
   } else if (area === 'ma') {
     h += '<div class="vsec"><span>🔢 수학 영상 · 책</span></div><div class="vlist">' +
-      (chCardsFor('수학') || '') +
+      (chCardsFor('수학', false) || '') +
       vcard('수', '#4CAF50', '수학 영상·책 전체', '숫자 노래 · 수 놀이', 'kid-lib-sub', 'data-k', '수학') +
       '</div>';
     h += '<div class="vsec"><span>🎲 수학 배우기 · 퀴즈</span></div><div class="vlist">' +
@@ -2950,7 +2956,7 @@ function viewKidArea(area) {
       '</div>';
   } else if (area === 'info') {
     h += '<div class="vsec"><span>🌍 다큐 · 과학 영상</span></div><div class="vlist">' +
-      (chCardsFor('다큐') || '') +
+      (chCardsFor('다큐', false) || '') +
       vcard('탐', '#26A69A', '다큐·과학 영상 전체', '동물 · 자연 · 우주 탐구', 'kid-lib-sub', 'data-k', '다큐') +
       '</div>';
     h += '<div class="vsec"><span>🌱 누리과정 활동</span></div><div class="vlist">' +
@@ -2958,7 +2964,7 @@ function viewKidArea(area) {
       '</div>';
   } else {
     h += '<div class="vsec"><span>🎨 미술 · 만들기 영상</span></div><div class="vlist">' +
-      (chCardsFor('기타') || '') +
+      (chCardsFor('기타', false) || '') +
       vcard('미', '#EC407A', '미술·만들기·생활 영상 전체', '그리기 · 생활습관 · 놀이', 'kid-lib-sub', 'data-k', '기타') +
       '</div>';
     h += '<div class="vsec"><span>✂️ 예술 · 만들기 놀이</span></div><div class="vlist">' +
@@ -6231,6 +6237,11 @@ function onClick(e) {
         App.lib.ch = id || '전체';
         App.lib.subject = '전체'; App.lib.sub = '전체'; App.lib.stage = '전체';
         go('library');
+        break;
+      case 'kid-books-ch':
+        App.books.ch = id || '전체';
+        App.books.ar = '전체'; App.books.age = '전체';
+        go('books');
         break;
       case 'kid-play-all': {
         var listA = libSongs().filter(function (x) { return !!(x.vid || x.hasAudio || x.audioUrl); });
