@@ -1543,12 +1543,13 @@ function addStar(n, label) {
 var VIEWS = [
   { key: 'home', label: '오늘', kid: '놀이터', mom: '오늘', ico: '🏠', kidIco: '🎠' },
   { key: 'library', label: '노래방', kid: '노래', mom: '관리', ico: '🎵', kidIco: '🎵' },
-  { key: 'review', label: '단어놀이', kid: '낱말', mom: '단어', ico: '⭐', kidIco: '⭐' },
-  { key: 'pecs', label: '문장 만들기', kid: '문장', mom: 'PECS', ico: '💬', kidIco: '💬' },
-  { key: 'learn', label: '배우기', kid: '배우기', mom: '배우기', ico: '🎓', kidIco: '🎨' },
-  { key: 'roadmap', label: '로드맵', mom: '로드맵', ico: '🗺️' },
+  { key: 'books', label: '원서 서재', mom: '원서', ico: '📚' },
   { key: 'plan', label: '계획표', mom: '계획', ico: '🗓️' },
-  { key: 'settings', label: '설정', mom: '설정', ico: '⚙️' }
+  { key: 'settings', label: '설정', mom: '설정', ico: '⚙️' },
+  { key: 'review', label: '단어놀이', ico: '⭐' },
+  { key: 'pecs', label: '문장 만들기', ico: '💬' },
+  { key: 'learn', label: '배우기', ico: '🎓' },
+  { key: 'roadmap', label: '로드맵', ico: '🗺️' }
 ];
 var App = {
   view: 'home',
@@ -1684,7 +1685,7 @@ function renderChrome() {
   var side = document.getElementById('sidebar');
   if (side) {
     side.innerHTML =
-      '<div class="brand"><div class="logo">' + mascotSVG('', 44) + '</div><div><b>' + esc(name) + ' 학습 놀이터</b><span>누리 · 영어 · 수학 · 한글</span></div></div>' +
+      '<div class="brand"><div class="logo">' + mascotSVG('', 44) + '</div><div><b>' + esc(name) + ' 학습 놀이터</b><span>영어 · 한글 · 수학 · 지식 · 미술</span></div></div>' +
       (kid ? KID_TABS.map(function (x) {
         return '<button class="navbtn' + (activeKid === x.key ? ' on' : '') + '" data-act="kid-tab" data-k="' + x.key + '">' +
           '<span class="ico">' + x.ico + '</span>' + x.label + '</button>';
@@ -2529,8 +2530,7 @@ function qSensei(n) {
 var LEARN_SUBJECTS = [
   { key: 'en', label: '영어', ico: '🔤', steps: function () { return EN_STEPS; } },
   { key: 'ma', label: '수학', ico: '🔢', steps: function () { return MA_STEPS; } },
-  { key: 'ko', label: '한글', ico: '가', steps: function () { return KO_STEPS; } },
-  { key: 'nu', label: '누리과정', ico: '🌱', steps: null }
+  { key: 'ko', label: '한글', ico: '가', steps: function () { return KO_STEPS; } }
 ];
 
 function viewLearn() {
@@ -2815,15 +2815,14 @@ function viewHome() {
       '<button class="kbtn c1" data-act="kid-area" data-k="en"><span class="ke">🔤</span><b>영어</b><span>노래·낱말·문장·배우기 (' + c['영어'] + ')</span></button>' +
       '<button class="kbtn c2" data-act="kid-area" data-k="ma"><span class="ke">🔢</span><b>수학</b><span>수세기·도형·패턴·영상 (' + c['수학'] + ')</span></button>' +
       '<button class="kbtn c3" data-act="kid-area" data-k="ko"><span class="ke">가</span><b>한글</b><span>자음·통글자·의성어 (' + c['한글'] + ')</span></button>' +
-      '<button class="kbtn c4" data-act="kid-area" data-k="info"><span class="ke">🌍</span><b>지식</b><span>다큐·과학·누리 (' + c['다큐'] + ')</span></button>' +
+      '<button class="kbtn c4" data-act="kid-area" data-k="info"><span class="ke">🌍</span><b>지식</b><span>다큐·과학 (' + c['다큐'] + ')</span></button>' +
       '</div>';
   } else {
     html += '<div class="tiles" style="margin-top:14px">' +
-      '<button class="tile c1" data-act="go" data-v="library"><span class="ico">🎵</span><b>노래·영상 관리</b><span>채널·가사·프린트물·낱말</span></button>' +
+      '<button class="tile c1" data-act="go" data-v="library"><span class="ico">🎵</span><b>노래·영상 관리</b><span>채널·가사·프린트물</span></button>' +
       '<button class="tile c2" data-act="go" data-v="books"><span class="ico">📚</span><b>영어 원서 서재</b><span>AR 지수·표지·영상·음원</span></button>' +
-      '<button class="tile c3" data-act="go" data-v="plan"><span class="ico">🗓️</span><b>주간 계획</b><span>주제별 주차·누리 체크</span></button>' +
-      '<button class="tile c4" data-act="go" data-v="learn"><span class="ico">🎓</span><b>단계별 커리큘럼</b><span>영어·수학·한글·누리</span></button>' +
-      '<button class="tile c1" data-act="go" data-v="settings"><span class="ico">⚙️</span><b>설정·백업</b><span>이름·목소리·JSON</span></button>' +
+      '<button class="tile c3" data-act="go" data-v="plan"><span class="ico">🗓️</span><b>주간 계획</b><span>주제별 주간 계획</span></button>' +
+      '<button class="tile c4" data-act="go" data-v="settings"><span class="ico">⚙️</span><b>설정·백업</b><span>이름·목소리·JSON</span></button>' +
       '</div>';
   }
 
@@ -2860,7 +2859,7 @@ function viewKidArea(area) {
     en: { ico: '영', bg: '#FF7043', title: '영어', sub: '영어 동요 · 영어 원서 · 낱말 · 문장', desc: '원하는 카드를 고르면 바로 열려요.' },
     ma: { ico: '수', bg: '#4CAF50', title: '수학', sub: '수학 영상 · 수세기 · 도형 · 퀴즈', desc: '숫자와 도형 놀이를 골라 보세요.' },
     ko: { ico: '한', bg: '#5C6BC0', title: '한글', sub: '한글 영상 · 자음 · 통글자 · 퀴즈', desc: '재미있는 한글 놀이를 골라 보세요.' },
-    info: { ico: '지', bg: '#26A69A', title: '지식', sub: '자연 다큐 · 과학 · 누리과정', desc: '세상 궁금증을 탐구해 봐요.' },
+    info: { ico: '지', bg: '#26A69A', title: '지식', sub: '자연 다큐 · 과학', desc: '세상 궁금증을 탐구해 봐요.' },
     art: { ico: '미', bg: '#EC407A', title: '미술', sub: '그리기 · 만들기 · 종이접기 · 생활', desc: '신나는 만들기 놀이를 골라 보세요.' }
   }[area] || { ico: '놀', bg: '#FF7043', title: '놀이터', sub: '', desc: '' };
 
@@ -5367,7 +5366,6 @@ function viewPlan() {
 
   html += '<div class="row" style="margin:10px 0 20px;flex-wrap:wrap;gap:8px">' +
     '<button class="btn sm mint" data-act="theme-save-custom">＋ 지금 계획을 내 주제로 저장</button>' +
-    '<button class="btn sm ghost" data-act="open-nuri">🌱 누리과정 체크리스트</button>' +
     '<span class="tiny muted">요일별 항목은 아래 계획표에서 언제든 바꿀 수 있어요.</span></div>';
 
   /* week board */
