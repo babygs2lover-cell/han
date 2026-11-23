@@ -3924,6 +3924,15 @@ function viewBooks() {
           }).join('') + '</div>';
         if (App.books.stage && App.books.stage !== '전체') {
           serItems = serItems.filter(function (p) { return (p.s.stage || '') === App.books.stage; });
+        } else {
+          var groupedH = '';
+          ortStages.forEach(function (st) {
+            var sub = serItems.filter(function (p) { return (p.s.stage || '') === st; });
+            if (!sub.length) return;
+            groupedH += '<div class="vsec"><span>🔑 ' + esc(st) + ' (' + sub.length + '권)</span></div>' +
+              '<div class="kgrid">' + sub.map(function (pair) { return renderBookCard(pair, true); }).join('') + '</div>';
+          });
+          return h + (groupedH || '<div class="empty cute"><span class="big">📚</span>조건에 맞는 책이 없어요.</div>');
         }
       }
     }
