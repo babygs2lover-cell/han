@@ -3219,15 +3219,7 @@ function viewKidArea(area) {
       areaRowCard('탐', '#26A69A', '지식 · 다큐 전체 보기', '모든 다큐 영상 한눈에', 'kid-lib-sub', 'data-k', '다큐') +
       '</div>';
   } else if (area === 'files') {
-    h += '<div class="vsec"><span>📥 인쇄용 PDF 자료</span></div><div class="vlist">' +
-      '<a class="vcard" href="./files/sight_words_duplex_pos_a4.pdf" target="_blank" rel="noopener"><span class="vc-ico" style="background:#6366F1">카</span><span class="vc-body"><b>48장 양면 사이트워드 단어카드 (A4)</b><span>인쇄 후 반 접어 쓰는 단어·품사 컬러 카드</span></span><span class="vc-arr">↗</span></a>' +
-      '<a class="vcard" href="./files/sight_words_and_sentence_cards_a4.pdf" target="_blank" rel="noopener"><span class="vc-ico" style="background:#0EA5E9">문</span><span class="vc-body"><b>사이트워드 · 짧은 문장 카드 (A4)</b><span>기초 단어와 4세 짧은 예문 모음</span></span><span class="vc-arr">↗</span></a>' +
-      '<a class="vcard" href="./files/olivers_melody_club_lyrics_84_one_per_page.pdf" target="_blank" rel="noopener"><span class="vc-ico" style="background:#FF7043">가</span><span class="vc-body"><b>올리버스 멜로디 클럽 84곡 가사집</b><span>1곡 1페이지 썸네일 가사집 PDF</span></span><span class="vc-arr">↗</span></a>' +
-      '<a class="vcard" href="./files/olivers_melody_club_song_cards.pdf" target="_blank" rel="noopener"><span class="vc-ico" style="background:#F59E0B">송</span><span class="vc-body"><b>올리버스 멜로디 클럽 송카드 모음</b><span>QR·썸네일 포함 송카드 PDF</span></span><span class="vc-arr">↗</span></a>' +
-      '</div>';
-    h += '<div class="vsec"><span>📄 영어 동요 · 영상별 가사/핵심 표현 PDF</span></div>' +
-      '<p class="tiny muted" style="margin:4px 2px 10px">원하는 영상을 눌러 열면 아래쪽에 <b>📄 PDF 저장</b> 버튼이 있어요.</p>' +
-      '<div class="vlist">' + chCardsFor('영어', false) + '</div>';
+    h += '<div class="empty cute" style="padding:36px 16px"><span class="big">📁</span><b>아직 올려둔 자료가 없어요</b><p class="tiny muted" style="margin-top:6px">원하시는 PDF나 학습 자료를 말씀해 주시면 여기에 차곡차곡 넣어 둘게요.</p></div>';
   } else {
     h += '<div class="vsec"><span>🎨 주제별 미술 · 만들기</span></div><div class="vlist">' +
       areaRowCard('그', '#EC407A', '그리기 · 색칠하기', '크레파스 · 물감 · 색깔 놀이', 'kid-lib-topic', 'data-k', '기타|그리기') +
