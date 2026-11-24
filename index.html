@@ -604,7 +604,8 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .player-wrap{position:relative;background:#221a15;border-radius:26px;overflow:hidden;box-shadow:var(--sh);}
 .player-frame{position:relative;width:100%;aspect-ratio:16/9;background:#000;}
 .player-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
-.player-bar{display:flex;gap:6px;padding:8px;background:#2b211b;flex-wrap:wrap;}
+.player-bar{display:flex;gap:4px;padding:7px 6px;background:#2b211b;flex-wrap:nowrap;align-items:center;justify-content:space-between;}
+.player-bar .btn{flex:1 1 auto;min-width:0;padding:7px 5px;font-size:11px;letter-spacing:-.4px;white-space:nowrap;justify-content:center;}
 .player-below{margin-top:14px;}
 body.theater{overflow:hidden;}
 body.theater .player-wrap{position:fixed;inset:0;z-index:70;border-radius:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000;padding-top:env(safe-area-inset-top);}
