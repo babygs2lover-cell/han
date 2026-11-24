@@ -4901,6 +4901,7 @@ function viewPlayer() {
     '<button class="btn sm sky" data-act="player-expand">⛶ 화면</button>' +
     '<button class="btn sm ' + (rMode !== 'next' ? 'sun' : 'ghost') + '" data-act="player-repeat">' + rLabel + '</button>' +
     (hasAudio && s.vid ? '<button class="btn sm mint" data-act="player-toggle-audio">' + (App.player.audioMode ? '🎬 영상으로 보기' : '🎧 음원으로 듣기') + '</button>' : '') +
+    (s.subject === '영어' ? '<button type="button" class="btn sm sun" data-act="print-song-pdf" data-id="' + esc(s.id) + '">📄 PDF</button><button type="button" class="btn sm mint" data-act="start-song-quiz" data-id="' + esc(s.id) + '">📝 퀴즈</button>' : '') +
     (s.url ? '<a class="btn sm ghost" data-act="count-external" data-id="' + s.id + '" href="' + esc(s.url) + '" target="_blank" rel="noopener">유튜브</a>' : '') +
     (nxs ? '<button class="btn sm ghost" data-act="player-next">다음 ▶</button>' : '') +
     '</div>' +
