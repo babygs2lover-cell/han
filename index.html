@@ -1188,9 +1188,21 @@ function load() {
     var d = seedState();
     for (var k in d) if (st[k] === undefined) st[k] = d[k];
     var existingChIds = {};
-    (st.channels || []).forEach(function (ch) { existingChIds[ch.id] = true; });
+    (st.channels || []).forEach(function (ch) { existingChIds[ch.id] = ch; });
     (d.channels || []).forEach(function (ch) {
-      if (!existingChIds[ch.id]) st.channels.push(ch);
+      if (!existingChIds[ch.id]) {
+        st.channels.push(ch);
+      } else {
+        var cur = existingChIds[ch.id];
+        var curIds = {};
+        (cur.songs || []).forEach(function (s) { curIds[s.id] = 1; });
+        (ch.songs || []).forEach(function (s) {
+          if (!curIds[s.id]) {
+            cur.songs.push(s);
+            curIds[s.id] = 1;
+          }
+        });
+      }
     });
     var seedMap = {};
     (d.channels || []).forEach(function (ch) {
