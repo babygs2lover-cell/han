@@ -1197,7 +1197,7 @@ function load() {
       (ch.songs || []).forEach(function (s) { seedMap[s.id] = s; });
     });
     var seedChMap = {};
-    SEED_CHANNELS.forEach(function (sc) { seedChMap[sc.id] = sc; });
+    (d.channels || []).forEach(function (sc) { seedChMap[sc.id] = sc; });
     (st.channels || []).forEach(function (ch) {
       if (seedChMap[ch.id] && seedChMap[ch.id].avatar) ch.avatar = seedChMap[ch.id].avatar;
       if (ch.id === 'ch-omc' || ch.id === 'ch-en-helpercars') {
