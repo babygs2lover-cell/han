@@ -5174,8 +5174,19 @@ function onVideoEnded() {
 }
 
 function showBookEndQuiz(ov, curSong, ns) {
-  var pool = (typeof songWords === 'function' ? songWords(curSong) : []) || [];
+  var pool = (curSong && curSong.words && curSong.words.length)
+    ? curSong.words.slice()
+    : ((typeof songWords === 'function' ? songWords(curSong) : []) || []);
   var allPool = (S.words || []).slice();
+  if (!allPool.length) {
+    allPool = [
+      { w: 'Good job!', k: '참 잘했어요!', e: '⭐' },
+      { w: 'Thank you!', k: '고마워요!', e: '💛' },
+      { w: 'Let us go!', k: '같이 가자!', e: '🚀' },
+      { w: 'Look at that!', k: '저기 좀 봐!', e: '👀' },
+      { w: 'See you again!', k: '또 만나요!', e: '👋' }
+    ];
+  }
   if (!pool.length && curSong.kw && curSong.kw.length) {
     pool = curSong.kw.map(function (k) { return { w: k, k: k, e: '📖' }; });
   }
