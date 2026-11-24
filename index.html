@@ -4860,8 +4860,7 @@ function playSong(id, list, startSec) {
   App.view = 'player';
   try { history.replaceState(null, '', '#player'); } catch (e) { }
   render();
-  var isEnSong = !!(s.subject === '영어' && (s.kind || 'song') === 'song');
-  toggleTheater(!isEnSong);
+  toggleTheater(s.subject !== '영어');
   window.scrollTo({ top: 0 });
 }
 
@@ -5314,9 +5313,8 @@ function playNext() {
   if (!nx) { toast('마지막 영상이에요'); return; }
   App.player.id = nx;
   var ns = songById(nx);
-  var isEnSong = !!(ns && ns.subject === '영어' && (ns.kind || 'song') === 'song');
   render();
-  toggleTheater(!isEnSong);
+  toggleTheater(!(ns && ns.subject === '영어'));
   window.scrollTo({ top: 0 });
 }
 
