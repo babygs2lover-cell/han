@@ -5043,6 +5043,7 @@ function loadYTAPI() {
 function mountPlayer(vid) {
   var host = document.getElementById('yt-player');
   if (!host || !vid) return;
+  YTP.autoTheaterDone = false;
   if (!(window.YT && window.YT.Player)) {
     loadYTAPI();
     YTP.pending = vid;
@@ -5105,6 +5106,11 @@ function onYTState(e) {
   YTP.started = true;
   if (e.data === window.YT.PlayerState.PLAYING && App.player) {
     markPlayedOnce(App.player.id);
+    var cur = songById(App.player.id);
+    if (cur && cur.subject === '영어' && !YTP.autoTheaterDone) {
+      YTP.autoTheaterDone = true;
+      toggleTheater(true);
+    }
   }
   if (e.data === window.YT.PlayerState.ENDED) {
     onVideoEnded();
