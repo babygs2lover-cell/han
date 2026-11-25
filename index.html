@@ -4994,7 +4994,6 @@ function viewPlayer() {
         '<span>' + (hasLyrics ? '🎵 가사 · 자막' : '💬 자주 나오는 표현 · 단어') + '</span>' +
         '<span style="display:flex;gap:6px;flex-wrap:wrap">' +
         '<button type="button" class="btn sm sun" data-act="print-song-pdf" data-id="' + esc(s.id) + '">📄 PDF 저장</button>' +
-        '<button type="button" class="btn sm mint" data-act="start-song-quiz" data-id="' + esc(s.id) + '">📝 퀴즈 5문제</button>' +
         '</span></div>' +
         (s.subFull ? '<p class="tiny muted" style="margin:2px 0 10px">' + esc(s.subFull) + '</p>' : '') +
         (hasLyrics ? '<div class="lyrics" style="margin-bottom:12px">' + lyr + '</div>' : '') +
@@ -5172,10 +5171,6 @@ function onVideoEnded() {
   var ov = document.getElementById('next-overlay');
   if (!ov) return;
   var ns = nx ? songById(nx) : null;
-  if (curSong && curSong.subject === '영어') {
-    showBookEndQuiz(ov, curSong, ns);
-    return;
-  }
   /* next title */
   var t = ov.querySelector('.nx-next');
   if (t) t.textContent = ns ? cleanTitle(ns.title) : '마지막 영상이에요';
