@@ -4987,21 +4987,15 @@ function viewPlayer() {
       if (secMatch) return '<div class="sec">' + esc(t) + '</div>';
       return '<div class="ln">' + esc(t) + '</div>';
     }).join('') : '';
-    var keyWords = (s.words && s.words.length) ? s.words : [];
-    if (hasLyrics || keyWords.length || (s.prints && s.prints.length)) {
+    if (hasLyrics || (s.prints && s.prints.length)) {
       html += '<div class="card cute" style="margin-bottom:14px">' +
         '<div class="sectitle" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">' +
-        '<span>' + (hasLyrics ? '🎵 가사 · 자막' : '💬 자주 나오는 표현 · 단어') + '</span>' +
+        '<span>🎵 가사 · 자막</span>' +
         '<span style="display:flex;gap:6px;flex-wrap:wrap">' +
         '<button type="button" class="btn sm sun" data-act="print-song-pdf" data-id="' + esc(s.id) + '">📄 PDF 저장</button>' +
         '</span></div>' +
         (s.subFull ? '<p class="tiny muted" style="margin:2px 0 10px">' + esc(s.subFull) + '</p>' : '') +
         (hasLyrics ? '<div class="lyrics" style="margin-bottom:12px">' + lyr + '</div>' : '') +
-        (keyWords.length ? '<div class="wordgrid">' + keyWords.map(function (w) {
-          var ko = w.k || w.m || w.ko || '';
-          return '<button class="wordcard" data-act="say-text" data-t="' + esc(w.w) + '" data-lang="en-US">' +
-            '<span class="em">' + (w.e || '💬') + '</span><b>' + esc(w.w) + '</b>' + (ko ? '<span>' + esc(ko) + '</span>' : '') + '</button>';
-        }).join('') + '</div>' : '') +
         (s.prints && s.prints.length ? '<div style="margin-top:12px">' + s.prints.map(function (p) {
           return '<a class="btn sm sun" href="' + esc(p.url) + '" target="_blank" rel="noopener" style="margin:0 6px 6px 0">📄 ' + esc(p.label) + '</a>';
         }).join('') + '</div>' : '') +
