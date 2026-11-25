@@ -7642,7 +7642,15 @@ function onClick(e) {
     switch (act) {
       case 'go': App.quiz = null; if (btn.getAttribute('data-v') === 'home') App.kidArea = null; stopSpeak(); go(btn.getAttribute('data-v')); break;
       case 'circle-say': speakNow(btn.getAttribute('data-t')); flashTap(btn); break;
-      case 'circle-time': speakNow(btn.getAttribute('data-t')); flashTap(btn); break;
+      case 'circle-time': {
+        /* 탭한 그 순간의 시각으로 읽는다 — 화면의 data-t가 1분 늦게 남아 있어도 어긋나지 않게 */
+        var tNow = circleTime(new Date());
+        speakNow(tNow.said);
+        btn.setAttribute('data-t', tNow.said);
+        tickHomeClock();
+        flashTap(btn);
+        break;
+      }
       case 'circle-season': {
         var sk = btn.getAttribute('data-k');
         var same = S.seasonPick && S.seasonPick.d === todayIso() && S.seasonPick.k === sk;
