@@ -401,7 +401,7 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 }
 .ct-row{
   position:relative; display:flex; align-items:flex-start; gap:10px;
-  padding:13px 2px; border-bottom:1px dashed #F3E7D9; border-radius:14px;
+  padding:11px 2px; border-bottom:1px dashed #F3E7D9; border-radius:14px;
   transition:background .12s, transform .1s;
 }
 .ct-row:last-child{border-bottom:0;}
@@ -417,15 +417,26 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .ct-body{flex:1; min-width:0; display:block;}
 .ct-q{display:block; font-size:12.5px; font-weight:800; color:#8B7668; letter-spacing:-.2px; line-height:1.25;}
 .ct-q em{font-style:normal; font-weight:700; font-size:11px; color:#BCACA2; margin-left:6px;}
-.ct-a{display:block; margin-top:4px; font-size:clamp(15.5px,4.5vw,18px); font-weight:900; color:#3E332C; letter-spacing:-.3px; line-height:1.3;}
+.ct-a{display:block; margin-top:3px; font-size:clamp(15px,4.4vw,17.5px); font-weight:900; color:#3E332C; letter-spacing:-.3px; line-height:1.28;}
+.ct-ko{display:block; margin-top:2px; font-size:11px; font-weight:700; color:#BCACA2; letter-spacing:-.2px; line-height:1.3;}
+.ct-line .ct-a{margin-top:0;}
+.ct-line .ct-ico{align-self:center;}
+.ct-special{
+  display:flex; align-items:center; gap:9px; margin:10px 0 0; padding:9px 12px; border-radius:18px;
+  background:linear-gradient(135deg,#FFF3D2,#FFE7E1); border:1.5px solid #FFE3B8;
+}
+.ct-special-ico{font-size:19px; line-height:1; flex:0 0 auto;}
+.ct-special b{display:block; font-size:14px; font-weight:900; color:#8A4A32; letter-spacing:-.2px; line-height:1.25;}
+.ct-special em{display:block; font-style:normal; font-size:10.5px; font-weight:700; color:#B07C63; margin-top:1px;}
+.ct-next{display:block; text-align:center; font-size:11px; font-weight:700; color:#B7A79D; padding:9px 0 5px; letter-spacing:-.2px;}
 .ct-temp{display:inline-block; margin-left:6px; font-size:12px; font-weight:900; color:#7C6C62; background:#F6F1EA; border-radius:999px; padding:1px 8px; vertical-align:2px; letter-spacing:0;}
 .ct-digital{display:inline-block; margin-left:7px; font-size:12px; font-weight:900; color:var(--sky-d); background:var(--sky-l); border-radius:999px; padding:1px 8px; vertical-align:2px; letter-spacing:0;}
 .ct-muted{font-size:12.5px; font-weight:700; color:#B3A399;}
 .ct-spk{flex:0 0 auto; align-self:center; font-size:12px; opacity:.45;}
-.ct-chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+.ct-chips{display:flex; flex-wrap:wrap; gap:5px; margin-top:7px;}
 .ct-chip{
-  font-family:inherit; font-weight:800; font-size:11.5px; color:#6E5F55; letter-spacing:-.2px;
-  background:#fff; border:1.5px solid #EFE2D5; border-radius:999px; padding:5px 9px; line-height:1;
+  font-family:inherit; font-weight:800; font-size:11px; color:#6E5F55; letter-spacing:-.2px;
+  background:#fff; border:1.5px solid #EFE2D5; border-radius:999px; padding:4px 8px; line-height:1;
   transition:transform .1s, background .12s, border-color .12s;
 }
 .ct-chip:active{transform:scale(.96);}
@@ -1682,6 +1693,82 @@ function wxLoadCache() {
     var o = JSON.parse(raw);
     if (o && o.kind) { WX.kind = o.kind; WX.temp = (typeof o.temp === 'number') ? o.temp : null; WX.at = Number(o.at) || 0; }
   } catch (e) { }
+}
+/* ---------- 오늘의 하루: 어린이집·주말 / 날씨 팁 / 기념일 ---------- */
+var SPECIAL_DAYS = [
+  { m: 1, d: 1, ico: '🎉', en: 'Happy New Year!', ko: '새해 첫날!', label: "New Year's Day", holiday: true },
+  { m: 3, d: 1, ico: '🇰🇷', en: "It's Independence Movement Day!", ko: '삼일절!', label: '삼일절', holiday: true },
+  { m: 5, d: 5, ico: '🎈', en: "Happy Children's Day!", ko: '어린이날!', label: '어린이날', holiday: true },
+  { m: 5, d: 8, ico: '💐', en: "Happy Parents' Day!", ko: '어버이날!', label: '어버이날', holiday: false },
+  { m: 6, d: 6, ico: '🕯️', en: "It's Memorial Day.", ko: '현충일', label: '현충일', holiday: true },
+  { m: 8, d: 15, ico: '🇰🇷', en: "It's Liberation Day!", ko: '광복절!', label: '광복절', holiday: true },
+  { m: 10, d: 3, ico: '🇰🇷', en: "It's National Foundation Day!", ko: '개천절!', label: '개천절', holiday: true },
+  { m: 10, d: 9, ico: '📖', en: 'Happy Hangul Day!', ko: '한글날!', label: '한글날', holiday: true },
+  { m: 10, d: 31, ico: '🎃', en: "It's Halloween! Happy Halloween!", ko: '할로윈!', label: '할로윈', holiday: false },
+  { m: 12, d: 24, ico: '🎄', en: "It's Christmas Eve!", ko: '크리스마스 이브!', label: '크리스마스 이브', holiday: false },
+  { m: 12, d: 25, ico: '🎄', en: "It's Christmas! Merry Christmas!", ko: '크리스마스! 메리 크리스마스!', label: '크리스마스', holiday: true }
+];
+/* 음력 명절 — 한국천문연구원 양력 환산 기준 (설날·추석·부처님오신날) */
+var LUNAR_DAYS = {
+  2025: [
+    { m: 1, d: 29, ico: '🧧', en: 'Happy Lunar New Year!', ko: '설날!', label: '설날', holiday: true },
+    { m: 10, d: 6, ico: '🌕', en: 'Happy Chuseok!', ko: '추석!', label: '추석', holiday: true }
+  ],
+  2026: [
+    { m: 2, d: 17, ico: '🧧', en: 'Happy Lunar New Year!', ko: '설날!', label: '설날', holiday: true },
+    { m: 5, d: 24, ico: '🪷', en: "Happy Buddha's Birthday!", ko: '부처님오신날!', label: '부처님오신날', holiday: true },
+    { m: 9, d: 25, ico: '🌕', en: 'Happy Chuseok!', ko: '추석!', label: '추석', holiday: true }
+  ],
+  2027: [
+    { m: 2, d: 7, ico: '🧧', en: 'Happy Lunar New Year!', ko: '설날!', label: '설날', holiday: true },
+    { m: 5, d: 13, ico: '🪷', en: "Happy Buddha's Birthday!", ko: '부처님오신날!', label: '부처님오신날', holiday: true },
+    { m: 9, d: 15, ico: '🌕', en: 'Happy Chuseok!', ko: '추석!', label: '추석', holiday: true }
+  ],
+  2028: [
+    { m: 1, d: 27, ico: '🧧', en: 'Happy Lunar New Year!', ko: '설날!', label: '설날', holiday: true },
+    { m: 10, d: 3, ico: '🌕', en: 'Happy Chuseok!', ko: '추석!', label: '추석', holiday: true }
+  ]
+};
+function specialDayOf(now) {
+  now = now || new Date();
+  var m = now.getMonth() + 1, d = now.getDate();
+  var list = (LUNAR_DAYS[now.getFullYear()] || []).concat(SPECIAL_DAYS);
+  var hit = null;
+  list.forEach(function (x) { if (!hit && x.m === m && x.d === d) hit = x; });
+  return hit;
+}
+function isHolidayToday(now) {
+  var s = specialDayOf(now);
+  return !!(s && s.holiday);
+}
+function nextSpecialDay(now) {
+  now = now || new Date();
+  for (var i = 1; i <= 400; i++) {
+    var t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    var s = specialDayOf(t);
+    if (s) return { item: s, days: i, at: t };
+  }
+  return null;
+}
+function dayTypeOf(now) {
+  now = now || new Date();
+  var dow = now.getDay();
+  if (dow === 0 || dow === 6) {
+    return { ico: '👨‍👩‍👦', tone: 't-mint', en: 'Weekend! Family time with Mom and Dad!', ko: '주말! 엄마 아빠랑 시간 보내는 날!', said: 'Weekend! Family time with Mom and Dad!' };
+  }
+  if (isHolidayToday(now)) {
+    return { ico: '🎉', tone: 't-sun', en: 'Holiday! Family time with Mom and Dad!', ko: '공휴일! 엄마 아빠랑 시간 보내는 날!', said: 'Holiday! Family time with Mom and Dad!' };
+  }
+  return { ico: '🏫', tone: 't-sky', en: 'Weekday! Time for daycare!', ko: '어린이집 가는 날!', said: 'Weekday! Time for daycare!' };
+}
+function weatherTipOf(kind, temp) {
+  var cold = (typeof temp === 'number' && temp <= 5);
+  if (kind === 'rainy') return { ico: '☂️', tone: 't-sky', en: 'Take an umbrella and rain boots!', ko: '비가 와요! 우산이랑 장화 챙기자!', said: 'Take an umbrella and rain boots!' };
+  if (kind === 'snowy' || cold) return { ico: '🧥', tone: 't-sky', en: 'Put on a warm coat and gloves!', ko: '추워요! 따뜻한 외투랑 장갑 입자!', said: 'Put on a warm coat and gloves!' };
+  if (kind === 'sunny') return { ico: '🕶️', tone: 't-sun', en: 'Wear sunglasses and a hat!', ko: '햇빛이 따가워요! 선글라스랑 모자 챙기자!', said: 'Wear sunglasses and a hat!' };
+  if (kind === 'windy') return { ico: '🧣', tone: 't-mint', en: 'Put on a scarf and zip up!', ko: '바람이 불어요! 목도리하고 지퍼 올리자!', said: 'Put on a scarf and zip up!' };
+  if (kind === 'cloudy') return { ico: '👟', tone: 't-mint', en: 'Great day for a walk outside!', ko: '산책하기 좋은 날이에요!', said: 'Great day for a walk outside!' };
+  return { ico: '🌤️', tone: 't-sky', en: "Let's look outside and see!", ko: '밖을 보며 날씨를 이야기해요', said: "Let's look outside and see!" };
 }
 function loadWeather(force) {
   try {
@@ -3311,6 +3398,14 @@ function ctRow(o) {
     '<span class="ct-spk">🔊</span>' +
     '</div>';
 }
+function ctLine(o) {
+  return '<div class="ct-row ct-line" data-act="circle-say" data-t="' + esc(o.said) + '">' +
+    '<span class="ct-ico ' + o.tone + '">' + o.ico + '</span>' +
+    '<span class="ct-body"><span class="ct-a">' + esc(o.en) + '</span>' +
+    '<span class="ct-ko">' + esc(o.ko) + '</span></span>' +
+    '<span class="ct-spk">🔊</span>' +
+    '</div>';
+}
 function circleCard() {
   loadWeather();
   var now = new Date();
@@ -3324,8 +3419,21 @@ function circleCard() {
   var temp = (typeof WX.temp === 'number') ? '<span class="ct-temp">' + WX.temp + '°C</span>' : '';
   var wAns = w ? esc(w.said) + temp
     : '<span class="ct-muted">' + (WX.loading ? '불러오는 중…' : '아래에서 골라 보세요') + '</span>';
+  var sp = specialDayOf(now);
+  var day = dayTypeOf(now);
+  var tip = weatherTipOf(wk, WX.temp);
+  var nx = nextSpecialDay(now);
+  var nextTxt = '';
+  if (nx && nx.days <= 60) {
+    nextTxt = '<span class="ct-next">다음 특별한 날 · ' + nx.item.ico + ' ' + esc(nx.item.label) +
+      ' (' + (nx.at.getMonth() + 1) + '/' + nx.at.getDate() + ', D-' + nx.days + ')</span>';
+  }
+  var spHtml = sp ? '<div class="ct-special" data-act="circle-say" data-t="' + esc(sp.en) + '">' +
+    '<span class="ct-special-ico">' + sp.ico + '</span>' +
+    '<span class="ct-body"><b>' + esc(sp.en) + '</b><em>' + esc(sp.ko) + '</em></span>' +
+    '<span class="ct-spk">🔊</span></div>' : '';
 
-  return '<div class="circle">' +
+  return '<div class="circle">' + spHtml +
     ctRow({
       act: 'circle-say', t: d.said, tone: 't-coral', ico: '📅',
       q: 'What day is it today?', ko: '오늘은 몇 월 며칠 무슨 요일이야?',
@@ -3349,6 +3457,9 @@ function circleCard() {
       ans: esc(t.said) + '<span class="ct-digital" id="ct-time-digital">' + t.digital + '</span>',
       day: String(now.getDate())
     }) +
+    ctLine(day) +
+    ctLine(tip) +
+    nextTxt +
     '</div>';
 }
 /* 시간·날짜는 1분마다 바뀌므로 홈을 다시 그리지 않고 그 줄만 갱신한다 */
