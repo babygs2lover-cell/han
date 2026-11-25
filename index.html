@@ -510,15 +510,15 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .wg-plan-edit{margin-left:auto; font-size:9.5px; font-weight:900; color:#A08C7C; background:#F7F2EA; border-radius:999px; padding:4px 8px; letter-spacing:-.2px;}
 .wg-plan-edit:active{background:#F0E8DC;}
 .wg-plan-body{display:flex; flex-direction:column; align-items:center; gap:6px;}
-.wg-dn-wrap{width:146px; flex:0 0 auto;}
+.wg-dn-wrap{width:168px; flex:0 0 auto;}
 .wg-donut{width:100%; display:block;}
 .wg-dn-bg{fill:#FBF7F0;}
 .wg-dn-tick{stroke:#E3D8CA; stroke-width:.7;}
 .wg-dn-h{font-size:7px; font-weight:800; fill:#B3A395; font-family:var(--font);}
-.wg-dn-e{font-size:8.5px;}
+.wg-dn-slice{stroke:#fff; stroke-width:1.2;}
 .wg-dn-needle{stroke:#EF7B45; stroke-width:1.2; stroke-linecap:round;}
 .wg-dn-dot{fill:#EF7B45; stroke:#fff; stroke-width:1;}
-.wg-dn-ci{font-size:13px;}
+.wg-dn-ci{font-size:12.5px;}
 .wg-dn-ct{font-size:7.6px; font-weight:900; fill:#5E4E45; font-family:var(--font);}
 .wg-tl{width:100%; display:flex; flex-direction:column; gap:1px;}
 .wg-tl-row{display:flex; align-items:center; gap:6px; width:100%; text-align:left; padding:3px 6px; border-radius:9px; transition:background .12s;}
@@ -3995,11 +3995,8 @@ function routineDonut(now) {
   list.forEach(function (b, i) {
     var a0 = b.from / 1440 * 360, a1 = b.to / 1440 * 360;
     if (a1 <= a0) return;
-    slices += '<path d="' + donutSlice(a0, a1, rOut, rIn, cx, cy) + '" fill="' + ROUTINE_COLORS[i % ROUTINE_COLORS.length] + '"/>';
-    if (a1 - a0 >= 15) {
-      var m = polarXY((rOut + rIn) / 2, (a0 + a1) / 2, cx, cy);
-      icons += '<text class="wg-dn-e" x="' + m.x + '" y="' + (+m.y + 3.4).toFixed(2) + '" text-anchor="middle">' + b.ico + '</text>';
-    }
+    slices += '<path class="wg-dn-slice" d="' + donutSlice(a0, a1, rOut, rIn, cx, cy) + '" fill="' +
+      ROUTINE_COLORS[i % ROUTINE_COLORS.length] + '"/>';
   });
   for (var h = 0; h < 24; h++) {
     var p1 = polarXY(h % 6 === 0 ? 50 : 52.5, h * 15, cx, cy), p2 = polarXY(56, h * 15, cx, cy);
@@ -4015,8 +4012,8 @@ function routineDonut(now) {
     '<circle class="wg-dn-bg" cx="' + cx + '" cy="' + cy + '" r="' + rOut + '"/>' +
     slices + ticks + labels + icons +
     '<g id="wg-dn-now" transform="rotate(' + ang + ' ' + cx + ' ' + cy + ')">' +
-      '<line class="wg-dn-needle" x1="' + cx + '" y1="13" x2="' + cx + '" y2="34"/>' +
-      '<circle class="wg-dn-dot" cx="' + cx + '" cy="12.5" r="3.3"/>' +
+      '<line class="wg-dn-needle" x1="' + cx + '" y1="12" x2="' + cx + '" y2="34"/>' +
+      '<circle class="wg-dn-dot" cx="' + cx + '" cy="24" r="3.4"/>' +
     '</g>' +
     '<text id="wg-dn-ico" class="wg-dn-ci" x="' + cx + '" y="66" text-anchor="middle">' + cur.ico + '</text>' +
     '<text id="wg-dn-time" class="wg-dn-ct" x="' + cx + '" y="82" text-anchor="middle">' + circleTime(now).digital + '</text>' +
