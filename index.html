@@ -1944,6 +1944,7 @@ var App = {
   books: { viewMode: 'series', roadLvl: null, roadSer: null, ar: '전체', ch: '전체', stage: '전체', age: '전체', q: '', showSearch: false, ownedOnly: false, sort: 'AR 낮은 순' },
   lib: { subject: '전체', sub: '전체', ch: '전체', q: '', onlyPrint: false, onlyPicked: false, stage: '전체', ar: '전체', sort: '기본', age: '전체', ownedOnly: false, showMore: false },
   learn: { subject: 'en', step: 1 },
+  filesCat: '전체',
   review: { songId: null, mode: 'card', idx: 0, flipped: false },
   rm: 'en',
   quiz: null
@@ -3569,58 +3570,118 @@ var EDU_GROUPS = [
   { key: 'e56', label: '📕 초등 5~6학년', badge: '초5~6', color: '#BE123C' }
 ];
 
+var EDU_CATS = [
+  { key: '전체', label: '📂 전체' },
+  { key: '수학', label: '🔢 수학' },
+  { key: '국어', label: '📖 문해·한글' },
+  { key: '한자', label: '한 한자' },
+  { key: '종이접기', label: '접 종이접기' },
+  { key: '놀이', label: '🎨 미술·놀이' }
+];
+
 var EDU_FILES = [
-  { g: '3', ico: '운', bg: '#F59E0B', title: '다 함께 운동놀이', meta: '교육부·인천교육청 원본 · 신체놀이 · 113쪽',
+  /* ---- 종이접기 (인천북부특수교육지원센터 · HWP를 PDF로 변환) ---- */
+  { g: '3', cat: '종이접기', ico: '접', bg: '#EA580C', title: '접기로 배우는 낱말 — 세모접기', meta: '인천교육청 북부특수교육지원센터 · 종이접기+한글 · 9쪽',
+    href: 'files/edu_worksheets/fold_tri_korean.pdf' },
+  { g: '3', cat: '종이접기', ico: '접', bg: '#EA580C', title: '접기로 배우는 낱말 — 네모접기', meta: '인천교육청 북부특수교육지원센터 · 종이접기+한글 · 9쪽',
+    href: 'files/edu_worksheets/fold_sq_korean.pdf' },
+
+  /* ---- 만 3세 ---- */
+  { g: '3', cat: '놀이', ico: '운', bg: '#F59E0B', title: '다 함께 운동놀이', meta: '교육부·인천교육청 원본 · 신체놀이 · 113쪽',
     href: 'https://www.ice.go.kr/upload/ice/na/bbs_1676/2025/02/7b8f4f0fcf15ddbc41b3ba601b7645ec.pdf' },
-  { g: '3', ico: '미', bg: '#EC4899', title: '마음꽃 미술놀이', meta: '교육부·인천교육청 원본 · 미술놀이 · 108쪽',
+  { g: '3', cat: '놀이', ico: '미', bg: '#EC4899', title: '마음꽃 미술놀이', meta: '교육부·인천교육청 원본 · 미술놀이 · 108쪽',
     href: 'https://www.ice.go.kr/upload/ice/na/bbs_1676/2025/02/faafeed795d41cc5e3b406781da1f123.pdf' },
-  { g: '3', ico: '가', bg: '#8B5CF6', title: '가나다 카드', meta: '충북유아교육진흥원 · 한글 · 14쪽',
+  { g: '3', cat: '국어', ico: '가', bg: '#8B5CF6', title: '가나다 카드', meta: '충북유아교육진흥원 · 한글 · 14쪽',
     href: 'files/edu_worksheets/age3_gadada_cards.pdf' },
 
-  { g: '4', ico: 'ㄱ', bg: '#6366F1', title: '자음 카드', meta: '충북유아교육진흥원 · 한글 · 14쪽',
+  /* ---- 만 4세 ---- */
+  { g: '4', cat: '국어', ico: '문', bg: '#8B5CF6', title: '유아 언어교육 프로그램 — 교수학습자료', meta: '서울시교육청유아교육진흥원 · 문해력 놀이 · 62쪽',
+    href: 'files/edu_worksheets/seoul_lang_play.pdf' },
+  { g: '4', cat: '국어', ico: 'ㄱ', bg: '#6366F1', title: '자음 카드', meta: '충북유아교육진흥원 · 한글 · 14쪽',
     href: 'files/edu_worksheets/age4_consonant_cards.pdf' },
-  { g: '4', ico: '낱', bg: '#6366F1', title: '글자꽃이 피었습니다 단어 카드', meta: '충북유아교육진흥원 · 한글 · 25쪽',
+  { g: '4', cat: '국어', ico: '낱', bg: '#6366F1', title: '글자꽃이 피었습니다 단어 카드', meta: '충북유아교육진흥원 · 한글 · 25쪽',
     href: 'files/edu_worksheets/age4_word_cards.pdf' },
-  { g: '4', ico: '인', bg: '#10B981', title: '유아 인성교육을 담다 워크시트지', meta: '경기도교육청 · 인성놀이 · 59쪽',
+  { g: '4', cat: '놀이', ico: '인', bg: '#10B981', title: '유아 인성교육을 담다 워크시트지', meta: '경기도교육청 · 인성놀이 · 59쪽',
     href: 'files/edu_worksheets/all_character_worksheet.pdf' },
 
-  { g: '5', ico: '이', bg: '#8B5CF6', title: '가정연계 활동지 — 나의 이름에 담긴 뜻', meta: '충북유아교육진흥원 · 한글 · 1쪽',
+  /* ---- 만 5세 ---- */
+  { g: '5', cat: '국어', ico: '이', bg: '#8B5CF6', title: '가정연계 활동지 — 나의 이름에 담긴 뜻', meta: '충북유아교육진흥원 · 한글 · 1쪽',
     href: 'files/edu_worksheets/age5_name_worksheet.pdf' },
-  { g: '5', ico: '단', bg: '#6366F1', title: '주제별 단어 카드 (게시용)', meta: '충북유아교육진흥원 · 한글 · 10쪽',
+  { g: '5', cat: '국어', ico: '단', bg: '#6366F1', title: '주제별 단어 카드 (게시용)', meta: '충북유아교육진흥원 · 한글 · 10쪽',
     href: 'files/edu_worksheets/age5_word_poster.pdf' },
-  { g: '5', ico: '과', bg: '#0EA5E9', title: '쏙쏙쏙 과학놀이', meta: '교육부·인천교육청 원본 · 과학놀이 · 141쪽',
+  { g: '5', cat: '놀이', ico: '과', bg: '#0EA5E9', title: '쏙쏙쏙 과학놀이', meta: '교육부·인천교육청 원본 · 과학놀이 · 141쪽',
     href: 'https://www.ice.go.kr/upload/ice/na/bbs_1676/2025/02/25c21ed154796b0c4263940f11b05324.pdf' },
 
-  { g: 'all', ico: '영', bg: '#FF7043', title: '팡팡팡 영어놀이', meta: '교육부·인천교육청 원본 · 영어놀이 · 110쪽',
+  /* ---- 만 3~5세 ---- */
+  { g: 'all', cat: '수학', ico: '수', bg: '#0284C7', title: '놀이 속 수학 더하기', meta: '서울시교육청유아교육진흥원 · 유아 수학놀이 10가지 · 196쪽',
+    href: 'files/edu_worksheets/seoul_math_play.pdf' },
+  { g: 'all', cat: '놀이', ico: '영', bg: '#FF7043', title: '팡팡팡 영어놀이', meta: '교육부·인천교육청 원본 · 영어놀이 · 110쪽',
     href: 'https://www.ice.go.kr/upload/ice/na/bbs_1676/2025/02/43bd48a6c3bdec006a16f12ef80a395e.pdf' },
 
-  { g: 'e1', ico: '한', bg: '#0EA5E9', title: '찬찬한글 익힘책', meta: '인천광역시교육청 · 한글 익히기 · 196쪽',
+  /* ---- 초1 ---- */
+  { g: 'e1', cat: '수학', ico: '백', bg: '#0284C7', title: '토닥토닥 수학 — 100까지의 수', meta: '인천광역시교육청 · 연산 유창성 수3 · 44쪽',
+    href: 'files/edu_worksheets/math_su3_100.pdf' },
+  { g: 'e1', cat: '수학', ico: '천', bg: '#0284C7', title: '토닥토닥 수학 — 세 자리의 수', meta: '인천광역시교육청 · 연산 유창성 수4 · 60쪽',
+    href: 'files/edu_worksheets/math_su4_1000.pdf' },
+  { g: 'e1', cat: '수학', ico: '더', bg: '#0369A1', title: '토닥토닥 수학 — 받아올림 있는 한 자리 수 덧셈', meta: '인천광역시교육청 · 연산 유창성 덧셈2 · 27쪽',
+    href: 'files/edu_worksheets/math_add2_carry.pdf' },
+  { g: 'e1', cat: '수학', ico: '빼', bg: '#0369A1', title: '토닥토닥 수학 — 받아내림 있는 한 자리 수 뺄셈', meta: '인천광역시교육청 · 연산 유창성 뺄셈2 · 48쪽',
+    href: 'files/edu_worksheets/math_sub2_borrow.pdf' },
+  { g: 'e1', cat: '국어', ico: '퐁', bg: '#8B5CF6', title: '한글 재미 퐁당 1~3권 (원본 내려받기)', meta: '서울시교육청 · 초1 한글교육 도움자료 · 원본',
+    href: 'https://buseo.sen.go.kr/buseo/bu12/user/bbs/BD_selectBbs.do?q_bbsDocNo=20250107184807364&q_bbsSn=1266' },
+  { g: 'e1', cat: '국어', ico: '한', bg: '#0EA5E9', title: '찬찬한글 익힘책', meta: '인천광역시교육청 · 한글 익히기 · 196쪽',
     href: 'files/edu_worksheets/elem1_chachan_workbook.pdf' },
-  { g: 'e1', ico: '읽', bg: '#0284C7', title: '읽기 유창성 — 뿌리 1', meta: '인천광역시교육청 · 읽기 · 50쪽',
+  { g: 'e1', cat: '국어', ico: '읽', bg: '#0284C7', title: '읽기 유창성 — 뿌리 1', meta: '인천광역시교육청 · 읽기 · 50쪽',
     href: 'files/edu_worksheets/elem1_read_root1.pdf' },
 
-  { g: 'e2', ico: '읽', bg: '#059669', title: '읽기 유창성 — 뿌리 2', meta: '인천광역시교육청 · 읽기 · 100쪽',
+  /* ---- 초2 ---- */
+  { g: 'e2', cat: '수학', ico: '더', bg: '#059669', title: '토닥토닥 수학 — 받아올림 없는 두 자리 수 덧셈', meta: '인천광역시교육청 · 연산 유창성 덧셈3 · 23쪽',
+    href: 'files/edu_worksheets/math_add3_2digit.pdf' },
+  { g: 'e2', cat: '수학', ico: '빼', bg: '#059669', title: '토닥토닥 수학 — 받아내림 없는 두 자리 수 뺄셈', meta: '인천광역시교육청 · 연산 유창성 뺄셈3 · 40쪽',
+    href: 'files/edu_worksheets/math_sub3_2digit.pdf' },
+  { g: 'e2', cat: '수학', ico: '곱', bg: '#047857', title: '토닥토닥 수학 — 2단~5단 곱셈구구', meta: '인천광역시교육청 · 연산 유창성 곱셈1 · 68쪽',
+    href: 'files/edu_worksheets/math_mul1_gugu.pdf' },
+  { g: 'e2', cat: '국어', ico: '낱', bg: '#7C3AED', title: '트멍배움 낱말공부(어휘) 워크북', meta: '제주특별자치도교육청 · 초2 어휘·문해 · 156쪽',
+    href: 'files/edu_worksheets/jj_word_grade2.pdf' },
+  { g: 'e2', cat: '국어', ico: '읽', bg: '#059669', title: '읽기 유창성 — 뿌리 2', meta: '인천광역시교육청 · 읽기 · 100쪽',
     href: 'files/edu_worksheets/elem2_read_root2.pdf' },
-  { g: 'e2', ico: '읽', bg: '#059669', title: '읽기 유창성 — 뿌리 3', meta: '인천광역시교육청 · 읽기 · 100쪽',
+  { g: 'e2', cat: '국어', ico: '읽', bg: '#059669', title: '읽기 유창성 — 뿌리 3', meta: '인천광역시교육청 · 읽기 · 100쪽',
     href: 'files/edu_worksheets/elem2_read_root3.pdf' },
 
-  { g: 'e34', ico: '읽', bg: '#4F46E5', title: '읽기 유창성 — 줄기 1', meta: '인천광역시교육청 · 읽기 · 100쪽',
+  /* ---- 초3~4 ---- */
+  { g: 'e34', cat: '수학', ico: '분', bg: '#4F46E5', title: '토닥토닥 수학 — 똑같이 나누기(분수)', meta: '인천광역시교육청 · 연산 유창성 분수1 · 34쪽',
+    href: 'files/edu_worksheets/math_fraction1.pdf' },
+  { g: 'e34', cat: '한자', ico: '한', bg: '#B45309', title: '한 손에 쏘옥, 행복한 한자공부', meta: '서울시교육청 · 초등 교과 한자 어휘 · 200쪽 · 원본',
+    href: 'https://buseo.sen.go.kr/component/file/ND_fileDownload.do?q_fileSn=1815354&q_fileId=94-5010-2' },
+  { g: 'e34', cat: '한자', ico: '부', bg: '#B45309', title: '한자오리꼬미 — 부수 이름표', meta: '서울시교육청 · 부수 뜻·이름 카드 · 1쪽 · 원본',
+    href: 'https://buseo.sen.go.kr/component/file/ND_fileDownload.do?q_fileSn=1815354&q_fileId=94-5010-4' },
+  { g: 'e34', cat: '국어', ico: '읽', bg: '#4F46E5', title: '읽기 유창성 — 줄기 1', meta: '인천광역시교육청 · 읽기 · 100쪽',
     href: 'files/edu_worksheets/elem34_read_stem1.pdf' },
-  { g: 'e34', ico: '읽', bg: '#4F46E5', title: '읽기 유창성 — 줄기 2', meta: '인천광역시교육청 · 읽기 · 100쪽',
+  { g: 'e34', cat: '국어', ico: '읽', bg: '#4F46E5', title: '읽기 유창성 — 줄기 2', meta: '인천광역시교육청 · 읽기 · 100쪽',
     href: 'files/edu_worksheets/elem34_read_stem2.pdf' },
 
-  { g: 'e56', ico: '읽', bg: '#BE123C', title: '읽기 유창성 — 열매 1', meta: '인천광역시교육청 · 읽기 · 100쪽',
+  /* ---- 초5~6 ---- */
+  { g: 'e56', cat: '국어', ico: '읽', bg: '#BE123C', title: '읽기 유창성 — 열매 1', meta: '인천광역시교육청 · 읽기 · 100쪽',
     href: 'files/edu_worksheets/elem56_read_fruit1.pdf' },
-  { g: 'e56', ico: '읽', bg: '#BE123C', title: '읽기 유창성 — 열매 2', meta: '인천광역시교육청 · 읽기 · 100쪽',
+  { g: 'e56', cat: '국어', ico: '읽', bg: '#BE123C', title: '읽기 유창성 — 열매 2', meta: '인천광역시교육청 · 읽기 · 100쪽',
     href: 'files/edu_worksheets/elem56_read_fruit2.pdf' }
 ];
 
 function viewFilesArea() {
-  var h = '<div class="ws-note"><b>교육부·교육청 무료 자료 ' + EDU_FILES.length + '가지</b>' +
+  var cat = App.filesCat || '전체';
+  var shown = EDU_FILES.filter(function (x) { return cat === '전체' || x.cat === cat; });
+  var h = '<div class="ws-note"><b>교육부·교육청 무료 자료 ' + shown.length + '가지</b>' +
     '<p>카드를 누르면 PDF가 바로 열려요. 인쇄하거나 파일로 저장해서 쓰세요.' +
     '<br><span class="tiny">‘원본’이라고 적힌 자료는 교육청 사이트의 원본 파일로 열립니다.</span></p></div>';
+  h += '<div class="chips compact-chips" style="margin:10px 0 4px">' +
+    EDU_CATS.map(function (c) {
+      return '<button class="chip kchip sm ' + (cat === c.key ? 'on mint' : '') + '" data-act="files-cat" data-k="' + esc(c.key) + '">' + c.label + '</button>';
+    }).join('') + '</div>';
+  if (!shown.length) {
+    return h + '<div class="empty cute"><span class="big">📂</span>이 갈래의 자료는 아직 없어요.</div>';
+  }
   EDU_GROUPS.forEach(function (g) {
-    var list = EDU_FILES.filter(function (x) { return x.g === g.key; });
+    var list = shown.filter(function (x) { return x.g === g.key; });
     if (!list.length) return;
     h += '<div class="vsec"><span>' + g.label + '</span>' +
       '<span class="ws-count">' + list.length + '가지</span></div>' +
@@ -7503,6 +7564,8 @@ function onClick(e) {
         render(); break;
       case 'lib-topic':
         App.lib.sub = btn.getAttribute('data-k'); render(); break;
+      case 'files-cat':
+        App.filesCat = btn.getAttribute('data-k'); render(); break;
       case 'lib-print':
         App.lib.onlyPrint = !App.lib.onlyPrint; render(); break;
       case 'lib-picked':
