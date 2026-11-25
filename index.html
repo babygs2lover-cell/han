@@ -8022,6 +8022,26 @@ function onClick(e) {
         flashTap(btn);
         break;
       }
+      case 'circle-season': {
+        var sk = btn.getAttribute('data-k');
+        var same = S.seasonPick && S.seasonPick.d === todayIso() && S.seasonPick.k === sk;
+        S.seasonPick = same ? null : { k: sk, d: todayIso() };
+        save();
+        var sc = seasonChip(sk);
+        speakNow(sc ? sc.said : '');
+        render();
+        break;
+      }
+      case 'circle-weather': {
+        var wk = btn.getAttribute('data-k');
+        var sameW = S.weatherPick && S.weatherPick.d === todayIso() && S.weatherPick.k === wk;
+        S.weatherPick = sameW ? null : { k: wk, d: todayIso() };
+        save();
+        var wc = weatherChip(wk);
+        speakNow(wc ? wc.said : '');
+        render();
+        break;
+      }
       case 'routine-edit': openRoutineEdit(); break;
       case 'rt-kind': {
         var rk = btn.getAttribute('data-k') || 'weekday';
