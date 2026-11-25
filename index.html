@@ -860,6 +860,16 @@ body.theater .player-top{display:none;}
 .ownbtn svg{display:block;}
 .ownbtn.on{background:#FFF1CE;border-color:#F2CE7A;opacity:1;box-shadow:0 2px 8px rgba(180,140,40,.25);}
 
+/* ---------- 자료실 (교육청 무료 워크지) ---------- */
+a.vcard{text-decoration:none;color:inherit;}
+.ws-note{
+  margin:2px 0 8px; padding:12px 14px; border-radius:18px;
+  background:#F6F4FF; border:1px solid #E4DEFB;
+}
+.ws-note b{display:block;font-size:14px;color:#3B2E7E;letter-spacing:-.2px;}
+.ws-note p{margin:4px 0 0;font-size:11.8px;line-height:1.6;color:#6B5FA6;}
+.ws-note .tiny{color:#8D82BF;}
+
 </style>
 </head>
 <body>
@@ -3181,6 +3191,90 @@ function areaRowCard(ico, bg, title, sub, act, attrKey, attrVal, badge, imgUrl) 
     '<span class="vc-arr">›</span></button>';
 }
 
+/* ============================================================
+   자료실 — 교육부·시도교육청 무료 워크지 (연령·학년 순)
+   ============================================================ */
+var EDU_GROUPS = [
+  { key: '3', label: '🐣 만 3세', badge: '만 3세', color: '#F59E0B' },
+  { key: '4', label: '🦊 만 4세', badge: '만 4세', color: '#EA580C' },
+  { key: '5', label: '🦁 만 5세', badge: '만 5세', color: '#DC2626' },
+  { key: 'all', label: '🌈 만 3~5세', badge: '만 3~5세', color: '#7C3AED' },
+  { key: 'e1', label: '✏️ 초등 1학년', badge: '초1', color: '#0EA5E9' },
+  { key: 'e2', label: '📗 초등 2학년', badge: '초2', color: '#059669' },
+  { key: 'e34', label: '📘 초등 3~4학년', badge: '초3~4', color: '#4F46E5' },
+  { key: 'e56', label: '📕 초등 5~6학년', badge: '초5~6', color: '#BE123C' }
+];
+
+var EDU_FILES = [
+  { g: '3', ico: '운', bg: '#F59E0B', title: '다 함께 운동놀이', meta: '교육부·인천교육청 원본 · 신체놀이 · 113쪽',
+    href: 'https://www.ice.go.kr/upload/ice/na/bbs_1676/2025/02/7b8f4f0fcf15ddbc41b3ba601b7645ec.pdf' },
+  { g: '3', ico: '미', bg: '#EC4899', title: '마음꽃 미술놀이', meta: '교육부·인천교육청 원본 · 미술놀이 · 108쪽',
+    href: 'https://www.ice.go.kr/upload/ice/na/bbs_1676/2025/02/faafeed795d41cc5e3b406781da1f123.pdf' },
+  { g: '3', ico: '가', bg: '#8B5CF6', title: '가나다 카드', meta: '충북유아교육진흥원 · 한글 · 14쪽',
+    href: 'files/edu_worksheets/age3_gadada_cards.pdf' },
+
+  { g: '4', ico: 'ㄱ', bg: '#6366F1', title: '자음 카드', meta: '충북유아교육진흥원 · 한글 · 14쪽',
+    href: 'files/edu_worksheets/age4_consonant_cards.pdf' },
+  { g: '4', ico: '낱', bg: '#6366F1', title: '글자꽃이 피었습니다 단어 카드', meta: '충북유아교육진흥원 · 한글 · 25쪽',
+    href: 'files/edu_worksheets/age4_word_cards.pdf' },
+  { g: '4', ico: '인', bg: '#10B981', title: '유아 인성교육을 담다 워크시트지', meta: '경기도교육청 · 인성놀이 · 59쪽',
+    href: 'files/edu_worksheets/all_character_worksheet.pdf' },
+
+  { g: '5', ico: '이', bg: '#8B5CF6', title: '가정연계 활동지 — 나의 이름에 담긴 뜻', meta: '충북유아교육진흥원 · 한글 · 1쪽',
+    href: 'files/edu_worksheets/age5_name_worksheet.pdf' },
+  { g: '5', ico: '단', bg: '#6366F1', title: '주제별 단어 카드 (게시용)', meta: '충북유아교육진흥원 · 한글 · 10쪽',
+    href: 'files/edu_worksheets/age5_word_poster.pdf' },
+  { g: '5', ico: '과', bg: '#0EA5E9', title: '쏙쏙쏙 과학놀이', meta: '교육부·인천교육청 원본 · 과학놀이 · 141쪽',
+    href: 'https://www.ice.go.kr/upload/ice/na/bbs_1676/2025/02/25c21ed154796b0c4263940f11b05324.pdf' },
+
+  { g: 'all', ico: '영', bg: '#FF7043', title: '팡팡팡 영어놀이', meta: '교육부·인천교육청 원본 · 영어놀이 · 110쪽',
+    href: 'https://www.ice.go.kr/upload/ice/na/bbs_1676/2025/02/43bd48a6c3bdec006a16f12ef80a395e.pdf' },
+
+  { g: 'e1', ico: '한', bg: '#0EA5E9', title: '찬찬한글 익힘책', meta: '인천광역시교육청 · 한글 익히기 · 196쪽',
+    href: 'files/edu_worksheets/elem1_chachan_workbook.pdf' },
+  { g: 'e1', ico: '읽', bg: '#0284C7', title: '읽기 유창성 — 뿌리 1', meta: '인천광역시교육청 · 읽기 · 50쪽',
+    href: 'files/edu_worksheets/elem1_read_root1.pdf' },
+
+  { g: 'e2', ico: '읽', bg: '#059669', title: '읽기 유창성 — 뿌리 2', meta: '인천광역시교육청 · 읽기 · 100쪽',
+    href: 'files/edu_worksheets/elem2_read_root2.pdf' },
+  { g: 'e2', ico: '읽', bg: '#059669', title: '읽기 유창성 — 뿌리 3', meta: '인천광역시교육청 · 읽기 · 100쪽',
+    href: 'files/edu_worksheets/elem2_read_root3.pdf' },
+
+  { g: 'e34', ico: '읽', bg: '#4F46E5', title: '읽기 유창성 — 줄기 1', meta: '인천광역시교육청 · 읽기 · 100쪽',
+    href: 'files/edu_worksheets/elem34_read_stem1.pdf' },
+  { g: 'e34', ico: '읽', bg: '#4F46E5', title: '읽기 유창성 — 줄기 2', meta: '인천광역시교육청 · 읽기 · 100쪽',
+    href: 'files/edu_worksheets/elem34_read_stem2.pdf' },
+
+  { g: 'e56', ico: '읽', bg: '#BE123C', title: '읽기 유창성 — 열매 1', meta: '인천광역시교육청 · 읽기 · 100쪽',
+    href: 'files/edu_worksheets/elem56_read_fruit1.pdf' },
+  { g: 'e56', ico: '읽', bg: '#BE123C', title: '읽기 유창성 — 열매 2', meta: '인천광역시교육청 · 읽기 · 100쪽',
+    href: 'files/edu_worksheets/elem56_read_fruit2.pdf' }
+];
+
+function viewFilesArea() {
+  var h = '<div class="ws-note"><b>교육부·교육청 무료 자료 ' + EDU_FILES.length + '가지</b>' +
+    '<p>카드를 누르면 PDF가 바로 열려요. 인쇄하거나 파일로 저장해서 쓰세요.' +
+    '<br><span class="tiny">‘원본’이라고 적힌 자료는 교육청 사이트의 원본 파일로 열립니다.</span></p></div>';
+  EDU_GROUPS.forEach(function (g) {
+    var list = EDU_FILES.filter(function (x) { return x.g === g.key; });
+    if (!list.length) return;
+    h += '<div class="vsec"><span>' + g.label + '</span>' +
+      '<span class="tiny muted" style="font-weight:500">' + list.length + '가지</span></div>' +
+      '<div class="vlist">';
+    list.forEach(function (f) {
+      h += '<a class="vcard" href="' + esc(f.href) + '" target="_blank" rel="noopener">' +
+        '<span class="vc-ico" style="background:' + f.bg + '">' + f.ico + '</span>' +
+        '<span class="vc-body"><b>' + esc(f.title) + '</b><span>' + esc(f.meta) + '</span></span>' +
+        '<span class="vc-badge" style="background:' + g.color + '">' + g.badge + '</span>' +
+        '<span class="vc-arr">›</span></a>';
+    });
+    h += '</div>';
+  });
+  h += '<p class="tiny muted" style="margin:16px 2px 4px;line-height:1.65">' +
+    '모두 각 기관이 무료로 배포하는 자료라 출처를 그대로 밝혀 두었어요. 집에서 아이와 인쇄해 쓰는 용도이고, 다시 올리거나 판매하지는 말아 주세요.</p>';
+  return h;
+}
+
 function viewKidArea(area) {
   var meta = {
     en: { ico: '영', bg: '#FF7043', title: '영어', sub: '영어 동요 · 영어 원서 · 낱말 · 문장', desc: '원하는 카드를 고르면 바로 열려요.' },
@@ -3188,7 +3282,7 @@ function viewKidArea(area) {
     ko: { ico: '한', bg: '#5C6BC0', title: '한글', sub: '한글 영상 · 자음 · 통글자 · 퀴즈', desc: '재미있는 한글 놀이를 골라 보세요.' },
     info: { ico: '지', bg: '#26A69A', title: '지식', sub: '자연 다큐 · 과학', desc: '세상 궁금증을 탐구해 봐요.' },
     art: { ico: '미', bg: '#EC407A', title: '미술', sub: '그리기 · 만들기 · 종이접기 · 생활', desc: '신나는 만들기 놀이를 골라 보세요.' },
-    files: { ico: '📁', bg: '#6366F1', title: '자료실', sub: '단어카드 · 가사집 · 영상별 PDF 자료', desc: '인쇄하거나 PDF로 저장해서 바로 활용할 수 있어요.' }
+    files: { ico: '📁', bg: '#6366F1', title: '자료실', sub: '교육청 무료 워크지 · 연령·학년 순', desc: '교육부·시도교육청이 무료로 배포하는 활동지를 연령·학년 순으로 모았어요.' }
   }[area] || { ico: '놀', bg: '#FF7043', title: '놀이터', sub: '', desc: '' };
 
   var h = '<div class="vhead">' +
@@ -3273,7 +3367,7 @@ function viewKidArea(area) {
       areaRowCard('탐', '#26A69A', '지식 · 다큐 전체 보기', '모든 다큐 영상 한눈에', 'kid-lib-sub', 'data-k', '다큐') +
       '</div>';
   } else if (area === 'files') {
-    h += '<div class="empty cute" style="padding:36px 16px"><span class="big">📁</span><b>아직 올려둔 자료가 없어요</b><p class="tiny muted" style="margin-top:6px">원하시는 PDF나 학습 자료를 말씀해 주시면 여기에 차곡차곡 넣어 둘게요.</p></div>';
+    h += viewFilesArea();
   } else {
     var artCards = chCardsFor('미술', false);
     if (artCards) {
