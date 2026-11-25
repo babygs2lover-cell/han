@@ -426,7 +426,7 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .wg-hr b{font-size:9.5px; font-weight:700; color:#C6CDE8; letter-spacing:-.2px; white-space:nowrap;}
 .wg-hr i{font-size:15px; line-height:1; font-style:normal;}
 .wg-hr em{font-size:12px; font-weight:800; font-style:normal; color:#fff;}
-.wg-hours.empty{justify-content:center; font-size:11px; font-weight:700; color:#C6CDE8;}
+.wg-hours.wg-busy{justify-content:center; font-size:11px; font-weight:700; color:#C6CDE8;}
 .wg-chips{display:flex; gap:4px; margin-top:10px; overflow-x:auto; scrollbar-width:none; padding-bottom:1px;}
 .wg-chips::-webkit-scrollbar{display:none;}
 .wg-chip{
@@ -1963,7 +1963,9 @@ function weatherTipOf(kind, temp) {
 function loadWeather(force) {
   try {
     if (WX.loading) return;
-    if (!force && WX.at && (Date.now() - WX.at) < 30 * 60 * 1000) return;
+    /* 예전 캐시(현재 기온만)라면 최고/최저·시간별을 채우기 위해 바로 다시 받아 온다 */
+    var full = (typeof WX.hi === 'number') && WX.hours && WX.hours.length;
+    if (!force && full && WX.at && (Date.now() - WX.at) < 30 * 60 * 1000) return;
     if (typeof fetch !== 'function') return;
     WX.loading = true;
     fetch(WX_URL, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
@@ -3709,7 +3711,7 @@ function seasonPickKey(now) {
 function wgHourCells() {
   var hours = (WX.hours || []).slice(0, 6);
   if (!hours.length) {
-    return '<div class="wg-hours empty">' + (WX.loading ? 'Loading the hourly forecast…' : '시간별 예보를 불러오는 중') + '</div>';
+    return '<div class="wg-hours wg-busy">' + (WX.loading ? 'Loading the hourly forecast…' : '시간별 예보를 불러오는 중') + '</div>';
   }
   var html = '';
   for (var i = 0; i < hours.length; i++) {
@@ -3724,7 +3726,7 @@ function wgWeather() {
   var wk = pick || WX.kind;
   var chip = weatherChip(wk);
   var cond = pick ? (chip ? chip.label : '') : (typeof WX.code === 'number' ? wxLabel(WX.code) : (chip ? chip.label : ''));
-  var ico = pick ? (chip ? chip.ico : '🌤️') : (typeof WX.code === 'number' ? wxEmoji(WX.code) : '🌤️');
+  var ico = pick ? (chip ? chip.ico : '🌤️') : (typeof WX.code === 'number' ? wxEmoji(WX.code) : (chip ? chip.ico : '🌤️'));
   var hasTemp = typeof WX.temp === 'number';
   var hl = (typeof WX.hi === 'number' && typeof WX.lo === 'number')
     ? 'High ' + WX.hi + '° · Low ' + WX.lo + '°' : '';
