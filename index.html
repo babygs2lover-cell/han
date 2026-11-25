@@ -1877,12 +1877,13 @@ function enDegrees(n) {
   return enNum(n) + (n === 1 ? ' degree' : ' degrees');
 }
 function capFirst(s) { s = String(s || ''); return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+function enSigned(n) { n = Math.round(Number(n) || 0); return (n < 0 ? 'minus ' : '') + enNum(Math.abs(n)); }
 /* 날씨 위젯을 탭하면 읽는 문장 — 'It's cloudy today! Six degrees. High fifteen, low four.' */
 function wxSay(kind, temp, hi, lo) {
   var w = weatherChip(kind);
   var s = "It's " + (w ? w.label.toLowerCase() : 'cloudy') + ' today!';
   if (typeof temp === 'number') s += ' ' + capFirst(enDegrees(temp)) + '.';
-  if (typeof hi === 'number' && typeof lo === 'number') s += ' High ' + enNum(hi) + ', low ' + enNum(lo) + '.';
+  if (typeof hi === 'number' && typeof lo === 'number') s += ' High ' + enSigned(hi) + ', low ' + enSigned(lo) + '.';
   return s;
 }
 /* ---------- 오늘의 하루: 어린이집·주말 / 날씨 팁 / 기념일 ---------- */
@@ -2072,7 +2073,7 @@ function circleAudioFiles(text) {
   if (!M || !M.clips) return [];
   if (M.texts && M.texts[text]) return caFiles([M.texts[text]]);
   circleIx();
-  var m = /^Today is ([A-Za-z]+), ([A-Za-z]+) ([A-Za-z\-]+)\.\s*(?:It's (spring|summer|fall|winter)!)?$/.exec(text);
+  var m = /^Today is ([A-Za-z]+), ([A-Za-z]+) ([A-Za-z-]+)\.\s*(?:It's (spring|summer|fall|winter)!)?$/.exec(text);
   if (m) {
     var di = EN_DAYS.indexOf(m[1]), mo = EN_MONTHS.indexOf(m[2]), od = CIRCLE_ORD_IX[m[3]];
     if (di >= 0 && mo >= 0 && od) {
@@ -2082,7 +2083,7 @@ function circleAudioFiles(text) {
     }
     return [];
   }
-  m = /^It's ([A-Za-z\-]+)(?: o'clock| oh ([A-Za-z\-]+)| ([A-Za-z\-]+))?!$/.exec(text);
+  m = /^It's ([A-Za-z-]+)(?: o'clock| oh ([A-Za-z-]+)| ([A-Za-z-]+))?!$/.exec(text);
   if (m) {
     var hh = CIRCLE_NUM_IX[m[1]];
     if (hh >= 1 && hh <= 12) {
@@ -2091,29 +2092,44 @@ function circleAudioFiles(text) {
       else if (m[3]) mm = CIRCLE_NUM_IX[m[3]];
       if (mm === 0) return caFiles(['hr_' + hh, 'min_oclock']);
       if (mm > 0 && mm < 10) return caFiles(['hr_' + hh, 'min_oh' + mm]);
-      if (mm >= 10 && mm <= 60) return caFiles(['hr_' + hh, 'num_' + mm]);
+      if (mm >= 10 && mm <= 59) return caFiles(['hr_' + hh, 'num_' + mm]);
     }
     return [];
   }
-  m = /^It's ([a-z]+) today!(?: (minus )?([A-Za-z\-]+) degrees?\.)?(?: High ([A-Za-z\-]+), low ([A-Za-z\-]+)\.)?$/.exec(text);
+  m = /^It's ([a-z]+) today!(?: ((?:minus )?[A-Za-z-]+) degrees?\.)?(?: High ((?:minus )?[A-Za-z-]+), low ((?:minus )?[A-Za-z-]+)\.)?$/.exec(text);
   if (m) {
-    var kind = m[1];
-    var keys = ['wx_' + kind];
-    if (m[3]) {
-      var tv = CIRCLE_NUM_IX[String(m[3]).toLowerCase()];
-      if (typeof tv !== 'number') return [];
-      if (m[2]) keys.push('say_minus');
-      keys.push('num_' + tv, tv === 1 ? 'say_degree' : 'say_degrees');
+    var keys = ['wx_' + m[1]];
+    if (m[2]) {
+      var tv = circleNumWord(m[2]);
+      if (!circlePushNum(keys, tv)) return [];
+      keys.push(Math.abs(tv) === 1 ? 'say_degree' : 'say_degrees');
     }
-    if (m[4]) {
-      var hv = CIRCLE_NUM_IX[String(m[4]).toLowerCase()];
-      var lv = CIRCLE_NUM_IX[String(m[5]).toLowerCase()];
-      if (typeof hv !== 'number' || typeof lv !== 'number') return [];
-      keys.push('say_high', 'num_' + hv, 'say_low', 'num_' + lv);
+    if (m[3]) {
+      var hv = circleNumWord(m[3]), lv = circleNumWord(m[4]);
+      if (hv === null || lv === null) return [];
+      keys.push('say_high');
+      if (!circlePushNum(keys, hv)) return [];
+      keys.push('say_low');
+      if (!circlePushNum(keys, lv)) return [];
     }
     return caFiles(keys);
   }
   return [];
+}
+/* 'minus seven' → -7, 'fifteen' → 15 (모르는 단어면 null) */
+function circleNumWord(s) {
+  s = String(s || '').trim().toLowerCase();
+  var neg = false;
+  if (s.indexOf('minus ') === 0) { neg = true; s = s.slice(6); }
+  var v = CIRCLE_NUM_IX[s];
+  if (typeof v !== 'number') return null;
+  return neg ? -v : v;
+}
+function circlePushNum(keys, v) {
+  if (typeof v !== 'number' || v < -59 || v > 59) return false;
+  if (v < 0) keys.push('say_minus');
+  keys.push('num_' + Math.abs(v));
+  return true;
 }
 /* MP3를 순서대로 이어 재생한다. 첫 play()는 클릭 처리 안에서 동기 호출되므로 iOS에서도 잠금이 풀린다. */
 function playAudioQueue(files, fallbackText) {
