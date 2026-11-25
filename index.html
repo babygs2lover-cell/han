@@ -417,14 +417,14 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .wg-wx-r{text-align:right; padding-top:2px; flex:0 0 auto;}
 .wg-wx-ico{font-size:22px; line-height:1;}
 .wg-cond{font-size:12.5px; font-weight:800; color:#F3F5FF; margin-top:2px; white-space:nowrap;}
-.wg-hl{font-size:11px; font-weight:700; color:#C7CEEE; margin-top:2px; white-space:nowrap;}
+.wg-hl{font-size:11.5px; font-weight:700; color:#D2D8F0; margin-top:2px; white-space:nowrap;}
 .wg-hours{
   display:flex; justify-content:space-between; gap:2px; margin-top:10px; padding-top:10px;
   border-top:1px solid rgba(255,255,255,.14);
 }
 .wg-hr{flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px;}
 .wg-hr b{font-size:9.5px; font-weight:700; color:#C6CDE8; letter-spacing:-.2px; white-space:nowrap;}
-.wg-hr i{font-size:15px; line-height:1; font-style:normal;}
+.wg-hr i{font-size:16px; line-height:1; font-style:normal;}
 .wg-hr em{font-size:12px; font-weight:800; font-style:normal; color:#fff;}
 .wg-hours.wg-busy{justify-content:center; font-size:11px; font-weight:700; color:#C6CDE8;}
 .wg-chips{display:flex; gap:4px; margin-top:10px; overflow-x:auto; scrollbar-width:none; padding-bottom:1px;}
@@ -452,9 +452,9 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .wg-dow.sun{color:#E0554B;}
 .wg-day{font-size:38px; font-weight:300; line-height:1.04; letter-spacing:-2px; color:#231F20; margin:1px 0 5px; font-variant-numeric:tabular-nums;}
 .wg-mgrid{display:grid; grid-template-columns:repeat(7,1fr); flex:1; align-content:start;}
-.wg-mh{font-size:7.5px; font-weight:800; color:#B9ADA5; text-align:center; line-height:1.5;}
+.wg-mh{font-size:8px; font-weight:800; color:#B0A49C; text-align:center; line-height:1.5;}
 .wg-mh.sun{color:#E59189;}
-.wg-mc{font-size:8px; font-weight:700; color:#8C817A; text-align:center; line-height:16px; height:16px; border-radius:50%;}
+.wg-mc{font-size:8.5px; font-weight:700; color:#7C7168; text-align:center; line-height:17px; height:17px; border-radius:50%;}
 .wg-mc.off{color:transparent;}
 .wg-mc.today{background:#E0554B; color:#fff; font-weight:900; box-shadow:0 2px 6px rgba(224,85,75,.35);}
 .wg-seasons{display:flex; gap:3px; margin-top:7px; justify-content:center;}
@@ -498,7 +498,7 @@ input[type=range]{width:100%;accent-color:var(--coral);}
   .wg-temp{font-size:54px;}
   .wg-card{border-radius:22px; padding:10px 9px 9px;}
   .wg-day{font-size:35px;}
-  .wg-mc{font-size:7.5px; line-height:15px; height:15px;}
+  .wg-mc{font-size:8px; line-height:16px; height:16px;}
   .wg-ck{max-width:118px;}
   .wg-chip{font-size:9.5px; padding:4px 7px;}
 }
@@ -2071,10 +2071,14 @@ function circleAudioFiles(text) {
   if (!M || !M.clips) return [];
   if (M.texts && M.texts[text]) return caFiles([M.texts[text]]);
   circleIx();
-  var m = /^Today is ([A-Za-z]+), ([A-Za-z]+) ([A-Za-z\-]+)\.?$/.exec(text);
+  var m = /^Today is ([A-Za-z]+), ([A-Za-z]+) ([A-Za-z\-]+)\.\s*(?:It's (spring|summer|fall|winter)!)?$/.exec(text);
   if (m) {
     var di = EN_DAYS.indexOf(m[1]), mo = EN_MONTHS.indexOf(m[2]), od = CIRCLE_ORD_IX[m[3]];
-    if (di >= 0 && mo >= 0 && od) return caFiles(['wd_' + di, 'mon_' + (mo + 1), 'ord_' + od]);
+    if (di >= 0 && mo >= 0 && od) {
+      var dkeys = ['wd_' + di, 'mon_' + (mo + 1), 'ord_' + od];
+      if (m[4]) dkeys.push('season_' + m[4]);
+      return caFiles(dkeys);
+    }
     return [];
   }
   m = /^It's ([A-Za-z\-]+)(?: o'clock| oh ([A-Za-z\-]+)| ([A-Za-z\-]+))?!$/.exec(text);
