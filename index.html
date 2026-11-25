@@ -394,24 +394,42 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 /* ============================================================
    kids mode: mascot, chunky buttons, sticker book
    ============================================================ */
-.hero{
-  position:relative; display:flex; align-items:center; gap:6px;
-  background:linear-gradient(135deg,#FFF6E6 0%,#FFE9E1 46%,#E3F7F0 100%);
-  border-radius:34px; padding:14px 16px 14px 8px; box-shadow:var(--sh);
-  overflow:hidden; border:2px solid #FFF2DC;
+/* morning circle: 날짜 · 계절 · 날씨 · 시간 */
+.circle{
+  background:#fff; border:2px solid #FFF2E2; border-radius:30px; padding:2px 14px;
+  box-shadow:0 8px 0 rgba(180,140,90,.05), var(--sh-sm);
 }
-.hero::after{content:''; position:absolute; right:-30px; bottom:-40px; width:140px; height:140px; background:radial-gradient(circle,#FFF3C9 0%,rgba(255,243,201,0) 70%);}
-.hero-mascot{flex:0 0 auto; display:grid; place-items:center; filter:drop-shadow(0 6px 10px rgba(180,140,90,.18));}
-.bubble{
-  position:relative; background:#fff; border-radius:22px; padding:12px 16px; box-shadow:var(--sh-sm);
-  flex:1; min-width:0; border:2px solid #FFF0DD;
+.ct-row{
+  position:relative; display:flex; align-items:flex-start; gap:10px;
+  padding:13px 2px; border-bottom:1px dashed #F3E7D9; border-radius:14px;
+  transition:background .12s, transform .1s;
 }
-.bubble::before{
-  content:''; position:absolute; left:-9px; top:50%; transform:translateY(-50%) rotate(45deg);
-  width:18px; height:18px; background:#fff; border-left:2px solid #FFF0DD; border-bottom:2px solid #FFF0DD;
+.ct-row:last-child{border-bottom:0;}
+.ct-row:active,.ct-row.tap{background:#FFFBF4; transform:scale(.995);}
+.ct-ico{
+  flex:0 0 auto; width:34px; height:34px; border-radius:12px; display:grid; place-items:center;
+  font-size:17px; background:#FFF3E4; margin-top:1px;
 }
-.bubble b{display:block; font-size:clamp(16px,4.4vw,20px); letter-spacing:-.5px; line-height:1.3; color:#4A3B32;}
-.bubble span{display:block; font-size:12.5px; color:#9A8478; margin-top:3px; font-weight:700;}
+.ct-ico.t-coral{background:var(--coral-l);}
+.ct-ico.t-mint{background:var(--mint-l);}
+.ct-ico.t-sky{background:var(--sky-l);}
+.ct-ico.t-sun{background:var(--sun-l);}
+.ct-body{flex:1; min-width:0; display:block;}
+.ct-q{display:block; font-size:12.5px; font-weight:800; color:#8B7668; letter-spacing:-.2px; line-height:1.25;}
+.ct-q em{font-style:normal; font-weight:700; font-size:11px; color:#BCACA2; margin-left:6px;}
+.ct-a{display:block; margin-top:4px; font-size:clamp(15.5px,4.5vw,18px); font-weight:900; color:#3E332C; letter-spacing:-.3px; line-height:1.3;}
+.ct-temp{display:inline-block; margin-left:6px; font-size:12px; font-weight:900; color:#7C6C62; background:#F6F1EA; border-radius:999px; padding:1px 8px; vertical-align:2px; letter-spacing:0;}
+.ct-digital{display:inline-block; margin-left:7px; font-size:12px; font-weight:900; color:var(--sky-d); background:var(--sky-l); border-radius:999px; padding:1px 8px; vertical-align:2px; letter-spacing:0;}
+.ct-muted{font-size:12.5px; font-weight:700; color:#B3A399;}
+.ct-spk{flex:0 0 auto; align-self:center; font-size:12px; opacity:.45;}
+.ct-chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+.ct-chip{
+  font-family:inherit; font-weight:800; font-size:11.5px; color:#6E5F55; letter-spacing:-.2px;
+  background:#fff; border:1.5px solid #EFE2D5; border-radius:999px; padding:5px 9px; line-height:1;
+  transition:transform .1s, background .12s, border-color .12s;
+}
+.ct-chip:active{transform:scale(.96);}
+.ct-chip.on{background:var(--mint-l); border-color:#BFE9DC; color:#2F8F76;}
 .mascot.bob{animation:bob 2.6s ease-in-out infinite;}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-6px) rotate(1.5deg)}}
 .mascot.cheer{animation:cheer .6s ease-in-out infinite alternate;}
@@ -558,9 +576,11 @@ input[type=range]{width:100%;accent-color:var(--coral);}
   .kbtn .ke{font-size:32px;}
   .kbtn b{font-size:13.5px; margin-top:4px;}
   .kbtn span{font-size:10.5px;}
-  .hero{padding:10px 12px 10px 4px; border-radius:30px;}
-  .bubble{padding:10px 12px;}
-  .bubble b{font-size:15px;}
+  .circle{padding:2px 11px; border-radius:26px;}
+  .ct-row{padding:11px 1px; gap:8px;}
+  .ct-ico{width:31px; height:31px; font-size:15px; border-radius:11px;}
+  .ct-a{font-size:15px;}
+  .ct-chip{font-size:11px; padding:4px 8px;}
 }
 /* sticker board: keep slots petite on wide screens */
 .stickerboard.cute{max-width:560px; grid-template-columns:repeat(10,minmax(0,1fr));}
@@ -1317,6 +1337,8 @@ function ensurePlanShape() {
   S.playCounts = S.playCounts || {};
   S.dailyPlays = S.dailyPlays || {};
   S.lastChannelId = S.lastChannelId || null;
+  S.seasonPick = S.seasonPick || null;
+  S.weatherPick = S.weatherPick || null;
   S.bookSettings = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
   S.settings = S.settings || { rate: 0.85, sound: true, autoSpeak: true };
   if (!S.settings.mode) S.settings.mode = 'kid';
@@ -1559,7 +1581,125 @@ function dayKey(i) { return DAYKEYS[i]; }
 function todayKey() { return DAYKEYS[todayIdx()]; }
 function kDate() {
   var d = new Date();
-  return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + '월화수목금토일'[d.getDay()] + '요일';
+  return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + '일월화수목금토'[d.getDay()] + '요일';
+}
+
+/* ---------- morning circle: English date · season · weather · time ---------- */
+var EN_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+var EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+var EN_ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+var EN_TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty'];
+var EN_ORD = ['zeroth', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth'];
+function enNum(n) {
+  n = Math.max(0, Math.round(Number(n) || 0));
+  if (n < 20) return EN_ONES[n];
+  var t = Math.floor(n / 10), o = n % 10;
+  return (EN_TENS[t] || EN_ONES[t]) + (o ? '-' + EN_ONES[o] : '');
+}
+function enOrd(n) {
+  n = Math.max(1, Math.round(Number(n) || 1));
+  if (n < 20) return EN_ORD[n];
+  var t = Math.floor(n / 10), o = n % 10;
+  return (EN_TENS[t] || EN_ONES[t]) + (o ? '-' + EN_ORD[o] : 'th');
+}
+function enOrdSuffix(n) {
+  n = Math.round(Number(n) || 1);
+  var m = n % 100;
+  if (m >= 11 && m <= 13) return n + 'th';
+  var l = n % 10;
+  return n + (l === 1 ? 'st' : l === 2 ? 'nd' : l === 3 ? 'rd' : 'th');
+}
+function circleDate(now) {
+  now = now || new Date();
+  var d = now.getDate();
+  var day = EN_DAYS[now.getDay()];
+  var mon = EN_MONTHS[now.getMonth()];
+  return {
+    en: 'Today is ' + day + ', ' + mon + ' ' + enOrdSuffix(d) + '.',
+    said: 'Today is ' + day + ', ' + mon + ' ' + enOrd(d) + '.',
+    ko: (now.getMonth() + 1) + '월 ' + d + '일 ' + '일월화수목금토'[now.getDay()] + '요일'
+  };
+}
+var SEASON_CHIPS = [
+  { k: 'spring', ico: '🌸', label: 'Spring', said: "It's spring!" },
+  { k: 'summer', ico: '☀️', label: 'Summer', said: "It's summer!" },
+  { k: 'fall', ico: '🍂', label: 'Fall', said: "It's fall!" },
+  { k: 'winter', ico: '❄️', label: 'Winter', said: "It's winter!" }
+];
+function seasonChip(k) {
+  var f = null;
+  SEASON_CHIPS.forEach(function (c) { if (c.k === k) f = c; });
+  return f;
+}
+function autoSeason(now) {
+  var m = (now || new Date()).getMonth() + 1;
+  if (m >= 3 && m <= 5) return 'spring';
+  if (m >= 6 && m <= 8) return 'summer';
+  if (m >= 9 && m <= 11) return 'fall';
+  return 'winter';
+}
+function circleTime(now) {
+  now = now || new Date();
+  var h = now.getHours(), m = now.getMinutes();
+  var h12 = h % 12 || 12;
+  var ap = h < 12 ? 'AM' : 'PM';
+  return {
+    digital: h12 + ':' + (m < 10 ? '0' : '') + m + ' ' + ap,
+    said: "It's " + enNum(h12) + (m === 0 ? " o'clock" : ' ' + enNum(m)) + '!'
+  };
+}
+var WEATHER_CHIPS = [
+  { k: 'sunny', ico: '☀️', label: 'Sunny', said: "It's sunny today!" },
+  { k: 'cloudy', ico: '⛅', label: 'Cloudy', said: "It's cloudy today!" },
+  { k: 'rainy', ico: '🌧️', label: 'Rainy', said: "It's rainy today!" },
+  { k: 'snowy', ico: '❄️', label: 'Snowy', said: "It's snowy today!" },
+  { k: 'windy', ico: '🌬️', label: 'Windy', said: "It's windy today!" }
+];
+function weatherChip(k) {
+  var f = null;
+  WEATHER_CHIPS.forEach(function (c) { if (c.k === k) f = c; });
+  return f;
+}
+function weatherKindOf(code) {
+  code = Number(code);
+  if (isNaN(code)) return '';
+  if (code === 0) return 'sunny';
+  if (code === 45 || code === 48) return 'cloudy';
+  if (code >= 51 && code <= 67) return 'rainy';
+  if (code >= 71 && code <= 77) return 'snowy';
+  if (code >= 80 && code <= 82) return 'rainy';
+  if (code === 85 || code === 86) return 'snowy';
+  if (code >= 95) return 'rainy';
+  return 'cloudy';
+}
+/* 서울 현재 날씨 (Open-Meteo, API 키 없음) — 30분마다 새로 받고, 쉬는 동안은 저장해 둔 값 */
+var WX = { kind: '', temp: null, at: 0, loading: false };
+var WX_URL = 'https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current=temperature_2m,weather_code&timezone=Asia%2FSeoul';
+function wxLoadCache() {
+  try {
+    var raw = localStorage.getItem('hangyeol.wx.v1');
+    if (!raw) return;
+    var o = JSON.parse(raw);
+    if (o && o.kind) { WX.kind = o.kind; WX.temp = (typeof o.temp === 'number') ? o.temp : null; WX.at = Number(o.at) || 0; }
+  } catch (e) { }
+}
+function loadWeather(force) {
+  try {
+    if (WX.loading) return;
+    if (!force && WX.at && (Date.now() - WX.at) < 30 * 60 * 1000) return;
+    if (typeof fetch !== 'function') return;
+    WX.loading = true;
+    fetch(WX_URL, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+      WX.loading = false;
+      var c = j && j.current;
+      if (!c || typeof c.temperature_2m !== 'number') return;
+      WX.kind = weatherKindOf(c.weather_code);
+      WX.temp = Math.round(c.temperature_2m);
+      WX.at = Date.now();
+      try { localStorage.setItem('hangyeol.wx.v1', JSON.stringify({ kind: WX.kind, temp: WX.temp, at: WX.at })); } catch (e) { }
+      if (App && App.view === 'home') render();
+    }).catch(function () { WX.loading = false; });
+  } catch (e) { WX.loading = false; }
 }
 function subjCls(s) {
   var f = SUBJECTS.filter(function (x) { return x.key === s; })[0];
@@ -1609,6 +1749,30 @@ function speak(text, lang, rateOverride) {
   } catch (e) { /* no speech available */ }
 }
 function stopSpeak() { try { window.speechSynthesis.cancel(); } catch (e) {} }
+/* 탭한 그 순간에 바로 읽어 준다 — iPhone Safari는 클릭 처리 중 동기 호출만 소리로 재생한다 */
+function speakNow(text) {
+  if (!text) return;
+  try {
+    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+    var ss = window.speechSynthesis;
+    ss.cancel();
+    var u = new SpeechSynthesisUtterance(String(text));
+    u.lang = 'en-US';
+    var v = pickVoice('en-US');
+    if (v) u.voice = v;
+    u.rate = 0.92;
+    u.pitch = 1.05;
+    u.volume = 1;
+    ss.speak(u);
+  } catch (e) { }
+}
+function flashTap(el) {
+  if (!el || !el.classList) return;
+  try {
+    el.classList.add('tap');
+    setTimeout(function () { el.classList.remove('tap'); }, 380);
+  } catch (e) { }
+}
 
 /* ---------- sound effects (WebAudio) ---------- */
 var AC = null;
@@ -3088,15 +3252,6 @@ function viewQuizResult() {
    Home (오늘) + Library (채널·영상·가사) views
    ============================================================ */
 
-function greeting() {
-  var h = new Date().getHours();
-  var nm = esc(S.childName);
-  if (h < 11) return nm + '아, 좋은 아침이야! 오늘도 놀자!';
-  if (h < 17) return nm + '아, 안녕! 오늘도 신나게 놀자!';
-  if (h < 21) return nm + '아, 저녁에도 같이 놀까?';
-  return nm + '아, 오늘 하루 정말 잘했어!';
-}
-
 var COVER_SETS = {
   '노래·율동': ['🎶', '💃', '🥁', '🎈', '🕺', '🎤', '🎉', '🪇'],
   '생활·인사': ['👋', '🌞', '🛏️', '🪥', '🍚', '🧸', '🛁', '☀️'],
@@ -3136,6 +3291,83 @@ function todaySong() {
 function planDone(k) { return !!(S.done && S.done[k]); }
 function planItemDoneCount(items) { return items.filter(function (i) { return planDone(i.id); }).length; }
 
+/* ---------- 영어 모닝 서클타임 (날짜·계절·날씨·시간) ---------- */
+function ctChips(kind, list, cur) {
+  var act = kind === 'season' ? 'circle-season' : 'circle-weather';
+  return '<span class="ct-chips">' + list.map(function (c) {
+    return '<button class="ct-chip' + (c.k === cur ? ' on' : '') + '" data-act="' + act + '" data-k="' + c.k + '">' +
+      c.ico + ' ' + c.label + '</button>';
+  }).join('') + '</span>';
+}
+function ctRow(o) {
+  return '<div class="ct-row" data-act="' + o.act + '"' + (o.t ? ' data-t="' + esc(o.t) + '"' : '') +
+    (o.day ? ' data-day="' + o.day + '"' : '') + '>' +
+    '<span class="ct-ico ' + o.tone + '">' + o.ico + '</span>' +
+    '<span class="ct-body">' +
+    '<span class="ct-q">' + o.q + '<em>' + o.ko + '</em></span>' +
+    '<span class="ct-a"' + (o.id ? ' id="' + o.id + '"' : '') + '>' + o.ans + '</span>' +
+    (o.extra || '') +
+    '</span>' +
+    '<span class="ct-spk">🔊</span>' +
+    '</div>';
+}
+function circleCard() {
+  loadWeather();
+  var now = new Date();
+  var iso = todayIso();
+  var d = circleDate(now);
+  var t = circleTime(now);
+  var sk = ((S.seasonPick && S.seasonPick.d === iso) ? S.seasonPick.k : '') || autoSeason(now);
+  var s = seasonChip(sk);
+  var wk = ((S.weatherPick && S.weatherPick.d === iso) ? S.weatherPick.k : '') || WX.kind;
+  var w = weatherChip(wk);
+  var temp = (typeof WX.temp === 'number') ? '<span class="ct-temp">' + WX.temp + '°C</span>' : '';
+  var wAns = w ? esc(w.said) + temp
+    : '<span class="ct-muted">' + (WX.loading ? '불러오는 중…' : '아래에서 골라 보세요') + '</span>';
+
+  return '<div class="circle">' +
+    ctRow({
+      act: 'circle-say', t: d.said, tone: 't-coral', ico: '📅',
+      q: 'What day is it today?', ko: '오늘은 몇 월 며칠 무슨 요일이야?',
+      ans: esc(d.en)
+    }) +
+    ctRow({
+      act: 'circle-say', t: s ? s.said : '', tone: 't-mint', ico: '🍂',
+      q: 'What season is it?', ko: '무슨 계절이야?',
+      ans: s ? esc(s.said) : '',
+      extra: ctChips('season', SEASON_CHIPS, sk)
+    }) +
+    ctRow({
+      act: 'circle-say', t: w ? w.said : '', tone: 't-sky', ico: '🌤️',
+      q: 'How&#39;s the weather today?', ko: '오늘 날씨는 어때?',
+      ans: wAns,
+      extra: ctChips('weather', WEATHER_CHIPS, wk)
+    }) +
+    ctRow({
+      act: 'circle-time', t: t.said, tone: 't-sun', ico: '⏰', id: 'ct-time-a',
+      q: 'What time is it?', ko: '지금 몇 시야?',
+      ans: esc(t.said) + '<span class="ct-digital" id="ct-time-digital">' + t.digital + '</span>',
+      day: String(now.getDate())
+    }) +
+    '</div>';
+}
+/* 시간·날짜는 1분마다 바뀌므로 홈을 다시 그리지 않고 그 줄만 갱신한다 */
+function tickCircleTime() {
+  try {
+    var el = document.getElementById('ct-time-a');
+    if (!el) return;
+    var now = new Date();
+    var row = el.closest ? el.closest('.ct-row') : null;
+    if (row && row.getAttribute('data-day') !== String(now.getDate())) {
+      if (App.view === 'home') render();
+      return;
+    }
+    var t = circleTime(now);
+    el.innerHTML = esc(t.said) + '<span class="ct-digital" id="ct-time-digital">' + t.digital + '</span>';
+    if (row) row.setAttribute('data-t', t.said);
+  } catch (e) { }
+}
+
 function viewHome() {
   var key = todayKey();
   var items = (S.plan[key] || []);
@@ -3146,12 +3378,8 @@ function viewHome() {
   var now = Date.now();
   (S.starLog || []).forEach(function (l) { if (now - l.t < 7 * 864e5) weekStars += l.n; });
 
-  /* cute mascot hero */
-  var html = '<div class="hero">' +
-    '<div class="hero-mascot">' + mascotSVG('bob', 108) + '</div>' +
-    '<div class="bubble"><b>' + greeting() + '</b>' +
-    '<span>' + kDate() + (items.length ? ' · 할 일 ' + items.length + '개' : ' · 자유놀이 날') + '</span></div>' +
-    '</div>';
+  /* 영어 모닝 서클타임 — 날짜·계절·날씨·시간 */
+  var html = circleCard();
 
   if (kid) {
     if (App.kidArea) {
@@ -6871,6 +7099,28 @@ function onClick(e) {
   try {
     switch (act) {
       case 'go': App.quiz = null; if (btn.getAttribute('data-v') === 'home') App.kidArea = null; stopSpeak(); go(btn.getAttribute('data-v')); break;
+      case 'circle-say': speakNow(btn.getAttribute('data-t')); flashTap(btn); break;
+      case 'circle-time': speakNow(btn.getAttribute('data-t')); flashTap(btn); break;
+      case 'circle-season': {
+        var sk = btn.getAttribute('data-k');
+        var same = S.seasonPick && S.seasonPick.d === todayIso() && S.seasonPick.k === sk;
+        S.seasonPick = same ? null : { k: sk, d: todayIso() };
+        save();
+        var sc = seasonChip(sk);
+        speakNow(sc ? sc.said : '');
+        render();
+        break;
+      }
+      case 'circle-weather': {
+        var wk = btn.getAttribute('data-k');
+        var sameW = S.weatherPick && S.weatherPick.d === todayIso() && S.weatherPick.k === wk;
+        S.weatherPick = sameW ? null : { k: wk, d: todayIso() };
+        save();
+        var wc = weatherChip(wk);
+        speakNow(wc ? wc.said : '');
+        render();
+        break;
+      }
       case 'kid-tab': {
         var tk = btn.getAttribute('data-k');
         App.quiz = null; stopSpeak();
@@ -7456,6 +7706,7 @@ function firstRunWelcome() {
 
 function boot() {
   load();
+  wxLoadCache();
   var hash = (location.hash || '').replace('#', '');
   if (VIEWS.some(function (v) { return v.key === hash; })) App.view = hash;
 
@@ -7477,6 +7728,9 @@ function boot() {
   });
 
   render();
+  loadWeather();
+  setInterval(tickCircleTime, 20000);
+  setInterval(function () { loadWeather(); }, 10 * 60 * 1000);
 
   var fresh = false;
   try { fresh = !localStorage.getItem(LS_KEY); } catch (e) { fresh = true; }
