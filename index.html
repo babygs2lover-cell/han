@@ -514,8 +514,8 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .wg-donut{width:100%; display:block;}
 .wg-dn-bg{fill:#FBF7F0;}
 .wg-dn-tick{stroke:#E3D8CA; stroke-width:.7;}
-.wg-dn-h{font-size:6.2px; font-weight:800; fill:#B3A395; font-family:var(--font);}
-.wg-dn-e{font-size:8px;}
+.wg-dn-h{font-size:7px; font-weight:800; fill:#B3A395; font-family:var(--font);}
+.wg-dn-e{font-size:8.5px;}
 .wg-dn-needle{stroke:#EF7B45; stroke-width:1.2; stroke-linecap:round;}
 .wg-dn-dot{fill:#EF7B45; stroke:#fff; stroke-width:1;}
 .wg-dn-ci{font-size:13px;}
@@ -527,7 +527,7 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .wg-tl-dot{width:7px; height:7px; border-radius:50%; flex:0 0 auto;}
 .wg-tl-time{font-size:9.5px; font-weight:800; color:#A79690; letter-spacing:-.3px; font-variant-numeric:tabular-nums; flex:0 0 auto;}
 .wg-tl-ico{font-size:11px; flex:0 0 auto;}
-.wg-tl-name{flex:1; min-width:0; font-size:11.5px; font-weight:800; color:#4A3B32; letter-spacing:-.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.wg-tl-name{flex:1; min-width:0; font-size:11.5px; font-weight:800; color:#4A3B32; letter-spacing:-.3px; line-height:1.25; word-break:keep-all;}
 .wg-tl-row.now .wg-tl-name{color:#B4632F;}
 .wg-tl-now{display:none; font-size:8.5px; font-weight:900; color:#fff; background:#F08A4B; border-radius:999px; padding:2px 5px; flex:0 0 auto; letter-spacing:-.2px;}
 .wg-tl-row.now .wg-tl-now{display:inline-block;}
@@ -3894,7 +3894,7 @@ function wgClock(now) {
   var t = circleTime(now);
   var r = routineNow(now);
   return '<div class="wg-card wg-clock" data-task="clock" data-t="' + esc(t.said) + '">' +
-    '<div class="wg-routine" id="wg-routine" data-r="' + esc(r.k) + '"><span>' + r.ico + '</span>' + esc(r.ko) + '</div>' +
+    '<div class="wg-routine" id="wg-routine" data-r="' + esc(r.k) + '"><span>' + r.ico + '</span>' + esc(r.short) + '</div>' +
     clockSvg(now) +
     '<div class="wg-dig" id="wg-dig">' + t.digital + '</div>' +
     '<div class="wg-say" id="wg-say">' + esc(t.said) + '</div>' +
@@ -3909,26 +3909,26 @@ function wgSlim(o, extraCls) {
 }
 /* ---------- 오늘의 일과 계획표 (시계 위젯과 같은 시간표를 쓴다) ---------- */
 var ROUTINE_WEEKDAY = [
-  { k: 'sleep1', from: 0, to: 420, ico: '🌙', ko: '포근하게 코 자고 있을 시간', en: 'Time to sleep!' },
-  { k: 'ready', from: 420, to: 540, ico: '🎒', ko: '기분 좋게 일어나 어린이집 갈 준비할 시간', en: 'Good morning! Let\'s get ready for daycare!' },
-  { k: 'learn', from: 540, to: 690, ico: '🎨', ko: '친구들이랑 신나게 놀고 배울 시간', en: 'Let\'s play and learn!' },
-  { k: 'lunch', from: 690, to: 780, ico: '🍚', ko: '맛있게 냠냠 점심 먹을 시간', en: 'Yummy! Let\'s eat lunch!' },
-  { k: 'nap', from: 780, to: 900, ico: '😴', ko: '포근하게 낮잠 자며 쉬는 시간', en: 'Let\'s take a cozy nap!' },
-  { k: 'play', from: 900, to: 1080, ico: '🛝', ko: '하원하고 신나게 뛰어놀 시간', en: 'Let\'s run and play!' },
-  { k: 'dinner', from: 1080, to: 1170, ico: '🍽️', ko: '다 같이 맛있는 저녁 먹을 시간', en: 'Let\'s eat dinner together!' },
-  { k: 'bath', from: 1170, to: 1260, ico: '🛁', ko: '보글보글 씻고 동화책 볼 시간', en: 'Time to wash up and read a book!' },
-  { k: 'sleep2', from: 1260, to: 1440, ico: '🌙', ko: '코~ 꿈나라로 갈 시간', en: 'Time to sleep! Sweet dreams!' }
+  { k: 'sleep1', from: 0, to: 420, ico: '🌙', ko: '포근하게 코 자고 있을 시간', short: '코 자는 시간', en: 'Time to sleep!' },
+  { k: 'ready', from: 420, to: 540, ico: '🎒', ko: '기분 좋게 일어나 어린이집 갈 준비할 시간', short: '어린이집 갈 준비', en: 'Good morning! Let\'s get ready for daycare!' },
+  { k: 'learn', from: 540, to: 690, ico: '🎨', ko: '친구들이랑 신나게 놀고 배울 시간', short: '놀고 배우기', en: 'Let\'s play and learn!' },
+  { k: 'lunch', from: 690, to: 780, ico: '🍚', ko: '맛있게 냠냠 점심 먹을 시간', short: '점심 먹기', en: 'Yummy! Let\'s eat lunch!' },
+  { k: 'nap', from: 780, to: 900, ico: '😴', ko: '포근하게 낮잠 자며 쉬는 시간', short: '낮잠 자기', en: 'Let\'s take a cozy nap!' },
+  { k: 'play', from: 900, to: 1080, ico: '🛝', ko: '하원하고 신나게 뛰어놀 시간', short: '뛰어놀기', en: 'Let\'s run and play!' },
+  { k: 'dinner', from: 1080, to: 1170, ico: '🍽️', ko: '다 같이 맛있는 저녁 먹을 시간', short: '저녁 먹기', en: 'Let\'s eat dinner together!' },
+  { k: 'bath', from: 1170, to: 1260, ico: '🛁', ko: '보글보글 씻고 동화책 볼 시간', short: '씻고 책 보기', en: 'Time to wash up and read a book!' },
+  { k: 'sleep2', from: 1260, to: 1440, ico: '🌙', ko: '코~ 꿈나라로 갈 시간', short: '꿈나라', en: 'Time to sleep! Sweet dreams!' }
 ];
 var ROUTINE_WEEKEND = [
-  { k: 'wsleep1', from: 0, to: 480, ico: '🌙', ko: '포근하게 코 자고 있을 시간', en: 'Time to sleep!' },
-  { k: 'wwake', from: 480, to: 570, ico: '☀️', ko: '느긋하게 일어나 맛있는 아침 먹을 시간', en: 'Good morning! Let\'s eat breakfast!' },
-  { k: 'wfamily', from: 570, to: 720, ico: '👨‍👩‍👦', ko: '엄마 아빠랑 알콩달콩 놀 시간', en: 'Let\'s play with Mom and Dad!' },
-  { k: 'wlunch', from: 720, to: 810, ico: '🍚', ko: '맛있게 냠냠 점심 먹을 시간', en: 'Yummy! Let\'s eat lunch!' },
-  { k: 'wnap', from: 810, to: 930, ico: '😴', ko: '포근하게 낮잠 자며 쉬는 시간', en: 'Let\'s take a cozy nap!' },
-  { k: 'wout', from: 930, to: 1080, ico: '🚗', ko: '엄마 아빠랑 나들이 가는 시간', en: 'Let\'s go outside with Mom and Dad!' },
-  { k: 'wdinner', from: 1080, to: 1170, ico: '🍽️', ko: '다 같이 맛있는 저녁 먹을 시간', en: 'Let\'s eat dinner together!' },
-  { k: 'wbath', from: 1170, to: 1260, ico: '🛁', ko: '보글보글 씻고 동화책 볼 시간', en: 'Time to wash up and read a book!' },
-  { k: 'wsleep2', from: 1260, to: 1440, ico: '🌙', ko: '코~ 꿈나라로 갈 시간', en: 'Time to sleep! Sweet dreams!' }
+  { k: 'wsleep1', from: 0, to: 480, ico: '🌙', ko: '포근하게 코 자고 있을 시간', short: '코 자는 시간', en: 'Time to sleep!' },
+  { k: 'wwake', from: 480, to: 570, ico: '☀️', ko: '느긋하게 일어나 맛있는 아침 먹을 시간', short: '아침 먹기', en: 'Good morning! Let\'s eat breakfast!' },
+  { k: 'wfamily', from: 570, to: 720, ico: '👨‍👩‍👦', ko: '엄마 아빠랑 알콩달콩 놀 시간', short: '엄마 아빠랑 놀기', en: 'Let\'s play with Mom and Dad!' },
+  { k: 'wlunch', from: 720, to: 810, ico: '🍚', ko: '맛있게 냠냠 점심 먹을 시간', short: '점심 먹기', en: 'Yummy! Let\'s eat lunch!' },
+  { k: 'wnap', from: 810, to: 930, ico: '😴', ko: '포근하게 낮잠 자며 쉬는 시간', short: '낮잠 자기', en: 'Let\'s take a cozy nap!' },
+  { k: 'wout', from: 930, to: 1080, ico: '🚗', ko: '엄마 아빠랑 나들이 가는 시간', short: '나들이', en: 'Let\'s go outside with Mom and Dad!' },
+  { k: 'wdinner', from: 1080, to: 1170, ico: '🍽️', ko: '다 같이 맛있는 저녁 먹을 시간', short: '저녁 먹기', en: 'Let\'s eat dinner together!' },
+  { k: 'wbath', from: 1170, to: 1260, ico: '🛁', ko: '보글보글 씻고 동화책 볼 시간', short: '씻고 책 보기', en: 'Time to wash up and read a book!' },
+  { k: 'wsleep2', from: 1260, to: 1440, ico: '🌙', ko: '코~ 꿈나라로 갈 시간', short: '꿈나라', en: 'Time to sleep! Sweet dreams!' }
 ];
 /* 오늘 요일(월~금 평일 / 토·일·공휴일 주말)에 맞는 계획표 */
 function routineKind(now) {
@@ -3970,10 +3970,10 @@ function routineNow(now) {
     if (m >= list[i].from && m < list[i].to) { hit = list[i]; break; }
   }
   if (!hit) hit = list[list.length - 1];
-  return { k: hit.k, ico: hit.ico, ko: hit.ko, en: hit.en };
+  return { k: hit.k, ico: hit.ico, ko: hit.ko, short: hit.short || hit.ko, en: hit.en };
 }
 
-var ROUTINE_COLORS = ['#CBD6F5', '#FFE0C4', '#D5F0DE', '#FFE9A6', '#DCD3F8', '#C3E7F5', '#FFD8CD', '#CFE4F8', '#CBD6F5'];
+var ROUTINE_COLORS = ['#B7C6EE', '#FFD2AC', '#C3E9D1', '#FFDD87', '#CBBDF2', '#ADDDF0', '#FFC4B4', '#BDD9F4', '#B7C6EE'];
 function polarXY(r, a, cx, cy) {
   var rad = (a - 90) * Math.PI / 180;
   return { x: (cx + r * Math.cos(rad)).toFixed(2), y: (cy + r * Math.sin(rad)).toFixed(2) };
@@ -4051,7 +4051,7 @@ function wgRoutine() {
 }
 /* 일과 고치기 — 시간·이모지·이름·영어 문장 직접 입력, 추가·삭제, 저장(S.routine) */
 function rtRowHtml(b) {
-  return '<div class="rt-row" data-k="' + esc(b.k || '') + '">' +
+  return '<div class="rt-row" data-k="' + esc(b.k || '') + '" data-short="' + esc(b.short || '') + '">' +
     '<div class="rt-line rt-times">' +
       '<input type="time" class="rt-time rt-from" value="' + hhmm(b.from || 0) + '">' +
       '<span class="rt-sep">~</span>' +
@@ -4099,6 +4099,7 @@ function routineFromForm(kind) {
     out.push({
       k: nodes[i].getAttribute('data-k') || ('r' + (i + 1) + '_' + f),
       from: f, to: t,
+      short: nodes[i].getAttribute('data-short') || undefined,
       ico: (nodes[i].querySelector('.rt-emoji').value || '').trim() || '⭐',
       ko: (nodes[i].querySelector('.rt-ko').value || '').trim() || '일과',
       en: (nodes[i].querySelector('.rt-en').value || '').trim()
@@ -4211,7 +4212,7 @@ function tickHomeClock() {
     var rot = document.getElementById('wg-routine');
     if (rot && rot.getAttribute('data-r') !== r.k) {
       rot.setAttribute('data-r', r.k);
-      rot.innerHTML = '<span>' + r.ico + '</span>' + esc(r.ko);
+      rot.innerHTML = '<span>' + r.ico + '</span>' + esc(r.short);
     }
     var dnIco = document.getElementById('wg-dn-ico');
     if (dnIco && dnIco.textContent !== r.ico) dnIco.textContent = r.ico;
