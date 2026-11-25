@@ -471,6 +471,7 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .wg-ck-hand.s{stroke:#F08A4B; stroke-width:1.7; stroke-linecap:round; fill:none;}
 .wg-ck-pin{fill:#F08A4B;}
 .wg-dig{font-size:13px; font-weight:900; color:#3E332C; letter-spacing:-.2px; font-variant-numeric:tabular-nums;}
+.wg-say{font-size:9.5px; font-weight:700; color:#A79690; letter-spacing:-.2px; text-align:center; line-height:1.2;}
 
 /* 하단 슬림 위젯 */
 .wg-slim{
@@ -3810,6 +3811,7 @@ function wgClock(now) {
   return '<div class="wg-card wg-clock" data-act="circle-time" data-t="' + esc(t.said) + '">' +
     clockSvg(now) +
     '<div class="wg-dig" id="wg-dig">' + t.digital + '</div>' +
+    '<div class="wg-say" id="wg-say">' + esc(t.said) + '</div>' +
   '</div>';
 }
 /* 하단 슬림 위젯 — 오늘의 하루 · 날씨 팁 · 특별한 날 */
@@ -3860,6 +3862,8 @@ function tickHomeClock() {
     }
     var dig = document.getElementById('wg-dig');
     var t = circleTime(now);
+    var say = document.getElementById('wg-say');
+    if (say && say.textContent !== t.said) say.textContent = t.said;
     if (dig && dig.textContent !== t.digital) {
       dig.textContent = t.digital;
       var card = dig.closest ? dig.closest('.wg-clock') : null;
