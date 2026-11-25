@@ -1223,10 +1223,17 @@ function load() {
           return !!seedMap[s.id] || (s.id.indexOf('omc-') !== 0 && s.id.indexOf('en-hc-') !== 0);
         });
       }
+      if (ch.id === 'ch-art-boxyourself') {
+        /* 시드에서 자동 생성한 art-by-* 카드 중 더 이상 시드에 없는 것은 걷어낸다 */
+        ch.songs = (ch.songs || []).filter(function (s) {
+          return !!seedMap[s.id] || s.id.indexOf('art-by-') !== 0;
+        });
+      }
       (ch.songs || []).forEach(function (s) {
         var sd = seedMap[s.id];
         if (sd) {
           if (sd.title) s.title = sd.title;
+          if (sd.vid && s.vid && s.vid !== sd.vid && sd.dur) s.dur = sd.dur;
           if (sd.vid) s.vid = sd.vid;
           if (sd.lyrics && !s.lyrics) s.lyrics = sd.lyrics;
           if (Array.isArray(sd.words)) s.words = sd.words;
