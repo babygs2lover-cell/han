@@ -3824,7 +3824,7 @@ function wgWeather() {
     return '<button class="wg-chip' + (c.k === wk ? ' on' : '') + '" data-act="circle-weather" data-k="' + c.k + '" aria-label="' + esc(c.label) + '">' +
       '<i>' + c.ico + '</i>' + esc(c.label) + '</button>';
   }).join('') + '</div>';
-  return '<div class="wg-wx"' + (said ? ' data-act="circle-say" data-t="' + esc(said) + '"' : '') + '>' +
+  return '<div class="wg-wx" data-task="weather">' +
     '<div class="wg-wx-top">' +
       '<div class="wg-wx-l">' +
         '<div class="wg-city">📍 Seoul</div>' +
@@ -3865,7 +3865,7 @@ function wgCalendar(now) {
     return '<button class="wg-schip' + (c.k === sk ? ' on' : '') + '" data-act="circle-season" data-k="' + c.k + '" aria-label="' + esc(c.label) + '">' +
       c.ico + (c.k === sk ? '<span>' + esc(c.label) + '</span>' : '') + '</button>';
   }).join('') + '</div>';
-  return '<div class="wg-card wg-cal" data-act="circle-say" data-t="' + esc(said) + '">' +
+  return '<div class="wg-card wg-cal" data-task="date" data-t="' + esc(said) + '">' +
     '<div class="wg-cal-top"><span class="wg-mon">' + MON[now.getMonth()] + '</span>' +
       '<span class="wg-sep">·</span><span class="wg-dow' + (now.getDay() === 0 ? ' sun' : '') + '">' + DOW[now.getDay()] + '</span></div>' +
     '<div class="wg-day" id="wg-day" data-d="' + now.getDate() + '">' + now.getDate() + '</div>' +
