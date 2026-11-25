@@ -4985,7 +4985,7 @@ function viewPlayer() {
       if (!t) return '<div style="height:8px"></div>';
       var secMatch = /^(verse|pre-chorus|chorus|bridge|intro|outro|refrain|post-chorus|tag|hook)\s*\d*/i.test(t) || /^\[.*\]$/.test(t);
       if (secMatch) return '<div class="sec">' + esc(t) + '</div>';
-      return '<div class="ln" data-act="say-text" data-t="' + esc(t) + '" data-lang="en-US">' + esc(t) + ' <small>🔊</small></div>';
+      return '<div class="ln">' + esc(t) + '</div>';
     }).join('') : '';
     var keyWords = (s.words && s.words.length) ? s.words : [];
     if (s.subject === '영어' || hasLyrics || keyWords.length || (s.prints && s.prints.length)) {
