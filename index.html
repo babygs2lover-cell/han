@@ -1685,9 +1685,10 @@ function circleTime(now) {
   var h = now.getHours(), m = now.getMinutes();
   var h12 = h % 12 || 12;
   var ap = h < 12 ? 'AM' : 'PM';
+  var minuteWords = m === 0 ? " o'clock" : (m < 10 ? ' oh ' + enNum(m) : ' ' + enNum(m));
   return {
     digital: h12 + ':' + (m < 10 ? '0' : '') + m + ' ' + ap,
-    said: "It's " + enNum(h12) + (m === 0 ? " o'clock" : ' ' + enNum(m)) + '!'
+    said: "It's " + enNum(h12) + minuteWords + '!'
   };
 }
 var WEATHER_CHIPS = [
@@ -3524,19 +3525,8 @@ function viewHome() {
   /* 영어 모닝 서클타임 — 날짜·계절·날씨·시간 */
   var html = circleCard();
 
-  if (kid) {
-    if (App.kidArea) {
-      return viewKidArea(App.kidArea);
-    }
-    /* 아이 홈은 모닝 서클타임만 — 과목·채널 카드는 하단 탭과 과목 화면이 맡는다 */
-  } else {
-    html += '<div class="tiles" style="margin-top:14px">' +
-      '<button class="tile c1" data-act="go" data-v="library"><span class="ico">🎵</span><b>노래·영상 관리</b><span>채널·가사·프린트물</span></button>' +
-      '<button class="tile c2" data-act="go" data-v="books"><span class="ico">📚</span><b>영어 원서 서재</b><span>AR 지수·표지·영상·음원</span></button>' +
-      '<button class="tile c3" data-act="go" data-v="plan"><span class="ico">🗓️</span><b>주간 계획</b><span>주제별 주간 계획</span></button>' +
-      '<button class="tile c4" data-act="go" data-v="settings"><span class="ico">⚙️</span><b>설정·백업</b><span>이름·목소리·JSON</span></button>' +
-      '</div>';
-  }
+  /* 홈은 모닝 서클타임 하나만 — 과목·채널·관리 카드는 하단 탭/사이드바가 이미 맡는다 */
+  if (kid && App.kidArea) return viewKidArea(App.kidArea);
 
   /* today plan */
   html += '<div class="card cute" style="margin-top:16px"><div class="sectitle">' +
