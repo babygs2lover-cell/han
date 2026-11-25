@@ -869,6 +869,7 @@ a.vcard{text-decoration:none;color:inherit;}
 .ws-note b{display:block;font-size:14px;color:#3B2E7E;letter-spacing:-.2px;}
 .ws-note p{margin:4px 0 0;font-size:11.8px;line-height:1.6;color:#6B5FA6;}
 .ws-note .tiny{color:#8D82BF;}
+.ws-count{float:right;font-size:11.5px;font-weight:600;color:#A79690;}
 
 </style>
 </head>
@@ -3259,7 +3260,7 @@ function viewFilesArea() {
     var list = EDU_FILES.filter(function (x) { return x.g === g.key; });
     if (!list.length) return;
     h += '<div class="vsec"><span>' + g.label + '</span>' +
-      '<span class="tiny muted" style="font-weight:500">' + list.length + '가지</span></div>' +
+      '<span class="ws-count">' + list.length + '가지</span></div>' +
       '<div class="vlist">';
     list.forEach(function (f) {
       h += '<a class="vcard" href="' + esc(f.href) + '" target="_blank" rel="noopener">' +
