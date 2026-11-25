@@ -4052,7 +4052,7 @@ function rtRowHtml(b) {
     '<div class="rt-line rt-times">' +
       '<input type="time" class="rt-time rt-from" value="' + hhmm(b.from || 0) + '">' +
       '<span class="rt-sep">~</span>' +
-      '<input type="time" class="rt-time rt-to" value="' + hhmm(b.to || 0) + '">' +
+      '<input type="time" class="rt-time rt-to" value="' + ((b.to || 0) >= 1440 ? '23:59' : hhmm(b.to || 0)) + '">' +
       '<button class="rt-del" data-act="rt-del" aria-label="이 줄 삭제">✕</button>' +
     '</div>' +
     '<div class="rt-line">' +
@@ -4092,6 +4092,7 @@ function routineFromForm(kind) {
   for (var i = 0; i < nodes.length; i++) {
     var f = timeToMin(nodes[i].querySelector('.rt-from').value);
     var t = timeToMin(nodes[i].querySelector('.rt-to').value);
+    if (t === 1439) t = 1440; /* <input type=time> 은 24:00 을 못 받아 23:59 로 보여 준다 */
     if (f === null || t === null || t <= f) return { err: (i + 1) + '번째 줄의 시작·끝 시간을 확인해 주세요' };
     out.push({
       k: nodes[i].getAttribute('data-k') || ('r' + (i + 1) + '_' + f),
