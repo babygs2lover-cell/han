@@ -1257,6 +1257,11 @@ function load() {
     });
     st.channels = kept;
     if (st.lastChannelId && REMOVED_CHANNEL_IDS[st.lastChannelId]) { st.lastChannelId = null; dropped = true; }
+    if (st.lastChannelByArea) {
+      Object.keys(st.lastChannelByArea).forEach(function (a) {
+        if (REMOVED_CHANNEL_IDS[st.lastChannelByArea[a]]) { delete st.lastChannelByArea[a]; dropped = true; }
+      });
+    }
     var existingChIds = {};
     (st.channels || []).forEach(function (ch) { existingChIds[ch.id] = ch; });
     (d.channels || []).forEach(function (ch) {
@@ -1348,6 +1353,7 @@ function ensurePlanShape() {
   S.playCounts = S.playCounts || {};
   S.dailyPlays = S.dailyPlays || {};
   S.lastChannelId = S.lastChannelId || null;
+  S.lastChannelByArea = S.lastChannelByArea || {};
   S.seasonPick = S.seasonPick || null;
   S.weatherPick = S.weatherPick || null;
   S.bookSettings = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
@@ -1420,7 +1426,7 @@ function recordPlay(id) {
   S.playCounts[id] = Number(S.playCounts[id] || 0) + 1;
   var ch = channelOf(id);
   if (ch) {
-    S.lastChannelId = ch.id;
+    noteLastChannel(ch);
     S.dailyPlays = S.dailyPlays || {};
     var td = todayIso();
     S.dailyPlays[td] = S.dailyPlays[td] || {};
@@ -1570,6 +1576,26 @@ function chById(id) {
   var f = null;
   S.channels.forEach(function (ch) { if (ch.id === id) f = ch; });
   return f;
+}
+/* 과목 → 아이 홈 과목 키 (이어서 보기 배너를 과목별로 나눈다) */
+function areaOfSubject(subj) {
+  return subj === '영어' ? 'en' : subj === '수학' ? 'ma' : subj === '한글' ? 'ko' : subj === '다큐' ? 'info' : subj === '기타' ? 'art' : '';
+}
+function channelHasArea(ch, area) {
+  var hit = false;
+  ((ch && ch.songs) || []).forEach(function (s) { if (!hit && areaOfSubject(s.subject) === area) hit = true; });
+  return hit;
+}
+function noteLastChannel(ch) {
+  if (!ch || !S) return;
+  S.lastChannelId = ch.id;
+  S.lastChannelByArea = S.lastChannelByArea || {};
+  var areas = {};
+  (ch.songs || []).forEach(function (s) {
+    var a = areaOfSubject(s.subject);
+    if (a) areas[a] = 1;
+  });
+  Object.keys(areas).forEach(function (a) { S.lastChannelByArea[a] = ch.id; });
 }
 function channelOf(songId) {
   var f = null;
@@ -3497,20 +3523,7 @@ function viewHome() {
     if (App.kidArea) {
       return viewKidArea(App.kidArea);
     }
-    var lch = S.lastChannelId ? S.channels.filter(function (x) { return x.id === S.lastChannelId; })[0] : null;
-    if (lch) {
-      html += '<button class="resume-banner" data-act="kid-resume-ch" data-id="' + lch.id + '">' +
-        '<span class="rb-ico">▶</span>' +
-        '<span class="rb-body"><b>' + esc(lch.name) + ' 이어서 보기</b><span>마지막에 본 채널</span></span>' +
-        '<span class="rb-arr">›</span></button>';
-    }
-    var c = counts();
-    html += '<div class="kareas">' +
-      '<button class="kbtn c1" data-act="kid-area" data-k="en"><span class="ke">🔤</span><b>영어</b><span>노래·낱말·문장·배우기 (' + c['영어'] + ')</span></button>' +
-      '<button class="kbtn c2" data-act="kid-area" data-k="ma"><span class="ke">🔢</span><b>수학</b><span>수세기·도형·패턴·영상 (' + c['수학'] + ')</span></button>' +
-      '<button class="kbtn c3" data-act="kid-area" data-k="ko"><span class="ke">가</span><b>한글</b><span>자음·통글자·의성어 (' + c['한글'] + ')</span></button>' +
-      '<button class="kbtn c4" data-act="kid-area" data-k="info"><span class="ke">🌍</span><b>지식</b><span>다큐·과학 (' + c['다큐'] + ')</span></button>' +
-      '</div>';
+    /* 아이 홈은 모닝 서클타임만 — 과목·채널 카드는 하단 탭과 과목 화면이 맡는다 */
   } else {
     html += '<div class="tiles" style="margin-top:14px">' +
       '<button class="tile c1" data-act="go" data-v="library"><span class="ico">🎵</span><b>노래·영상 관리</b><span>채널·가사·프린트물</span></button>' +
@@ -3717,7 +3730,13 @@ function viewKidArea(area) {
     '</div>' +
     '<p class="tiny muted" style="margin:6px 2px 12px">' + esc(meta.desc) + '</p>';
 
-  var lch = S.lastChannelId ? S.channels.filter(function (x) { return x.id === S.lastChannelId; })[0] : null;
+  var lid = (S.lastChannelByArea && S.lastChannelByArea[area]) || '';
+  var lch = lid ? S.channels.filter(function (x) { return x.id === lid; })[0] : null;
+  if (lch && !channelHasArea(lch, area)) lch = null;
+  if (!lch && S.lastChannelId && area !== 'files') {
+    var candCh = S.channels.filter(function (x) { return x.id === S.lastChannelId; })[0];
+    if (candCh && channelHasArea(candCh, area)) lch = candCh;
+  }
   if (lch) {
     h += '<button class="resume-banner" data-act="kid-resume-ch" data-id="' + lch.id + '">' +
       '<span class="rb-ico">▶</span>' +
@@ -7471,16 +7490,22 @@ function onClick(e) {
         playSong(r.id, all.map(function (x) { return x.id; }));
         break;
       }
-      case 'kid-resume-ch':
+      case 'kid-resume-ch': {
         App.lib.ch = id || '전체';
         App.lib.subject = '전체'; App.lib.sub = '전체'; App.lib.stage = '전체';
+        var chOpen = chById(id);
+        if (chOpen) { noteLastChannel(chOpen); save(); }
         go('library');
         break;
-      case 'kid-books-ch':
+      }
+      case 'kid-books-ch': {
         App.books.ch = id || '전체';
         App.books.ar = '전체'; App.books.age = '전체';
+        var chBook = chById(id);
+        if (chBook) { noteLastChannel(chBook); save(); }
         go('books');
         break;
+      }
       case 'kid-play-all': {
         var listA = libSongs().filter(function (x) { return !!(x.vid || x.hasAudio || x.audioUrl); });
         if (!listA.length) { toast('재생할 영상이 없어요'); break; }
