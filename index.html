@@ -1354,6 +1354,11 @@ function ensurePlanShape() {
   S.dailyPlays = S.dailyPlays || {};
   S.lastChannelId = S.lastChannelId || null;
   S.lastChannelByArea = S.lastChannelByArea || {};
+  /* 예전 버전의 마지막 채널 하나만 있던 상태 → 그 채널의 과목 자리로 한 번만 옮겨 준다 */
+  if (S.lastChannelId && !Object.keys(S.lastChannelByArea).length) {
+    var legacyCh = S.channels.filter(function (x) { return x.id === S.lastChannelId; })[0];
+    if (legacyCh) noteLastChannel(legacyCh);
+  }
   S.seasonPick = S.seasonPick || null;
   S.weatherPick = S.weatherPick || null;
   S.bookSettings = S.bookSettings || { ownedOnly: false, ageFilter: '전체', groupBySet: true };
