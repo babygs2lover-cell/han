@@ -1244,7 +1244,7 @@ function load() {
           if (sd.subFull !== undefined) s.subFull = sd.subFull;
           if (sd.kind) s.kind = sd.kind;
           if (sd.tier) s.tier = sd.tier;
-          if (sd.dur && !s.dur) s.dur = sd.dur;
+          if (sd.dur) s.dur = sd.dur;
         }
       });
       /* 시드에서 순서를 바꾼 채널은 저장된 상태도 시드 순서로 다시 정렬 */
