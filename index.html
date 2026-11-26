@@ -503,7 +503,7 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .wg-dn-slice{stroke:#fff; stroke-width:1.2;}
 .wg-dn-needle{stroke:#EF7B45; stroke-width:1.3; stroke-linecap:round;}
 .wg-dn-dot{fill:#EF7B45; stroke:#fff; stroke-width:1;}
-.wg-dn-ci{font-size:30px;}
+.wg-dn-ci{font-size:34px;}
 .wg-dn-ct{font-size:10px; font-weight:900; fill:#5E4E45; font-family:var(--font); letter-spacing:-.2px;}
 .wg-tl{width:100%; display:flex; flex-direction:column; gap:1px;}
 .wg-tl-row{display:flex; align-items:center; gap:6px; width:100%; text-align:left; padding:3px 6px; border-radius:9px; transition:background .12s;}
@@ -4081,8 +4081,8 @@ function routineDonut(now) {
       '<line class="wg-dn-needle" x1="' + cx + '" y1="' + (cy - rOut - 2) + '" x2="' + cx + '" y2="' + (cy - rIn + 1) + '"/>' +
       '<circle class="wg-dn-dot" cx="' + cx + '" cy="' + (cy - (rOut + rIn) / 2) + '" r="3.6"/>' +
     '</g>' +
-    '<text id="wg-dn-ico" class="wg-dn-ci" x="' + cx + '" y="' + (cy + 6) + '" text-anchor="middle">' + cur.ico + '</text>' +
-    '<text id="wg-dn-time" class="wg-dn-ct" x="' + cx + '" y="' + (cy + 27) + '" text-anchor="middle">' + circleTime(now).digital + '</text>' +
+    '<text id="wg-dn-ico" class="wg-dn-ci" x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle">' + cur.ico + '</text>' +
+    '<text id="wg-dn-time" class="wg-dn-ct" x="' + cx + '" y="' + (cy + 28) + '" text-anchor="middle">' + circleTime(now).digital + '</text>' +
   '</svg>';
 }
 function wgRoutine() {
