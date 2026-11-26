@@ -830,23 +830,39 @@ body.fv-lock{overflow:hidden;}
 .player-bar .btn{flex:1 1 auto;min-width:0;padding:7px 5px;font-size:11px;letter-spacing:-.4px;white-space:nowrap;justify-content:center;}
 .player-below{margin-top:14px;}
 body.theater{overflow:hidden;}
-body.theater .player-wrap{position:fixed;inset:0;z-index:70;border-radius:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000;}
-body.theater .player-frame{width:100%;max-width:100%;height:calc(100dvh - 48px);max-height:none;aspect-ratio:auto;flex:1 1 auto;}
-body.theater .player-bar{width:100%;background:#000;justify-content:space-between;padding:6px 12px calc(6px + env(safe-area-inset-bottom));flex:none;}
+/* 크게 보기: 영상이 화면을 꽉 채우고, 단추 줄은 그 위에 떠 있다가 4초 뒤 스르르 숨는다 */
+body.theater .player-wrap{position:fixed;inset:0;z-index:70;border-radius:0;display:block;background:#000;}
+body.theater .player-frame{position:absolute;inset:0;width:100%;max-width:100%;height:100%;max-height:none;aspect-ratio:auto;}
+body.theater .player-frame > .audio-player-box{height:100%;border-radius:0;}
+body.theater .player-bar{position:absolute;left:0;right:0;bottom:0;z-index:12;width:100%;
+  background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.55) 62%,rgba(0,0,0,0));
+  justify-content:space-between;padding:14px 12px calc(10px + env(safe-area-inset-bottom));
+  transition:opacity .35s ease, transform .35s ease;}
+body.theater .player-bar.hide{opacity:0;transform:translateY(115%);pointer-events:none;}
 body.theater .player-bar .btn.ghost{color:#fff;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.08);}
 body.theater .player-below{display:none;}
 body.theater .player-top{display:none;}
+/* 단추가 다 숨은 뒤 오른쪽 위에 남는 작은 손잡이 (유튜브 재생기의 아래 단추들과 안 겹치게) */
+.bar-peek{display:none;}
+body.theater .bar-peek{display:flex;position:absolute;right:10px;top:calc(10px + env(safe-area-inset-top));z-index:13;
+  width:40px;height:40px;border-radius:999px;align-items:center;justify-content:center;
+  background:rgba(18,12,9,.5);color:#fff;font-size:16px;line-height:1;border:1px solid rgba(255,255,255,.22);
+  opacity:0;pointer-events:none;transition:opacity .3s ease;}
+body.theater .bar-peek.on{opacity:.9;pointer-events:auto;}
+/* 세로 화면(가로 고정이 안 되는 기기): 영상을 옆으로 눕혀 꽉 채운다 */
 @media (orientation: portrait){
   body.theater .player-wrap{inset:auto;top:50%;left:50%;width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg);padding:0 env(safe-area-inset-bottom) 0 env(safe-area-inset-top);}
-  body.theater .player-frame{height:calc(100vw - 48px);}
-  body.theater .player-bar{padding:6px 14px;}
+  body.theater .player-frame{height:100%;}
+  body.theater .player-bar{padding:14px 14px calc(10px + env(safe-area-inset-bottom));}
 }
 .player-fallback{
   position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:8px;color:#fff;text-align:center;padding:18px;background:#2a211c;
 }
 .player-fallback .tiny{color:#D9C8BC;max-width:320px;}
-.next-overlay{position:absolute;inset:0;background:rgba(28,20,16,.76);display:none;place-items:center;z-index:9;padding:16px;}
+/* 끝 카드: 보통 때는 화면 가운데 모달처럼, 크게 보기에선 영상 위에 */
+.next-overlay{position:fixed;inset:0;background:rgba(28,20,16,.76);display:none;place-items:center;z-index:95;padding:16px;}
+body.theater .next-overlay{position:absolute;z-index:14;}
 .next-overlay.on{display:grid;}
 .nx-card{background:#fff;border-radius:28px;padding:18px 20px 16px;text-align:center;max-width:360px;width:100%;box-shadow:var(--sh-big);}
 .nx-emoji{font-size:34px;}
@@ -854,8 +870,9 @@ body.theater .player-top{display:none;}
 .nx-count{font-size:52px;font-weight:900;color:#EF6C58;line-height:1.1;margin:4px 0;}
 .nx-sub{font-size:12.5px;color:#8A776C;font-weight:700;}
 .nx-next{font-size:13px;margin-top:8px;background:#FFF6EC;border-radius:12px;padding:7px 10px;color:#5E4E45;}
-.nx-btns{display:flex;gap:8px;margin-top:14px;}
-.nx-btns .btn{flex:1;}
+.nx-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.nx-btns .btn{flex:1 1 40%;padding:10px 8px;font-size:13.5px;letter-spacing:-.3px;}
+.nx-btns .btn.primary{flex:1 1 100%;}
 .nextrow{max-width:320px;}
 .pf-badge{font-size:40px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3));}
 .player-fallback b{font-size:17px;}
@@ -6212,7 +6229,8 @@ function viewRoadmap() {
 var YTP = {
   player: null, apiReady: false, apiLoading: false, apiFailed: false,
   pending: null, videoId: null, timer: null, count: 0, overlayOn: false,
-  countedId: null, audioObjUrl: null, startSec: 0, audioMode: false
+  countedId: null, audioObjUrl: null, startSec: 0, audioMode: false,
+  nativeFs: false
 };
 
 function currentPlayerList() {
@@ -6317,20 +6335,18 @@ function viewPlayer() {
     '<button class="btn sm sky" data-act="player-expand">⛶ 화면</button>' +
     '<button class="btn sm ' + (rMode !== 'next' ? 'sun' : 'ghost') + '" data-act="player-repeat">' + rLabel + '</button>' +
     (hasAudio && s.vid ? '<button class="btn sm mint" data-act="player-toggle-audio">' + (App.player.audioMode ? '🎬 영상으로 보기' : '🎧 음원으로 듣기') + '</button>' : '') +
-    (s.url ? '<a class="btn sm ghost" data-act="count-external" data-id="' + s.id + '" href="' + esc(s.url) + '" target="_blank" rel="noopener">유튜브</a>' : '') +
     (nxs ? '<button class="btn sm ghost" data-act="player-next">다음 ▶</button>' : '') +
     '</div>' +
+    '<button class="bar-peek" id="bar-peek" type="button" aria-label="조작 단추 보기">☰</button>' +
     '<div class="next-overlay" id="next-overlay">' +
     '<div class="nx-card">' +
     '<div class="nx-emoji">🎬</div>' +
-    '<b class="nx-title">다음 영상이 곧 시작돼요</b>' +
+    '<b class="nx-title" id="nx-title">3초 뒤 다음 영상으로 넘어가요</b>' +
     '<div class="nx-count" id="nx-count">3</div>' +
-    '<div class="nx-sub">3초 뒤 다음 영상 재생...</div>' +
-    (nxs ? '<div class="nx-next">' + esc(cleanTitle(nxs.title)) + '</div>' : '<div class="nx-next">마지막 영상이에요</div>') +
-    '<div class="nx-btns">' +
-    '<button class="btn ghost" data-act="player-stop">그만보기</button>' +
-    (nxs ? '<button class="btn primary" data-act="player-next">다음 영상 바로 보기</button>' : '<button class="btn primary" data-act="player-close">목록으로</button>') +
-    '</div></div></div>' +
+    '<div class="nx-sub" id="nx-sub">잠깐만 기다려 주세요</div>' +
+    (nxs ? '<div class="nx-next" id="nx-next">' + esc(cleanTitle(nxs.title)) + '</div>' : '<div class="nx-next" id="nx-next">마지막 영상이에요</div>') +
+    '<div class="nx-btns" id="nx-btns">' + nxButtonsHtml(!!nxs) + '</div>' +
+    '</div></div>' +
     '</div>' +
 
     '<div class="player-below">';
@@ -6494,6 +6510,8 @@ function onYTState(e) {
       toggleTheater(true);
     }
   }
+  if (e.data === window.YT.PlayerState.PLAYING && theaterOn()) showPlayerBar(4000);
+  if (e.data === window.YT.PlayerState.PAUSED) showPlayerBar(0);
   if (e.data === window.YT.PlayerState.ENDED) {
     onVideoEnded();
   }
@@ -6540,6 +6558,8 @@ function onVideoEnded() {
     if (ov0) {
       var tt = ov0.querySelector('.nx-title'); if (tt) tt.textContent = '🌙 오늘은 여기까지!';
       var sub = ov0.querySelector('.nx-sub'); if (sub) sub.textContent = '오늘 볼 편수(' + curCh.dailyLimit + '편)를 다 봤어요';
+      var em0 = ov0.querySelector('.nx-emoji'); if (em0) em0.textContent = '🌙';
+      var nx0 = ov0.querySelector('.nx-next'); if (nx0) nx0.textContent = '내일 또 만나요';
       var nc = document.getElementById('nx-count'); if (nc) nc.textContent = '🌙';
       var btns0 = ov0.querySelector('.nx-btns');
       if (btns0) btns0.innerHTML = '<button class="btn primary" data-act="player-close">목록으로</button>';
@@ -6558,18 +6578,24 @@ function onVideoEnded() {
   var ov = document.getElementById('next-overlay');
   if (!ov) return;
   var ns = nx ? songById(nx) : null;
-  /* next title */
+  /* 카운트다운 카드 글·단추를 매번 새로 맞춘다 (퀴즈·오늘은 여기까지 뒤에 다시 끝난 경우) */
   var t = ov.querySelector('.nx-next');
   if (t) t.textContent = ns ? cleanTitle(ns.title) : '마지막 영상이에요';
+  var tt2 = ov.querySelector('.nx-title');
+  if (tt2) tt2.textContent = ns ? '3초 뒤 다음 영상으로 넘어가요' : '마지막 영상이에요';
+  var sb2 = ov.querySelector('.nx-sub');
+  if (sb2) sb2.textContent = ns ? '잠깐만 기다려 주세요' : '한 번 더 보거나 목록으로 돌아갈 수 있어요';
+  var em2 = ov.querySelector('.nx-emoji');
+  if (em2) em2.textContent = '🎬';
   var btns = ov.querySelector('.nx-btns');
-  if (btns) {
-    btns.innerHTML = '<button class="btn ghost" data-act="player-stop">그만보기</button>' +
-      (ns ? '<button class="btn primary" data-act="player-next">다음 영상 바로 보기</button>'
-          : '<button class="btn primary" data-act="player-close">목록으로</button>');
-  }
+  if (btns) btns.innerHTML = nxButtonsHtml(!!ns);
   ov.classList.add('on');
   YTP.overlayOn = true;
-  if (!ns) return;
+  if (!ns) {
+    var nc0 = document.getElementById('nx-count');
+    if (nc0) nc0.textContent = '🎬';
+    return;
+  }
   YTP.count = 3;
   var el = document.getElementById('nx-count');
   if (el) el.textContent = '3';
@@ -6683,27 +6709,148 @@ function showBookEndQuiz(ov, curSong, ns) {
   renderQ();
 }
 
+/* 끝났을 때 카드의 단추 — 다음 편이 있으면 '지금 바로 다음'이 맨 위에 크게 */
+function nxButtonsHtml(hasNext) {
+  return (hasNext ? '<button class="btn primary" data-act="player-next">지금 바로 다음 ▶</button>'
+                 : '<button class="btn primary" data-act="player-close">목록으로</button>') +
+    '<button class="btn ghost" data-act="player-stop">✋ 멈추기</button>' +
+    '<button class="btn sun" data-act="player-replay">⟲ 한 번 더</button>';
+}
+
 function stopAutoNext() {
   if (YTP.timer) { clearInterval(YTP.timer); YTP.timer = null; }
   var ov = document.getElementById('next-overlay');
   if (ov) ov.classList.remove('on');
   YTP.overlayOn = false;
+  if (theaterOn()) showPlayerBar(4000);
+}
+
+/* ⟲ 한 번 더 — 화면을 다시 그리지 않고 같은 영상만 처음부터 (크게 보기·전체화면 그대로) */
+function replayCurrent() {
+  stopAutoNext();
+  var sec = (App.player && App.player.startSec) ? Number(App.player.startSec) : 0;
+  var au = document.getElementById('audio-player');
+  if (au) {
+    try { au.currentTime = sec; } catch (e) { }
+    try { au.play(); } catch (e) { }
+    return;
+  }
+  YTP.countedId = null;
+  if (YTP.player && YTP.player.seekTo) {
+    try { YTP.player.seekTo(sec, true); YTP.player.playVideo(); } catch (e) { }
+  }
 }
 
 function playNext() {
   stopAutoNext();
   var nx = nextInList();
   if (!nx) { toast('마지막 영상이에요'); return; }
-  App.player.id = nx;
   var ns = songById(nx);
+  var keepTheater = theaterOn();   /* 아이가 보던 크게 보기 상태를 다음 영상에서도 그대로 */
+  App.player.id = nx;
+  App.player.startSec = (ns ? (firstMatchingPartSec(ns, App.lib.subject, App.lib.sub) || 0) : 0);
+  App.player.audioMode = !!(ns && !ns.vid && (ns.hasAudio || ns.audioUrl));
+  if (App.player.list.indexOf(nx) < 0) App.player.list.unshift(nx);
   render();
-  toggleTheater(!(ns && ns.subject === '영어'));
+  if (keepTheater) setTheater(true);
   window.scrollTo({ top: 0 });
 }
 
-function toggleTheater(on) {
-  document.body.classList.toggle('theater', on === undefined ? !document.body.classList.contains('theater') : !!on);
+/* ---------- 크게 보기(극장) + 전체화면 + 컨트롤 자동 숨김 ---------- */
+var FCTL = { t: null, mv: 0 };
+
+function theaterOn() { return document.body.classList.contains('theater'); }
+function barNode() { return document.querySelector('.player-bar'); }
+function peekNode() { return document.getElementById('bar-peek'); }
+function clearBarTimer() { if (FCTL.t) { clearTimeout(FCTL.t); FCTL.t = null; } }
+
+/* ms 만큼 보여 주고 스르르 숨긴다. ms를 안 주면(0) 계속 보임 — 영상이 멈춰 있을 때 */
+function showPlayerBar(ms) {
+  var bar = barNode();
+  if (bar) bar.classList.remove('hide');
+  var pk = peekNode();
+  if (pk) pk.classList.remove('on');
+  clearBarTimer();
+  if (!theaterOn() || !ms) return;
+  FCTL.t = setTimeout(function () { FCTL.t = null; hidePlayerBar(); }, ms);
 }
+
+function hidePlayerBar() {
+  if (!theaterOn()) return;
+  var bar = barNode();
+  if (bar) bar.classList.add('hide');
+  var pk = peekNode();
+  if (pk) pk.classList.add('on');
+}
+
+function nativeFsOn() {
+  var d = document;
+  return !!(d.fullscreenElement || d.webkitFullscreenElement);
+}
+
+/* 전체화면 + 가로 고정을 시도. 안 되는 곳(iOS 사파리)은 CSS 90도 회전이 대신한다 */
+function goFullscreen() {
+  var d = document, el = d.documentElement, p = null;
+  try {
+    if (!nativeFsOn()) {
+      var fn = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (fn) p = fn.call(el);
+    }
+  } catch (e) { p = null; }
+  function after() {
+    setTimeout(function () {
+      if (!nativeFsOn()) { YTP.nativeFs = false; return; }
+      YTP.nativeFs = true;
+      try {
+        if (screen.orientation && screen.orientation.lock) {
+          var q = screen.orientation.lock('landscape');
+          if (q && q.catch) q.catch(function () { });
+        }
+      } catch (e) { }
+    }, 90);
+  }
+  try { Promise.resolve(p).then(after, after); } catch (e) { after(); }
+}
+
+function leaveFullscreen() {
+  var d = document;
+  try {
+    if (nativeFsOn()) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+  } catch (e) { }
+  try {
+    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+  } catch (e) { }
+  YTP.nativeFs = false;
+}
+
+/* 사용자가 기기 자체의 '전체화면 끄기'(Esc·뒤로)로 나가면 앱도 크게 보기를 끈다 */
+function onFullscreenChange() {
+  if (nativeFsOn()) { YTP.nativeFs = true; return; }
+  var wasNative = YTP.nativeFs;
+  YTP.nativeFs = false;
+  if (wasNative && theaterOn()) {
+    try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) { }
+    setTheater(false, true);
+  }
+}
+
+function setTheater(on, skipNative) {
+  var want = (on === undefined) ? !theaterOn() : !!on;
+  document.body.classList.toggle('theater', want);
+  if (want) {
+    if (!skipNative) goFullscreen();
+    showPlayerBar(4000);
+  } else {
+    if (!skipNative) leaveFullscreen();
+    clearBarTimer();
+    var bar = barNode();
+    if (bar) bar.classList.remove('hide');
+    var pk = peekNode();
+    if (pk) pk.classList.remove('on');
+  }
+}
+
+function toggleTheater(on) { setTheater(on); }
 
 function closePlayer() {
   stopAutoNext();
@@ -6724,7 +6871,8 @@ function mountAudioPlayer(s) {
     if (App.player && App.player.startSec) {
       au.addEventListener('loadedmetadata', function () { au.currentTime = App.player.startSec; }, { once: true });
     }
-    au.onplay = function () { if (App.player) markPlayedOnce(App.player.id); };
+    au.onplay = function () { if (App.player) markPlayedOnce(App.player.id); if (theaterOn()) showPlayerBar(4000); };
+    au.onpause = function () { if (theaterOn()) showPlayerBar(0); };
     au.onended = function () { onVideoEnded(); };
     try { au.play(); } catch (e) { }
   }
@@ -6748,10 +6896,44 @@ function mountPlayerIfNeeded() {
   if (App.view !== 'player' || !App.player) return;
   var s = songById(App.player.id);
   if (!s) return;
+  if (theaterOn()) showPlayerBar(4000);
   if (App.player.audioMode) { mountAudioPlayer(s); return; }
   if (YTP.apiFailed) { showPlayerFallback('영상 재생기를 불러오지 못했어요'); return; }
   mountPlayer(s.vid || '');
 }
+
+/* ---------- 크게 보기에서 컨트롤 다시 보이기 ---------- */
+/* 영상 위를 누르면 유튜브 재생기 안이라 우리가 알 수 없어서, 영상 밖(검은 곳)을 누르거나
+   손가락을 움직이면 단추를 다시 보여 준다. 단추가 다 숨었을 땐 오른쪽 위 ☰ 를 한 번 누르면 나온다 */
+function wakePlayerBar() {
+  if (!theaterOn()) return;
+  var paused = false;
+  try {
+    if (YTP.player && window.YT && YTP.player.getPlayerState) {
+      paused = YTP.player.getPlayerState() === window.YT.PlayerState.PAUSED;
+    } else {
+      var au = document.getElementById('audio-player');
+      if (au) paused = !!au.paused;
+    }
+  } catch (e) { paused = false; }
+  showPlayerBar(paused ? 0 : 4000);
+}
+
+document.addEventListener('pointerdown', wakePlayerBar, true);
+document.addEventListener('mousemove', function () {
+  if (!theaterOn()) return;
+  var bar = barNode();
+  if (!bar || !bar.classList.contains('hide')) return;
+  var now = Date.now();
+  if (now - FCTL.mv < 400) return;
+  FCTL.mv = now;
+  wakePlayerBar();
+}, true);
+document.addEventListener('fullscreenchange', onFullscreenChange, false);
+document.addEventListener('webkitfullscreenchange', onFullscreenChange, false);
+window.addEventListener('orientationchange', function () {
+  if (theaterOn()) showPlayerBar(4000);
+});
 
 function printSongPdf(id) {
   var s = songById(id);
@@ -8822,12 +9004,20 @@ function onClick(e) {
         break;
       }
       case 'player-stop': stopAutoNext(); if (YTP.player && YTP.player.pauseVideo) { try { YTP.player.pauseVideo(); } catch (e) { } } break;
+      case 'player-replay': if (typeof replayCurrent === 'function') replayCurrent(); break;
       case 'player-repeat': {
+        /* 화면을 다시 그리면 #yt-player iframe이 새로 만들어져 영상이 끊긴다.
+           단추 글·색만 그 자리에서 바꾸고 재생은 그대로 둔다 */
         if (!App.player) break;
         var curR = playerRepeatMode();
         var nextR = curR === 'next' ? 'loop-one' : curR === 'loop-one' ? 'loop-all' : 'next';
         App.player.repeat = nextR;
-        render();
+        var rb = document.querySelector('.player-bar [data-act="player-repeat"]');
+        if (rb) {
+          rb.textContent = nextR === 'loop-one' ? '🔂 1곡 반복' : nextR === 'loop-all' ? '🔁 전체 반복' : '▶ 순서대로';
+          rb.classList.toggle('sun', nextR !== 'next');
+          rb.classList.toggle('ghost', nextR === 'next');
+        }
         toast(nextR === 'loop-one' ? '🔂 1곡 반복으로 켰어요' : nextR === 'loop-all' ? '🔁 전체 반복으로 켰어요' : '▶ 순서대로 재생해요');
         break;
       }
