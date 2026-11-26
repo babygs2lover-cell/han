@@ -391,6 +391,54 @@ input[type=range]{width:100%;accent-color:var(--coral);}
 .filebtn{position:relative;overflow:hidden;}
 .filebtn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
 
+/* ---------- 자료실 PDF 뷰어 (화면 가득) ---------- */
+body.fv-lock{overflow:hidden;}
+.fv{position:fixed; left:0; top:0; right:0; bottom:0; width:100vw; height:100vh; height:100dvh;
+  z-index:130; background:#221C18; display:none; flex-direction:column; overscroll-behavior:contain;}
+.fv.on{display:flex;}
+.fv-top{position:relative; z-index:6; flex:0 0 auto; display:flex; align-items:center; gap:8px;
+  padding:calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) 6px calc(8px + env(safe-area-inset-left));
+  background:#2B2420; border-bottom:1px solid rgba(255,255,255,.08);}
+.fv-name{flex:1; min-width:0; padding:2px 2px; color:#fff;}
+.fv-name b{display:block; font-size:14px; letter-spacing:-.3px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.fv-name span{display:block; font-size:11px; color:rgba(255,255,255,.6); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;}
+.fv-ib{flex:0 0 auto; width:38px; height:38px; border-radius:12px; border:none; background:rgba(255,255,255,.12);
+  color:#fff; font-size:16px; font-weight:800; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; line-height:1; cursor:pointer; -webkit-tap-highlight-color:transparent;}
+.fv-ib:active{background:rgba(255,255,255,.26);}
+.fv-ib.sm{width:34px; height:34px; border-radius:10px; font-size:14px;}
+.fv-scroll{flex:1 1 auto; min-height:0; overflow-x:auto; overflow-y:auto; -webkit-overflow-scrolling:touch; overflow-anchor:none;
+  background:#1B1714; overscroll-behavior:contain;}
+.fv-pages{position:relative; width:max-content; min-width:100%; padding:8px 6px 18px; overflow-anchor:none;}
+.fv-page{margin:0 auto 10px; width:100%; background:#fff; border-radius:5px; overflow:hidden;
+  box-shadow:0 3px 14px rgba(0,0,0,.45);}
+.fv-page canvas{display:block; width:100%; height:auto; background:#fff;}
+.fv-bot{flex:0 0 auto; display:flex; align-items:center; gap:8px;
+  padding:7px calc(10px + env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
+  background:#2B2420; border-top:1px solid rgba(255,255,255,.08);}
+.fv-pg{color:#fff; font-size:13px; font-weight:800; min-width:70px; text-align:center; letter-spacing:.2px;}
+.fv-gap{flex:1;}
+.fv-wait{position:absolute; left:0; right:0; top:0; bottom:0; z-index:3; display:none; flex-direction:column;
+  align-items:center; justify-content:center; gap:12px; background:#221C18; color:#fff; text-align:center; padding:24px;}
+.fv-wait.on{display:flex;}
+.fv-wait b{font-size:15px;}
+.fv-wait p{margin:0; font-size:12.5px; color:rgba(255,255,255,.6); line-height:1.6; max-width:280px;}
+.fv-dots{display:flex; gap:7px; margin-bottom:4px;}
+.fv-dots i{width:9px; height:9px; border-radius:50%; background:#F59E0B; opacity:.35; animation:fvpulse 1.1s infinite;}
+.fv-dots i:nth-child(2){animation-delay:.18s;}
+.fv-dots i:nth-child(3){animation-delay:.36s;}
+@keyframes fvpulse{0%,100%{opacity:.25; transform:scale(.85)}50%{opacity:1; transform:scale(1.1)}}
+.fv-pbar{width:190px; max-width:62vw; height:6px; border-radius:999px; background:rgba(255,255,255,.14); overflow:hidden;}
+.fv-pbar i{display:block; height:100%; width:0; background:#F59E0B; border-radius:999px; transition:width .18s;}
+.fv-fb{position:absolute; left:0; right:0; top:0; bottom:0; z-index:4; display:none; flex-direction:column;
+  align-items:center; justify-content:center; gap:12px; background:#221C18; color:#fff; text-align:center;
+  padding:32px 26px calc(32px + env(safe-area-inset-bottom));}
+.fv-fb.on{display:flex;}
+.fv-fb-ico{font-size:40px;}
+.fv-fb b{font-size:16px; line-height:1.4;}
+.fv-fb p{margin:0 0 6px; font-size:13px; color:rgba(255,255,255,.68); line-height:1.7; max-width:330px;}
+.fv-fb .btn{margin:0; min-width:180px; text-decoration:none;}
+
 /* ============================================================
    kids mode: mascot, chunky buttons, sticker book
    ============================================================ */
@@ -1036,6 +1084,7 @@ body.theater .player-top{display:none;}
 
 /* ---------- 자료실 (교육청 무료 워크지) ---------- */
 a.vcard{text-decoration:none;color:inherit;}
+button.vcard{font-family:inherit;font-size:inherit;color:inherit;-webkit-appearance:none;appearance:none;cursor:pointer;}
 .ws-note{
   margin:2px 0 8px; padding:12px 14px; border-radius:18px;
   background:#F6F4FF; border:1px solid #E4DEFB;
@@ -4461,7 +4510,7 @@ function viewFilesArea() {
   var cat = App.filesCat || '전체';
   var shown = EDU_FILES.filter(function (x) { return cat === '전체' || x.cat === cat; });
   var h = '<div class="ws-note"><b>교육부·교육청 무료 자료 ' + shown.length + '가지</b>' +
-    '<p>카드를 누르면 PDF가 바로 열려요. 인쇄하거나 파일로 저장해서 쓰세요.' +
+    '<p>카드를 누르면 자료가 <strong>화면에 꽉 차게</strong> 펼쳐져요. 위아래로 넘겨 쪽을 보고, 인쇄하거나 파일로 저장해서 쓰세요.' +
     '<br><span class="tiny">‘원본’이라고 적힌 자료는 교육청 사이트의 원본 파일로 열립니다.</span></p></div>';
   h += '<div class="chips compact-chips" style="margin:10px 0 4px">' +
     EDU_CATS.map(function (c) {
@@ -4477,11 +4526,11 @@ function viewFilesArea() {
       '<span class="ws-count">' + list.length + '가지</span></div>' +
       '<div class="vlist">';
     list.forEach(function (f) {
-      h += '<a class="vcard" href="' + esc(f.href) + '" target="_blank" rel="noopener">' +
+      h += '<button class="vcard" data-act="file-open" data-fi="' + EDU_FILES.indexOf(f) + '">' +
         '<span class="vc-ico" style="background:' + f.bg + '">' + f.ico + '</span>' +
         '<span class="vc-body"><b>' + esc(f.title) + '</b><span>' + esc(f.meta) + '</span></span>' +
         '<span class="vc-badge" style="background:' + g.color + '">' + g.badge + '</span>' +
-        '<span class="vc-arr">›</span></a>';
+        '<span class="vc-arr">›</span></button>';
     });
     h += '</div>';
   });
@@ -7279,6 +7328,474 @@ function toggleFlip(key) {
   render();
 }
 
+/* ---- 48-fileview.js ---- */
+/* ============================================================
+   자료실 — 카드를 누르면 화면 가득 펼쳐 보는 PDF 뷰어 (pdf.js)
+   · 아이폰 사파리·인앱 브라우저에서 PDF가 잘리지 않도록
+     앱 안에서 폭에 딱 맞춰(fit) 직접 그려 준다.
+   ============================================================ */
+var FV = {
+  on: false, doc: null, num: 0, cur: 1, zoom: 1, token: 0,
+  scrollEl: null, pagesEl: null, io: null, pageW: 0, tick: 0, ratio: 1.414,
+  fitW: 0, resizeT: 0
+};
+
+var FV_LIB = null, FV_WORKER = '';
+var FV_LIB_SRC = [
+  'files/pdfjs/pdf.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+];
+var FV_WORKER_SRC = [
+  'files/pdfjs/pdf.worker.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+];
+
+/* ---------- pdf.js 스크립트 (로컬 → CDN 순서로 시도) ---------- */
+function fvLoadLib(cb) {
+  if (FV_LIB) { cb(FV_LIB); return; }
+  if (window.pdfjsLib) { FV_LIB = window.pdfjsLib; FV_WORKER = FV_WORKER_SRC[0]; cb(FV_LIB); return; }
+  fvLoadLibAt(0, cb);
+}
+function fvLoadLibAt(i, cb) {
+  if (i >= FV_LIB_SRC.length) { cb(null); return; }
+  var s = document.createElement('script');
+  s.src = FV_LIB_SRC[i];
+  s.async = true;
+  s.onload = function () {
+    if (window.pdfjsLib) {
+      FV_LIB = window.pdfjsLib;
+      FV_WORKER = FV_WORKER_SRC[i];
+      cb(FV_LIB);
+    } else {
+      fvLoadLibAt(i + 1, cb);
+    }
+  };
+  s.onerror = function () { fvLoadLibAt(i + 1, cb); };
+  document.head.appendChild(s);
+}
+
+/* ---------- 뷰어 DOM ---------- */
+function fvEl() { return document.getElementById('fv'); }
+
+function fvBuild() {
+  var old = fvEl();
+  if (old) return old;
+  var d = document.createElement('div');
+  d.id = 'fv';
+  d.className = 'fv';
+  d.setAttribute('aria-hidden', 'true');
+  d.innerHTML =
+    '<div class="fv-top">' +
+      '<button class="fv-ib" data-act="fv-close" aria-label="닫기">✕</button>' +
+      '<div class="fv-name"><b id="fv-title"></b><span id="fv-meta"></span></div>' +
+      '<a class="fv-ib" id="fv-ext" target="_blank" rel="noopener" aria-label="새 창에서 원본 열기">↗</a>' +
+    '</div>' +
+    '<div class="fv-scroll" id="fv-scroll"><div class="fv-pages" id="fv-pages"></div></div>' +
+    '<div class="fv-bot" id="fv-bot">' +
+      '<button class="fv-ib sm" data-act="fv-prev" aria-label="이전 쪽">▲</button>' +
+      '<span class="fv-pg" id="fv-pg">1 / 1</span>' +
+      '<button class="fv-ib sm" data-act="fv-next" aria-label="다음 쪽">▼</button>' +
+      '<span class="fv-gap"></span>' +
+      '<button class="fv-ib sm" data-act="fv-zout" aria-label="작게 보기">−</button>' +
+      '<button class="fv-ib sm" data-act="fv-zin" aria-label="크게 보기">＋</button>' +
+    '</div>' +
+    '<div class="fv-wait on" id="fv-wait">' +
+      '<div class="fv-dots"><i></i><i></i><i></i></div>' +
+      '<b id="fv-wait-t">자료를 불러오고 있어요…</b>' +
+      '<div class="fv-pbar"><i id="fv-pbar"></i></div>' +
+      '<p id="fv-wait-p">쪽수가 많은 자료는 조금 걸릴 수 있어요.</p>' +
+    '</div>' +
+    '<div class="fv-fb" id="fv-fb">' +
+      '<span class="fv-fb-ico">🔗</span>' +
+      '<b id="fv-fb-t">원본 사이트에서 열리는 자료예요</b>' +
+      '<p id="fv-fb-p"></p>' +
+      '<a class="btn primary big" id="fv-fb-a" target="_blank" rel="noopener">원본 열기 ↗</a>' +
+      '<button class="btn ghost" data-act="fv-close">닫기</button>' +
+    '</div>';
+  document.body.appendChild(d);
+  FV.scrollEl = d.querySelector('#fv-scroll');
+  FV.pagesEl = d.querySelector('#fv-pages');
+  FV.scrollEl.addEventListener('scroll', fvOnScroll, { passive: true });
+  return d;
+}
+
+function fvWait(show, title, note, pct) {
+  var w = document.getElementById('fv-wait');
+  var fb = document.getElementById('fv-fb');
+  if (fb) fb.classList.remove('on');
+  if (!w) return;
+  w.classList.toggle('on', !!show);
+  if (title) document.getElementById('fv-wait-t').textContent = title;
+  if (note !== undefined) document.getElementById('fv-wait-p').textContent = note;
+  var bar = document.getElementById('fv-pbar');
+  if (bar) bar.style.width = Math.max(0, Math.min(100, pct || 0)) + '%';
+}
+
+function fvFallback(title, note, href) {
+  var w = document.getElementById('fv-wait');
+  var fb = document.getElementById('fv-fb');
+  if (w) w.classList.remove('on');
+  if (!fb) return;
+  document.getElementById('fv-fb-t').textContent = title;
+  document.getElementById('fv-fb-p').textContent = note;
+  var a = document.getElementById('fv-fb-a');
+  a.href = fvViewUrl(href || '#');
+  fb.classList.add('on');
+}
+
+/* PDF를 새 창(브라우저 기본 뷰어)으로 열 때도 폭에 맞춰 보이도록 */
+function fvViewUrl(url) {
+  if (!url || !/\.pdf($|[?#])/i.test(url) || url.indexOf('#') >= 0) return url || '#';
+  return url + '#view=FitH';
+}
+
+/* ---------- 열기 / 닫기 ---------- */
+function openFileViewer(fi) {
+  var f = EDU_FILES[Number(fi)];
+  if (!f) return;
+  var el = fvBuild();
+  FV.token++;
+  FV.on = true;
+  if (FV.doc) { try { FV.doc.destroy(); } catch (e) {} }
+  FV.doc = null;
+  FV.num = 0;
+  FV.cur = 1;
+  FV.zoom = 1;
+  FV.pageW = 0;
+  FV.fitW = 0;
+  FV.jump = null;
+  if (FV.io) { FV.io.disconnect(); FV.io = null; }
+  FV.pagesEl.innerHTML = '';
+  FV.pagesEl.scrollTop = 0;
+
+  document.getElementById('fv-title').textContent = f.title;
+  document.getElementById('fv-meta').textContent = f.meta || '';
+  document.getElementById('fv-ext').href = fvViewUrl(f.href);
+  document.getElementById('fv-pg').textContent = '1 / …';
+  document.getElementById('fv-bot').style.visibility = 'hidden';
+  el.classList.add('on');
+  el.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('fv-lock');
+  FV.scrollEl.scrollTop = 0;
+  fvWait(true, '자료를 불러오고 있어요…', '쪽수가 많은 자료는 조금 걸릴 수 있어요.', 3);
+  fvLoadUrl(f.href, FV.token);
+}
+
+function fvClose() {
+  var el = fvEl();
+  FV.token++;
+  FV.on = false;
+  if (FV.io) { FV.io.disconnect(); FV.io = null; }
+  if (FV.doc) { try { FV.doc.destroy(); } catch (e) {} FV.doc = null; }
+  FV.num = 0;
+  FV.jump = null;
+  if (el) {
+    el.classList.remove('on');
+    el.setAttribute('aria-hidden', 'true');
+  }
+  document.body.classList.remove('fv-lock');
+  if (FV.pagesEl) FV.pagesEl.innerHTML = '';
+  fvWait(false);
+}
+
+function fvExtOpen() {
+  var a = document.getElementById('fv-ext');
+  if (a && a.href) window.open(a.href, '_blank', 'noopener');
+}
+
+/* ---------- URL 열기 ---------- */
+function fvLoadUrl(url, token) {
+  var isPdf = /\.pdf($|[?#])/i.test(url);
+  if (!isPdf) {
+    fvFallback('누르면 원본 사이트로 이어지는 자료예요',
+      '이 카드는 PDF 파일이 아니라 교육청 게시글로 연결돼요. 아래 버튼을 누르면 원본이 새 창에서 열립니다.',
+      url);
+    return;
+  }
+  fvLoadLib(function (lib) {
+    if (token !== FV.token) return;
+    if (!lib) {
+      fvFallback('뷰어를 불러오지 못했어요',
+        '인터넷 연결을 확인한 뒤 다시 눌러 주세요. 아래 버튼으로 원본을 바로 열 수도 있어요.', url);
+      return;
+    }
+    lib.GlobalWorkerOptions.workerSrc = FV_WORKER || FV_WORKER_SRC[0];
+    var task;
+    try {
+      task = lib.getDocument({ url: url, isEvalSupported: false });
+    } catch (e) {
+      fvFallback('자료를 열지 못했어요', '아래 버튼을 누르면 원본이 새 창에서 열립니다.', url);
+      return;
+    }
+    task.onProgress = function (p) {
+      if (token !== FV.token) return;
+      if (p && p.total) {
+        fvWait(true, '자료를 불러오고 있어요…',
+          Math.round(p.loaded / 1048576) + 'MB / ' + Math.round(p.total / 1048576) + 'MB',
+          Math.round(p.loaded / p.total * 100));
+      }
+    };
+    task.promise.then(function (doc) {
+      if (token !== FV.token) { try { doc.destroy(); } catch (e) {} return; }
+      fvMount(doc, token);
+    }).catch(function () {
+      if (token !== FV.token) return;
+      var cross = !fvSameOrigin(url);
+      fvFallback(
+        cross ? '교육청 사이트 자료라 앱 안에서 펼칠 수 없어요' : '자료를 불러오지 못했어요',
+        cross
+          ? '다른 사이트의 파일은 보안 설정 때문에 앱 안에서 바로 열리지 않아요. 아래 버튼을 누르면 원본이 새 창에서 크게 열립니다.'
+          : '인터넷 연결을 확인한 뒤 카드를 다시 눌러 주세요. 아래 버튼으로 원본을 열 수도 있어요.',
+        url);
+    });
+  });
+}
+
+function fvSameOrigin(url) {
+  try {
+    var u = new URL(url, location.href);
+    return u.origin === location.origin;
+  } catch (e) { return false; }
+}
+
+/* ---------- 문서 배치 ---------- */
+function fvMount(doc, token) {
+  FV.doc = doc;
+  FV.num = doc.numPages || 0;
+  if (!FV.num) {
+    fvFallback('쪽을 찾지 못했어요', '아래 버튼으로 원본을 열어 주세요.', doc.__url || '');
+    return;
+  }
+  doc.getPage(1).then(function (p) {
+    if (token !== FV.token) return;
+    var vp = p.getViewport({ scale: 1 });
+    FV.ratio = vp.height / vp.width;
+    var html = '';
+    for (var i = 1; i <= FV.num; i++) {
+      html += '<div class="fv-page" data-p="' + i + '" style="aspect-ratio:' +
+        Math.round(vp.width) + ' / ' + Math.round(vp.height) + '"></div>';
+    }
+    FV.pagesEl.innerHTML = html;
+    FV.scrollEl.scrollTop = 0;
+    document.getElementById('fv-bot').style.visibility = '';
+    fvFit(true);
+    FV.scrollEl.scrollTop = 0;
+    fvWait(false);
+    fvRenderPage(1);
+    if (FV.num > 1) fvRenderPage(2);
+    fvObserve();
+    fvCounter();
+  }).catch(function () {
+    if (token !== FV.token) return;
+    fvFallback('자료를 읽지 못했어요', '아래 버튼으로 원본을 열어 주세요.', '');
+  });
+}
+
+/* 현재 화면 폭에 맞춘 페이지 폭 계산 (±확대 배율) */
+function fvFit(reset) {
+  if (!FV.on || !FV.scrollEl) return;
+  var avail = FV.scrollEl.clientWidth - 12;
+  if (avail < 120) avail = FV.scrollEl.clientWidth || 360;
+  var fit = Math.min(avail, 900);
+  FV.fitW = fit;
+  var w = Math.round(fit * FV.zoom);
+  FV.pageW = w;
+  var kids = FV.pagesEl.children;
+  for (var i = 0; i < kids.length; i++) {
+    kids[i].style.width = w + 'px';
+    if (reset) {
+      kids[i].innerHTML = '';
+      kids[i].removeAttribute('data-done');
+      kids[i].removeAttribute('data-busy');
+      kids[i].style.aspectRatio = 'auto';
+      if (FV.ratio) kids[i].style.aspectRatio = '1 / ' + FV.ratio.toFixed(4);
+    }
+  }
+}
+
+/* ---------- 페이지 렌더 ---------- */
+function fvRenderPage(n) {
+  var doc = FV.doc;
+  if (!doc || !FV.on) return;
+  var el = FV.pagesEl.querySelector('[data-p="' + n + '"]');
+  if (!el || el.getAttribute('data-done') || el.getAttribute('data-busy')) return;
+  el.setAttribute('data-busy', '1');
+  doc.getPage(n).then(function (page) {
+    if (!FV.on) return;
+    var boxW = el.clientWidth || FV.pageW || 360;
+    var base = page.getViewport({ scale: 1 });
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var scale = (boxW / base.width) * dpr;
+    var px = base.width * scale * base.height * scale;
+    var maxPx = 4.6e6;
+    if (px > maxPx) scale *= Math.sqrt(maxPx / px);
+    var view = page.getViewport({ scale: scale });
+    var c = document.createElement('canvas');
+    c.width = Math.max(1, Math.floor(view.width));
+    c.height = Math.max(1, Math.floor(view.height));
+    c.style.width = '100%';
+    c.style.height = 'auto';
+    c.style.display = 'block';
+    var ctx = c.getContext('2d', { alpha: false });
+    page.render({ canvasContext: ctx, viewport: view }).promise.then(function () {
+      if (!FV.on) return;
+      el.innerHTML = '';
+      el.appendChild(c);
+      el.style.aspectRatio = 'auto';
+      el.setAttribute('data-done', '1');
+      el.removeAttribute('data-busy');
+      fvKeepJump();
+    }).catch(function () {
+      el.removeAttribute('data-busy');
+    });
+  }).catch(function () {
+    el.removeAttribute('data-busy');
+  });
+}
+
+function fvObserve() {
+  if (FV.io) FV.io.disconnect();
+  if (!('IntersectionObserver' in window)) {
+    for (var i = 1; i <= FV.num; i++) fvRenderPage(i);
+    return;
+  }
+  FV.io = new IntersectionObserver(function (ents) {
+    ents.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      var n = Number(en.target.getAttribute('data-p'));
+      fvRenderPage(n);
+      if (n + 1 <= FV.num) fvRenderPage(n + 1);
+    });
+  }, { root: FV.scrollEl, rootMargin: '900px 0px' });
+  var kids = FV.pagesEl.children;
+  for (var j = 0; j < kids.length; j++) FV.io.observe(kids[j]);
+}
+
+/* ---------- 쪽 표시 · 이동 ---------- */
+function fvOnScroll() {
+  if (FV.tick) return;
+  FV.tick = requestAnimationFrame(function () {
+    FV.tick = 0;
+    fvCounter();
+  });
+}
+
+/* 어떤 쪽의 위쪽이 화면 위에서 몇 px 아래에 있는지 (스크롤 위치와 무관하게) */
+function fvPageOffset(el) {
+  return el.getBoundingClientRect().top - FV.scrollEl.getBoundingClientRect().top;
+}
+
+function fvCounter() {
+  if (!FV.on || !FV.num) return;
+  var kids = FV.pagesEl.children;
+  if (!kids.length) return;
+  var sr = FV.scrollEl.getBoundingClientRect();
+  var start = Math.max(0, Math.min(kids.length - 1, FV.cur - 2));
+  var first = -1, i;
+  for (i = start; i < kids.length; i++) {
+    if (kids[i].getBoundingClientRect().bottom - sr.top > 0) { first = i; break; }
+  }
+  if (first < 0) first = kids.length - 1;
+  /* 화면에 가장 많이 보이는 쪽을 지금 쪽으로 */
+  var cur = Number(kids[first].getAttribute('data-p')), best = -1;
+  for (i = first; i < Math.min(first + 3, kids.length); i++) {
+    var r = kids[i].getBoundingClientRect();
+    var ov = Math.min(r.bottom, sr.bottom) - Math.max(r.top, sr.top);
+    if (ov > best) { best = ov; cur = Number(kids[i].getAttribute('data-p')); }
+  }
+  FV.cur = cur;
+  var pg = document.getElementById('fv-pg');
+  if (pg) pg.textContent = cur + ' / ' + FV.num + (FV.zoom > 1 ? '  ' + FV.zoom + '×' : '');
+  fvTrim();
+}
+
+/* 쪽 이동 직후 위쪽 쪽들이 그려지며 높이가 바뀌면 위치를 다시 맞춘다 */
+function fvKeepJump() {
+  if (!FV.on || !FV.jump || Date.now() > FV.jump.until) return;
+  var el = FV.pagesEl.querySelector('[data-p="' + FV.jump.n + '"]');
+  if (!el) return;
+  var d = fvPageOffset(el) - 6;
+  if (Math.abs(d) > 6) FV.scrollEl.scrollTop += d;
+}
+
+/* 화면에서 멀어진 쪽의 그림은 메모리에서 버린다 (긴 자료에서도 앱이 버티도록) */
+function fvTrim() {
+  var kids = FV.pagesEl.children;
+  for (var i = 0; i < kids.length; i++) {
+    var el = kids[i];
+    if (!el.getAttribute('data-done')) continue;
+    var n = Number(el.getAttribute('data-p'));
+    if (Math.abs(n - FV.cur) <= 5) continue;
+    el.innerHTML = '';
+    el.removeAttribute('data-done');
+    el.style.aspectRatio = '1 / ' + FV.ratio.toFixed(4);
+  }
+}
+
+function fvGoPage(n) {
+  if (n < 1) n = 1;
+  if (n > FV.num) n = FV.num;
+  var el = FV.pagesEl.querySelector('[data-p="' + n + '"]');
+  if (!el) return;
+  var prev = FV.cur;
+  FV.cur = n;
+  fvRenderPage(n);
+  FV.jump = { n: n, until: Date.now() + 3000 };
+  var far = Math.abs(n - prev) > 2;
+  if (far) {
+    FV.scrollEl.scrollTop += fvPageOffset(el) - 6;
+  } else {
+    FV.scrollEl.scrollTo({ top: FV.scrollEl.scrollTop + fvPageOffset(el) - 6, behavior: 'smooth' });
+  }
+  /* 그림이 그려져 쪽 높이가 확정된 뒤 위치를 한 번 더 맞춘다 */
+  setTimeout(function () {
+    if (!FV.on) return;
+    fvKeepJump();
+    fvCounter();
+  }, 340);
+  var pg = document.getElementById('fv-pg');
+  if (pg) pg.textContent = n + ' / ' + FV.num + (FV.zoom > 1 ? '  ' + FV.zoom + '×' : '');
+}
+
+function fvGo(delta) {
+  if (!FV.num) return;
+  fvGoPage(FV.cur + delta);
+}
+
+function fvZoomBy(delta) {
+  if (!FV.num) return;
+  var z = Math.round((FV.zoom + delta) * 10) / 10;
+  z = Math.max(1, Math.min(3, z));
+  if (z === FV.zoom) return;
+  FV.zoom = z;
+  var keep = FV.cur;
+  fvFit(true);
+  fvObserve();
+  fvGoPage(keep);
+  var pg = document.getElementById('fv-pg');
+  if (pg) pg.textContent = keep + ' / ' + FV.num + (z > 1 ? '  ' + z + '×' : '');
+}
+
+/* 화면을 돌리거나 크기가 바뀌면 폭에 다시 맞춘다 */
+window.addEventListener('resize', function () {
+  if (!FV.on) return;
+  clearTimeout(FV.resizeT);
+  FV.resizeT = setTimeout(function () {
+    if (!FV.on) return;
+    var keep = FV.cur;
+    fvFit(true);
+    fvObserve();
+    fvGoPage(keep);
+  }, 220);
+});
+
+document.addEventListener('keydown', function (e) {
+  if (!FV.on) return;
+  if (e.key === 'Escape') { e.preventDefault(); fvClose(); }
+  else if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); fvGo(1); }
+  else if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); fvGo(-1); }
+});
+
 /* ---- 50-plan.js ---- */
 /* ============================================================
    주간 계획표 (themes + editable week board)
@@ -8509,6 +9026,13 @@ function onClick(e) {
         App.lib.sub = btn.getAttribute('data-k'); render(); break;
       case 'files-cat':
         App.filesCat = btn.getAttribute('data-k'); render(); break;
+      case 'file-open':
+        openFileViewer(btn.getAttribute('data-fi')); break;
+      case 'fv-close': fvClose(); break;
+      case 'fv-prev': fvGo(-1); break;
+      case 'fv-next': fvGo(1); break;
+      case 'fv-zin': fvZoomBy(0.5); break;
+      case 'fv-zout': fvZoomBy(-0.5); break;
       case 'lib-print':
         App.lib.onlyPrint = !App.lib.onlyPrint; render(); break;
       case 'lib-picked':
