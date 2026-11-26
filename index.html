@@ -839,6 +839,7 @@ body.theater .player-bar{position:absolute;left:0;right:0;bottom:0;z-index:12;wi
   justify-content:space-between;padding:14px 12px calc(10px + env(safe-area-inset-bottom));
   transition:opacity .35s ease, transform .35s ease;}
 body.theater .player-bar.hide{opacity:0;transform:translateY(115%);pointer-events:none;}
+body.theater .player-bar.pe{pointer-events:none;}
 body.theater .player-bar .btn.ghost{color:#fff;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.08);}
 body.theater .player-below{display:none;}
 body.theater .player-top{display:none;}
@@ -6757,7 +6758,7 @@ function playNext() {
 }
 
 /* ---------- 크게 보기(극장) + 전체화면 + 컨트롤 자동 숨김 ---------- */
-var FCTL = { t: null, mv: 0 };
+var FCTL = { t: null, mv: 0, pe: null };
 
 function theaterOn() { return document.body.classList.contains('theater'); }
 function barNode() { return document.querySelector('.player-bar'); }
@@ -6767,10 +6768,18 @@ function clearBarTimer() { if (FCTL.t) { clearTimeout(FCTL.t); FCTL.t = null; } 
 /* ms 만큼 보여 주고 스르르 숨긴다. ms를 안 주면(0) 계속 보임 — 영상이 멈춰 있을 때 */
 function showPlayerBar(ms) {
   var bar = barNode();
+  var wasHidden = !!(bar && bar.classList.contains('hide'));
   if (bar) bar.classList.remove('hide');
   var pk = peekNode();
   if (pk) pk.classList.remove('on');
   clearBarTimer();
+  /* 숨었다 나타나는 순간에는 잠깐(0.36초) 단추를 받지 않는다 —
+     보려고 톡 친 손가락에 '목록' 같은 단추가 바로 눌리지 않게 */
+  if (bar && wasHidden) {
+    bar.classList.add('pe');
+    clearTimeout(FCTL.pe);
+    FCTL.pe = setTimeout(function () { FCTL.pe = null; var b = barNode(); if (b) b.classList.remove('pe'); }, 360);
+  }
   if (!theaterOn() || !ms) return;
   FCTL.t = setTimeout(function () { FCTL.t = null; hidePlayerBar(); }, ms);
 }
@@ -6778,7 +6787,7 @@ function showPlayerBar(ms) {
 function hidePlayerBar() {
   if (!theaterOn()) return;
   var bar = barNode();
-  if (bar) bar.classList.add('hide');
+  if (bar) { bar.classList.add('hide'); bar.classList.remove('pe'); }
   var pk = peekNode();
   if (pk) pk.classList.add('on');
 }
