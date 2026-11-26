@@ -7528,7 +7528,8 @@ function fvLoadUrl(url, token) {
       return;
     }
     task.onProgress = function (p) {
-      if (token !== FV.token) return;
+      /* 첫 쪽이 뜬 뒤에 남은 조각을 받아오는 중에는 화면을 가리지 않는다 */
+      if (token !== FV.token || FV.doc) return;
       if (p && p.total) {
         fvWait(true, '자료를 불러오고 있어요…',
           Math.round(p.loaded / 1048576) + 'MB / ' + Math.round(p.total / 1048576) + 'MB',
