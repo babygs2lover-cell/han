@@ -61900,15 +61900,20 @@ function fmtSec(sec) {
   var m = Math.floor(sec / 60), s = sec % 60;
   return m + ':' + (s < 10 ? '0' : '') + s;
 }
+/* 과목 이름 별칭 — 미술 영역은 목록 과목이 '기타'라서 채널 곡의 '미술'과 같은 과목으로 본다 */
+var SUBJ_ALIAS = { '기타': '미술', '미술': '기타' };
+function sameSubject(a, b) {
+  return a === b || SUBJ_ALIAS[a] === b;
+}
 function songMatchesTopic(s, subj, sub) {
-  var matchSubj = (subj === '전체' || s.subject === subj);
+  var matchSubj = (subj === '전체' || sameSubject(s.subject, subj));
   var matchSub = (sub === '전체' || s.subtopic === sub);
   if (matchSubj && matchSub) return true;
   if (s.extraTopics && s.extraTopics.some(function (t) {
-    return (subj === '전체' || t.subject === subj) && (sub === '전체' || t.subtopic === sub);
+    return (subj === '전체' || sameSubject(t.subject, subj)) && (sub === '전체' || t.subtopic === sub);
   })) return true;
   if (s.parts && s.parts.some(function (p) {
-    return (subj === '전체' || p.subject === subj) && (sub === '전체' || p.subtopic === sub);
+    return (subj === '전체' || sameSubject(p.subject, subj)) && (sub === '전체' || p.subtopic === sub);
   })) return true;
   return false;
 }
