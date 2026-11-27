@@ -70071,7 +70071,6 @@ function showPlayerFallback(msg) {
     '<b>' + esc(msg || '여기서는 영상을 재생할 수 없어요') + '</b>' +
     '<p class="tiny pf-msg">앱 안 재생이 막힌 경우예요.<br>유튜브에서 바로 볼 수 있고,<br>가사와 낱말은 아래에서 그대로 이어져요.</p>' +
     (s ? '<a class="btn primary big" href="' + esc(s.url) + '" target="_blank" rel="noopener">▶ 유튜브에서 보기</a>' : '') +
-    (nextInList() ? '<button class="btn ghost sm" data-act="player-next" style="margin-top:6px;color:#fff;border-color:#8A7568">다음 영상 ▶</button>' : '') +
     '<div class="tiny pf-hint">‘다음 ▶’ 으로 다음 영상도 이어서 볼 수 있어요</div>' +
     '</div>';
 }
