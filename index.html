@@ -61736,6 +61736,13 @@ function load() {
           return !!seedMap[s.id] || s.id.indexOf('ma-nb-') !== 0;
         });
       }
+      if (ch.id === 'ch-ma-gomkki' || ch.id === 'ch-ma-yaho') {
+        /* 곰끼·수학이 야호: 시드 목록(회차·개념 순)만 남기고 순서도 시드대로 맞춘다 */
+        var mPrefix = ch.id === 'ch-ma-gomkki' ? 'ma-gk-' : 'ma-yh-';
+        ch.songs = (ch.songs || []).filter(function (s) {
+          return !!seedMap[s.id] || s.id.indexOf(mPrefix) !== 0;
+        });
+      }
       (ch.songs || []).forEach(function (s) {
         var sd = seedMap[s.id];
         if (sd) {
@@ -61757,7 +61764,7 @@ function load() {
         }
       });
       /* 시드에서 순서를 바꾼 채널은 저장된 상태도 시드 순서로 다시 정렬 */
-      if (ch.id === 'ch-en-sssabc' || ch.id === 'ch-en-uskidsworld' || ch.id === 'ch-art-boxyourself' || ch.id === 'ch-en-carl' || ch.id === 'ch-en-alphablocks' || ch.id === 'ch-en-msrachel' || ch.id === 'ch-ma-numberblocks-ko') {
+      if (ch.id === 'ch-en-sssabc' || ch.id === 'ch-en-uskidsworld' || ch.id === 'ch-art-boxyourself' || ch.id === 'ch-en-carl' || ch.id === 'ch-en-alphablocks' || ch.id === 'ch-en-msrachel' || ch.id === 'ch-ma-numberblocks-ko' || ch.id === 'ch-ma-gomkki' || ch.id === 'ch-ma-yaho') {
         var chOrder = {};
         ((seedChMap[ch.id] || {}).songs || []).forEach(function (s, i) { chOrder[s.id] = i; });
         (ch.songs || []).sort(function (a, b) {
