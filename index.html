@@ -68017,12 +68017,9 @@ function viewKidArea(area) {
       (chCardsFor('수학', false) || '') +
       '</div>';
   } else if (area === 'info') {
-    h += '<div class="vsec"><span>🌍 주제별 지식 · 다큐</span></div><div class="vlist">' +
-      areaRowCard('차', '#EF4444', '자동차 · 교통기관', '꾹이랑 부릉부릉 씽씽! · 탈것 · 기차 · 비행기', 'kid-lib-topic', 'data-k', '다큐|교통기관') +
-      areaRowCard('동', '#F59E0B', '동물 · 공룡', '동물원 · 바다생물 · 공룡', 'kid-lib-topic', 'data-k', '다큐|동물') +
-      areaRowCard('자', '#10B981', '자연 · 식물 · 날씨', '사계절 · 숲 · 곤충', 'kid-lib-topic', 'data-k', '다큐|자연') +
-      areaRowCard('우', '#6366F1', '우주 · 과학 실험', '별 · 행성 · 호기심 실험', 'kid-lib-topic', 'data-k', '다큐|과학') +
-      areaRowCard('탐', '#26A69A', '지식 · 다큐 전체 보기', '모든 다큐 영상 한눈에', 'kid-lib-sub', 'data-k', '다큐') +
+    var infoCards = chCardsFor('다큐', false, 'video');
+    h += '<div class="vsec"><span>🚗 자동차</span><span class="tiny muted" style="font-weight:500">탈것 · 교통기관</span></div><div class="vlist">' +
+      (infoCards || '<div class="tiny muted" style="padding:8px 4px">아직 추가된 지식 채널이 없어요.</div>') +
       '</div>';
   } else if (area === 'files') {
     h += viewFilesArea();
