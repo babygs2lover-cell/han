@@ -42339,6 +42339,8 @@ button.vcard{font-family:inherit;font-size:inherit;color:inherit;-webkit-appeara
    "url": "https://www.youtube.com/@officialalphablocks/videos",
    "memo": "알파벳·파닉스 애니메이션 (시즌 1~6, 한 편 3~5분, 합본 제외)",
    "subject": "영어",
+   "section": "phonics",
+   "secOrder": 3,
    "kind": "video",
    "avatar": "https://yt3.googleusercontent.com/4hW2cvLDW8yX5v3O_PzzyfHhQ0MCv_URg_OFOdElQ0jJ-BmiS0zXMUwikr-D1WMkC2taQO-S=s900-c-k-c0x00ffffff-no-rj",
    "songs": [
@@ -43850,8 +43852,9 @@ button.vcard{font-family:inherit;font-size:inherit;color:inherit;-webkit-appeara
    "url": "https://www.youtube.com/@SuperSimpleABCs/videos",
    "memo": "알파벳·파닉스 동요",
    "subject": "영어",
-   "kind": "song",
    "section": "phonics",
+   "secOrder": 1,
+   "kind": "song",
    "avatar": "https://yt3.googleusercontent.com/ytc/AIdro_k7wluC7p1yknURSGxlDmuVv94tFU-MBXJVrm5EL9l4Giw=s900-c-k-c0x00ffffff-no-rj",
    "songs": [
     {
@@ -50967,8 +50970,9 @@ button.vcard{font-family:inherit;font-size:inherit;color:inherit;-webkit-appeara
    "url": "https://www.youtube.com/playlist?list=PLbaarg_PbkcvAhqFO0rbhfjNrqGhyPV1Q",
    "memo": "슈퍼 매직 파닉스 1~4권 (알파벳·단모음·장모음·이중자음)",
    "subject": "영어",
-   "kind": "song",
    "section": "phonics",
+   "secOrder": 2,
+   "kind": "song",
    "avatar": "https://yt3.googleusercontent.com/whoIuBL0dLV3NdH3l5H24sN_qIEW5iVvErTZCMcSr8PIyKj1D46pGEyuWWsrDsmjxFcvQm0Yqg=s900-c-k-c0x00ffffff-no-rj",
    "songs": [
     {
@@ -59853,13 +59857,14 @@ button.vcard{font-family:inherit;font-size:inherit;color:inherit;-webkit-appeara
    "subject": "영어",
    "kind": "song",
    "solo": true,
-   "memo": "채널 폴더 없이 🎵 영어동요 맨 앞에 바로 보이는 단독 영상",
+   "memo": "채널 폴더 없이 🔤 파닉스 맨 앞에 바로 보이는 단독 영상",
    "songs": [
     {
      "id": "en-solo-phonics2",
      "subject": "영어",
      "kind": "song",
      "subtopic": "알파벳 · 파닉스",
+     "section": "phonics",
      "ep": 1,
      "title": "Phonics Song 2",
      "subFull": "KidsTV123 · A~Z 알파벳 파닉스 노래",
@@ -60349,6 +60354,7 @@ function load() {
       if (seedChMap[ch.id] && seedChMap[ch.id].avatar) ch.avatar = seedChMap[ch.id].avatar;
       /* 구별(section: phonics 등)도 시드 값을 따른다 — 기존 폰의 저장 상태에도 반영 */
       if (seedChMap[ch.id] && seedChMap[ch.id].section) ch.section = seedChMap[ch.id].section;
+      if (seedChMap[ch.id] && seedChMap[ch.id].secOrder !== undefined) ch.secOrder = seedChMap[ch.id].secOrder;
       if (ch.id === 'ch-omc' || ch.id === 'ch-en-helpercars') {
         ch.songs = (ch.songs || []).filter(function (s) {
           return !!seedMap[s.id] || (s.id.indexOf('omc-') !== 0 && s.id.indexOf('en-hc-') !== 0);
@@ -60383,6 +60389,7 @@ function load() {
           if (sd.coverUrl && !s.coverUrl) s.coverUrl = sd.coverUrl;
           if (sd.note && !s.note) s.note = sd.note;
           if (sd.subtopic) s.subtopic = sd.subtopic;
+          if (sd.section) s.section = sd.section;
           if (sd.subject) s.subject = sd.subject;
           if (sd.ep !== undefined) s.ep = sd.ep;
           if (sd.subFull !== undefined) s.subFull = sd.subFull;
@@ -61431,6 +61438,30 @@ function kidTabActiveKey() {
   if (App.view === 'library' && App.lib.subject === '기타') return 'art';
   if (App.view === 'home' && App.kidArea === 'files') return 'files';
   return 'today';
+}
+
+/* 아이 모드 영역(kidArea) ↔ 목록 과목(lib.subject) ↔ 채널 과목 변환 */
+var AREA_TO_LIBSUBJ = { en: '영어', ko: '한글', ma: '수학', info: '다큐', art: '기타' };
+var LIBSUBJ_TO_AREA = { '영어': 'en', '한글': 'ko', '수학': 'ma', '다큐': 'info', '기타': 'art' };
+var CHSUBJ_TO_LIBSUBJ = { '영어': '영어', '한글': '한글', '수학': '수학', '다큐': '다큐', '지식': '다큐', '미술': '기타', '기타': '기타' };
+function libSubjectOfArea(area) { return AREA_TO_LIBSUBJ[area] || ''; }
+function areaOfLibSubject(subj) { return LIBSUBJ_TO_AREA[subj] || ''; }
+function libSubjectOfChannel(ch) {
+  if (!ch) return '';
+  if (ch.subject && CHSUBJ_TO_LIBSUBJ[ch.subject]) return CHSUBJ_TO_LIBSUBJ[ch.subject];
+  var cnt = {}, best = '', n = 0;
+  (ch.songs || []).forEach(function (s) {
+    if (!s.subject) return;
+    cnt[s.subject] = (cnt[s.subject] || 0) + 1;
+    if (cnt[s.subject] > n) { n = cnt[s.subject]; best = s.subject; }
+  });
+  return CHSUBJ_TO_LIBSUBJ[best] || best || '';
+}
+/* 채널 화면에서 ⬅ 돌아갈 때: 지금 과목의 영역 화면(🇺🇸 영어 등)으로 돌려보낸다 */
+function backToAreaOfLibSubject(subj) {
+  var area = areaOfLibSubject(subj) || App.kidArea || '';
+  if (area) App.kidArea = area;
+  go('home');
 }
 function renderChrome() {
   var name = S ? S.childName : '한결';
@@ -63417,12 +63448,15 @@ function viewFilesArea() {
 }
 
 /* 채널 폴더 없이 목록 맨 앞에 바로 놓는 단독 영상 카드 (solo 채널의 곡) */
-function soloSongCards(subj) {
+function soloSongCards(subj, onlySection) {
   var out = '';
   (S.channels || []).forEach(function (ch) {
     if (!ch.solo) return;
     (ch.songs || []).forEach(function (s) {
       if (subj && s.subject !== subj) return;
+      /* 단독 곡도 구별(section)을 따른다 — 'phonics' 곡은 🔤 파닉스로, 나머지는 동요로 */
+      if (onlySection === 'phonics' && s.section !== 'phonics') return;
+      if (onlySection === 'songs' && s.section === 'phonics') return;
       if (!s.vid && !s.hasAudio && !s.audioUrl) return;
       out += soloCard(s);
     });
@@ -63476,13 +63510,15 @@ function viewKidArea(area) {
 
   var palette = ['#5E60CE', '#F59E0B', '#EC4899', '#EA580C', '#10B981', '#0EA5E9'];
   function chCardsFor(subj, wantBooks, onlyKind, onlyTier, onlySection) {
-    var out = '';
+    var rows = [];
     var ix = 0;
-    S.channels.forEach(function (ch) {
+    S.channels.forEach(function (ch, chi) {
       if (ch.solo) return;
       /* 구별(section): 'phonics' 채널은 🔤 파닉스로, 나머지 동요 채널은 🎵 영어동요로 */
       if (onlySection === 'phonics' && ch.section !== 'phonics') return;
       if (onlySection === 'songs' && ch.section === 'phonics') return;
+      /* 구별이 있는 채널은 그 구별에서만 보인다 (🎬 첫 영어 영상·📖 이야기 영상에서 빠짐) */
+      if (!onlySection && ch.section === 'phonics') return;
       var list = ch.songs.filter(function (s) {
         if (s.subject !== subj) return false;
         if (onlyKind && (s.kind || 'song') !== onlyKind) return false;
@@ -63497,21 +63533,29 @@ function viewKidArea(area) {
       var shortIco = esc((ch.name || '영').replace(/[^가-힣A-Za-z0-9]/g, '').slice(0, 1) || '▶');
       var act = wantBooks ? 'kid-books-ch' : 'kid-resume-ch';
       var unit = wantBooks ? '권' : '편';
-      out += areaRowCard(shortIco, col, ch.name, list.length + unit + ' · 눌러서 보기', act, 'data-id', ch.id, '', ch.avatar || '');
+      rows.push({
+        order: onlySection ? (ch.secOrder || 0) : 0,
+        idx: chi,
+        html: areaRowCard(shortIco, col, ch.name, list.length + unit + ' · 눌러서 보기', act, 'data-id', ch.id, '', ch.avatar || '')
+      });
     });
-    return out;
+    /* 같은 구별 안에서는 secOrder 순서(슈퍼심플 ABC → 슈퍼파닉스송 → 알파블럭스) */
+    rows.sort(function (a, b) { return (a.order - b.order) || (a.idx - b.idx); });
+    return rows.map(function (r) { return r.html; }).join('');
   }
 
   if (area === 'en') {
     var enSongCards = chCardsFor('영어', false, 'song', null, 'songs');
-    var enPhonicsCards = chCardsFor('영어', false, 'song', null, 'phonics');
+    var enPhonicsCards = chCardsFor('영어', false, null, null, 'phonics');
+    var enSoloSongs = soloSongCards('영어', 'songs');
+    var enSoloPhonics = soloSongCards('영어', 'phonics');
     var enFirstCards = chCardsFor('영어', false, 'video', 'first');
     var enStoryCards = chCardsFor('영어', false, 'video', 'story');
     h += '<div class="vsec"><span>🎵 영어동요</span></div><div class="vlist">' +
-      soloSongCards('영어') + enSongCards +
+      enSoloSongs + enSongCards +
       '</div>';
     h += '<div class="vsec"><span>🔤 파닉스</span><span class="tiny muted" style="font-weight:500">알파벳 소리 · ABC</span></div><div class="vlist">' +
-      (enPhonicsCards || '') +
+      (enSoloPhonics + enPhonicsCards || '') +
       '</div>';
     h += '<div class="vsec"><span>🎬 첫 영어 영상</span><span class="tiny muted" style="font-weight:500">말 트이기 전 · 기초 영어</span></div><div class="vlist">' +
       (enFirstCards || '') +
@@ -68022,8 +68066,10 @@ function onClick(e) {
       }
       case 'kid-resume-ch': {
         App.lib.ch = id || '전체';
-        App.lib.subject = '전체'; App.lib.sub = '전체'; App.lib.stage = '전체';
         var chOpen = chById(id);
+        /* 채널을 열어도 원래 과목(영어·한글·수학 등)을 유지 — 하단 탭·돌아가기가 과목 화면으로 돌아가게 */
+        App.lib.subject = libSubjectOfArea(App.kidArea) || libSubjectOfChannel(chOpen) || App.lib.subject || '전체';
+        App.lib.sub = '전체'; App.lib.stage = '전체';
         if (chOpen) { noteLastChannel(chOpen); save(); }
         go('library');
         break;
@@ -68141,6 +68187,8 @@ function onClick(e) {
       case 'lib-pick-ch':
         App.lib.ch = id || '전체';
         App.lib.sub = '전체';
+        /* 아이 모드에서 채널 화면의 ⬅ 돌아가기: 섞인 채널 목록 대신 원래 과목 화면으로 */
+        if (!id && modeOf() === 'kid') { backToAreaOfLibSubject(App.lib.subject); break; }
         render(); break;
       case 'pick-toggle': {
         var ps = songById(id);
