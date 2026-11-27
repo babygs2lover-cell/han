@@ -43851,6 +43851,7 @@ button.vcard{font-family:inherit;font-size:inherit;color:inherit;-webkit-appeara
    "memo": "알파벳·파닉스 동요",
    "subject": "영어",
    "kind": "song",
+   "section": "phonics",
    "avatar": "https://yt3.googleusercontent.com/ytc/AIdro_k7wluC7p1yknURSGxlDmuVv94tFU-MBXJVrm5EL9l4Giw=s900-c-k-c0x00ffffff-no-rj",
    "songs": [
     {
@@ -50967,6 +50968,7 @@ button.vcard{font-family:inherit;font-size:inherit;color:inherit;-webkit-appeara
    "memo": "슈퍼 매직 파닉스 1~4권 (알파벳·단모음·장모음·이중자음)",
    "subject": "영어",
    "kind": "song",
+   "section": "phonics",
    "avatar": "https://yt3.googleusercontent.com/whoIuBL0dLV3NdH3l5H24sN_qIEW5iVvErTZCMcSr8PIyKj1D46pGEyuWWsrDsmjxFcvQm0Yqg=s900-c-k-c0x00ffffff-no-rj",
    "songs": [
     {
@@ -60345,6 +60347,8 @@ function load() {
     (d.channels || []).forEach(function (sc) { seedChMap[sc.id] = sc; });
     (st.channels || []).forEach(function (ch) {
       if (seedChMap[ch.id] && seedChMap[ch.id].avatar) ch.avatar = seedChMap[ch.id].avatar;
+      /* 구별(section: phonics 등)도 시드 값을 따른다 — 기존 폰의 저장 상태에도 반영 */
+      if (seedChMap[ch.id] && seedChMap[ch.id].section) ch.section = seedChMap[ch.id].section;
       if (ch.id === 'ch-omc' || ch.id === 'ch-en-helpercars') {
         ch.songs = (ch.songs || []).filter(function (s) {
           return !!seedMap[s.id] || (s.id.indexOf('omc-') !== 0 && s.id.indexOf('en-hc-') !== 0);
@@ -63471,11 +63475,14 @@ function viewKidArea(area) {
   }
 
   var palette = ['#5E60CE', '#F59E0B', '#EC4899', '#EA580C', '#10B981', '#0EA5E9'];
-  function chCardsFor(subj, wantBooks, onlyKind, onlyTier) {
+  function chCardsFor(subj, wantBooks, onlyKind, onlyTier, onlySection) {
     var out = '';
     var ix = 0;
     S.channels.forEach(function (ch) {
       if (ch.solo) return;
+      /* 구별(section): 'phonics' 채널은 🔤 파닉스로, 나머지 동요 채널은 🎵 영어동요로 */
+      if (onlySection === 'phonics' && ch.section !== 'phonics') return;
+      if (onlySection === 'songs' && ch.section === 'phonics') return;
       var list = ch.songs.filter(function (s) {
         if (s.subject !== subj) return false;
         if (onlyKind && (s.kind || 'song') !== onlyKind) return false;
@@ -63496,11 +63503,15 @@ function viewKidArea(area) {
   }
 
   if (area === 'en') {
-    var enSongCards = chCardsFor('영어', false, 'song');
+    var enSongCards = chCardsFor('영어', false, 'song', null, 'songs');
+    var enPhonicsCards = chCardsFor('영어', false, 'song', null, 'phonics');
     var enFirstCards = chCardsFor('영어', false, 'video', 'first');
     var enStoryCards = chCardsFor('영어', false, 'video', 'story');
     h += '<div class="vsec"><span>🎵 영어동요</span></div><div class="vlist">' +
       soloSongCards('영어') + enSongCards +
+      '</div>';
+    h += '<div class="vsec"><span>🔤 파닉스</span><span class="tiny muted" style="font-weight:500">알파벳 소리 · ABC</span></div><div class="vlist">' +
+      (enPhonicsCards || '') +
       '</div>';
     h += '<div class="vsec"><span>🎬 첫 영어 영상</span><span class="tiny muted" style="font-weight:500">말 트이기 전 · 기초 영어</span></div><div class="vlist">' +
       (enFirstCards || '') +
