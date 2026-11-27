@@ -65187,7 +65187,7 @@ function viewLibraryKid() {
     var videoChs = chList.filter(function (ch) { return !ch.songs.some(isBookItem); });
     var bookChs = chList.filter(function (ch) { return ch.songs.some(isBookItem); });
     var h = '<div class="row spread" style="margin-bottom:8px;align-items:center">' +
-      '<button class="btn sm ghost" data-act="go" data-v="home">← 돌아가기</button>' +
+      '<button class="btn sm ghost" data-act="kid-back-area" data-k="' + esc(App.lib.subject || '') + '">← 돌아가기</button>' +
       '<button class="btn sm ghost" data-act="toggle-mode">⚙️ 엄마 설정</button>' +
       '</div>';
     h += '<div class="searchbox" style="margin-bottom:10px">🔎<input id="lib-q" type="text" placeholder="제목으로 찾기" value="' + esc(App.lib.q) + '"></div>';
@@ -65652,7 +65652,7 @@ function viewBooks() {
   var curSerHit = isSeries && App.books.roadSer ? roadSeriesById(App.books.roadSer) : null;
   var curCh = (isSeries && !curSerHit && App.books.ch !== '전체') ? bookChs.filter(function (c) { return c.id === App.books.ch; })[0] : null;
 
-  var backAct = 'data-act="go" data-v="home"';
+  var backAct = 'data-act="kid-back-area" data-k="영어"';
   var headTitle = '📚 영어 원서 서재';
   if (curSerHit) {
     backAct = 'data-act="books-road-ser" data-k=""';
@@ -69550,6 +69550,12 @@ function onClick(e) {
         App.lib.showSearch = !App.lib.showSearch; render();
         if (App.lib.showSearch) { var lq = document.getElementById('lib-q'); if (lq) lq.focus(); }
         break;
+      case 'kid-back-area': {
+        /* ⬅ 돌아가기: 오늘할일(home)이 아니라 지금 보던 과목 영역 화면으로 */
+        var backSubj = btn.getAttribute('data-k') || App.lib.subject || '';
+        if (modeOf() === 'kid') { backToAreaOfLibSubject(backSubj); break; }
+        go('home'); break;
+      }
       case 'lib-pick-ch':
         App.lib.ch = id || '전체';
         App.lib.sub = '전체';
