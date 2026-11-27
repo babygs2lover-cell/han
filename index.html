@@ -866,12 +866,29 @@ body.theater .bar-peek{display:flex;position:absolute;right:10px;top:calc(10px +
   background:rgba(18,12,9,.5);color:#fff;font-size:16px;line-height:1;border:1px solid rgba(255,255,255,.22);
   opacity:0;pointer-events:none;transition:opacity .3s ease;}
 body.theater .bar-peek.on{opacity:.9;pointer-events:auto;}
-/* 세로 화면(가로 고정이 안 되는 기기): 영상을 옆으로 눕혀 꽉 채운다 */
+/* 세로 화면(가로 고정이 안 되는 기기): 영상을 옆으로 눕혀 꽉 채운다.
+   이미 가로이거나 기기 자체 전체화면(fs-native)이면 회전하지 않고 가로 화면을 그대로 채운다 */
 @media (orientation: portrait){
-  body.theater .player-wrap{inset:auto;top:50%;left:50%;width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg);padding:0 env(safe-area-inset-bottom) 0 env(safe-area-inset-top);}
+  body.theater:not(.fs-native) .player-wrap{inset:auto;top:50%;left:50%;width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg);padding:0 env(safe-area-inset-bottom) 0 env(safe-area-inset-top);}
   body.theater .player-frame{height:100%;}
-  body.theater .player-bar{padding:14px 14px calc(10px + env(safe-area-inset-bottom));}
 }
+
+/* --- 크게 보기: 조작 단추는 영상 16:9 바깥 검은 여백(레터박스)에만 둔다 --- */
+body.theater .player-bar{display:none;}
+.theater-ctl{display:none;}
+body.theater .theater-ctl{display:block;position:absolute;inset:0;z-index:12;pointer-events:none;}
+.theater-ctl .tc{position:absolute;display:flex;gap:6px;pointer-events:auto;transition:opacity .35s ease;}
+.theater-ctl.hide .tc{opacity:0;pointer-events:none;}
+.theater-ctl.pe .tc{pointer-events:none;}
+.theater-ctl.lb-h .tc-a{top:0;left:0;right:0;height:var(--lb-top,0px);align-items:center;justify-content:space-between;padding:0 12px;}
+.theater-ctl.lb-h .tc-b{bottom:0;left:0;right:0;height:var(--lb-bottom,0px);align-items:center;justify-content:flex-end;padding:0 12px;}
+.theater-ctl.lb-v .tc-a{left:0;top:0;bottom:0;width:var(--lb-left,0px);flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0;}
+.theater-ctl.lb-v .tc-b{right:0;top:0;bottom:0;width:var(--lb-right,0px);flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0;}
+.tcbtn{border:1px solid rgba(255,255,255,.3);background:rgba(16,12,10,.62);color:#fff;border-radius:999px;
+  padding:8px 7px;font-size:11.5px;font-weight:800;line-height:1.05;letter-spacing:-.3px;
+  display:inline-flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap;max-width:100%;}
+.tcbtn:active{transform:scale(.96);}
+.tcbtn.on{background:#F6A21A;border-color:#F6A21A;color:#231408;}
 .player-fallback{
   position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:8px;color:#fff;text-align:center;padding:18px;background:#2a211c;
@@ -890,6 +907,36 @@ body.theater .next-overlay{position:absolute;z-index:14;}
 .nx-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
 .nx-btns .btn{flex:1 1 40%;padding:10px 8px;font-size:13.5px;letter-spacing:-.3px;}
 .nx-btns .btn.primary{flex:1 1 100%;}
+
+/* --- 영상이 끝난 화면 (별·다 봤어요 · 다음 편 카드) --- */
+.next-overlay{background:#17171A;display:none;padding:0;overflow-y:auto;place-items:stretch;}
+.next-overlay.on{display:block;}
+body.theater .next-overlay{position:absolute;inset:0;z-index:14;}
+.nx-panel{max-width:460px;margin:0 auto;padding:20px 16px calc(20px + env(safe-area-inset-bottom));color:#fff;}
+.nx-head{display:flex;gap:10px;align-items:flex-start;margin:4px 0 16px;}
+.nx-emoji{font-size:28px;line-height:1.1;}
+.nx-headtxt{min-width:0;}
+.nx-title{display:block;font-size:23px;font-weight:900;letter-spacing:-.6px;color:#fff;line-height:1.2;}
+.nx-sub{font-size:12.5px;color:#B7B7C0;margin-top:5px;font-weight:700;line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.nx-acts{display:flex;gap:8px;}
+.nx-act{flex:1;background:#2B2B31;color:#fff;border:0;border-radius:16px;padding:12px 6px;
+  font-size:12.5px;font-weight:800;letter-spacing:-.3px;display:flex;flex-direction:column;align-items:center;gap:6px;line-height:1.1;}
+.nx-act b{font-size:17px;line-height:1;}
+.nx-act:active{transform:scale(.97);}
+.nx-nextcard{display:block;width:100%;margin:14px 0 0;background:#37A0E6;border:0;border-radius:18px;
+  padding:12px 12px 14px;color:#fff;text-align:center;box-shadow:0 6px 0 rgba(0,0,0,.18);}
+.nx-thumb{position:relative;display:block;width:136px;height:76px;margin:0 auto;border-radius:10px;overflow:hidden;background:#0E0E10;}
+.nx-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.nx-count{position:absolute;inset:0;display:grid;place-items:center;font-size:28px;font-weight:900;color:#fff;
+  background:rgba(0,0,0,.34);text-shadow:0 2px 8px rgba(0,0,0,.5);}
+.nx-lead{display:block;font-size:12.5px;font-weight:800;margin-top:10px;opacity:.95;}
+.nx-next{display:block;font-size:17px;font-weight:900;letter-spacing:-.4px;margin-top:3px;line-height:1.3;
+  background:transparent;color:#fff;padding:0;border-radius:0;}
+.nx-foot{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;
+  font-size:12px;color:#A9A9B2;font-weight:700;flex-wrap:wrap;text-align:center;}
+.nx-stop{background:#2B2B31;color:#fff;border:0;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;}
+.nx-stop:active{transform:scale(.96);}
 .nextrow{max-width:320px;}
 .pf-badge{font-size:40px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3));}
 .player-fallback b{font-size:17px;}
@@ -64955,6 +65002,8 @@ function normalizeSongs() {
     ch.id = ch.id || uid('ch');
     ch.songs = ch.songs || [];
     if (!ch.repeatMode) ch.repeatMode = 'next';
+    /* 예전 '1곡 반복'(loop-one)은 없어진 상태 — 반복재생으로 자연스럽게 옮긴다 */
+    if (ch.repeatMode === 'loop-one') ch.repeatMode = 'loop-all';
     if (ch.onlySelected === undefined) ch.onlySelected = false;
     if (ch.dailyLimit === undefined) ch.dailyLimit = 0;
     ch.songs.forEach(function (s) {
@@ -68488,11 +68537,12 @@ function songListHtml() {
     var grp = byCh[cid];
     var ch = grp.ch;
     var rMode = ch.repeatMode || 'next';
-    var rLabel = rMode === 'loop-one' ? '🔂 1곡 반복' : rMode === 'loop-all' ? '🔁 전체 반복' : '▶ 순서대로';
+    var rOn = rMode === 'loop-all';
+    var rLabel = '🔁 반복재생';
     var chPlays = grp.list.reduce(function (acc, x) { return acc + playCountOf(x.id); }, 0);
     html += '<div class="channelbar"><h3>📺 ' + esc(ch.name) + '</h3>' +
       '<span class="count">' + grp.list.length + '개' + (chPlays ? ' · ▶ ' + chPlays + '회' : '') + '</span>' +
-      '<button class="chip sm ' + (rMode !== 'next' ? 'on sky' : '') + '" data-act="ch-repeat-cycle" data-id="' + ch.id + '" title="채널 반복 방식 바꾸기">' + rLabel + '</button>' +
+      '<button class="chip sm ' + (rOn ? 'on sky' : '') + '" data-act="ch-repeat-cycle" data-id="' + ch.id + '" title="켜면 채널 끝에서 처음으로 돌아가 계속 틀어요">' + rLabel + '</button>' +
       '<button class="chip sm ' + (ch.onlySelected ? 'on coral' : '') + '" data-act="ch-only-picked" data-id="' + ch.id + '" title="아이 모드에서 ⭐ 고른 것만 보이기">⭐ 고른 것만</button>' +
       '<button class="btn sm ghost" data-act="edit-channel" data-id="' + ch.id + '">채널 수정</button>' +
       '</div>';
@@ -69722,9 +69772,12 @@ function markPlayedOnce(id) {
 }
 
 function playerRepeatMode() {
-  if (App.player && App.player.repeat) return App.player.repeat;
-  var ch = App.player ? channelOf(App.player.id) : null;
-  return (ch && ch.repeatMode) || 'next';
+  var m = (App.player && App.player.repeat) ? App.player.repeat : null;
+  if (!m) {
+    var ch = App.player ? channelOf(App.player.id) : null;
+    m = (ch && ch.repeatMode) || 'next';
+  }
+  return m === 'loop-all' ? 'loop-all' : 'next';   /* 예전 1곡 반복은 반복재생으로 취급 */
 }
 
 function nextInList() {
@@ -69757,7 +69810,8 @@ function viewPlayer() {
   infoBits += '<span class="pill sun" id="player-playcount">▶ ' + playCountOf(s.id) + '회 재생</span>';
 
   var rMode = playerRepeatMode();
-  var rLabel = rMode === 'loop-one' ? '🔂 1곡 반복' : rMode === 'loop-all' ? '🔁 전체 반복' : '▶ 순서대로';
+  /* 반복은 🔁 반복재생 한 가지 — 켜면 채널 끝에서 처음으로 돌아가고, 끄면 마지막 편에서 멈춘다 */
+  var rLabel = '🔁 반복재생';
   var hasAudio = !!(s.hasAudio || s.audioUrl);
 
   var html = '<div class="player-page">' +
@@ -69776,19 +69830,39 @@ function viewPlayer() {
     '<div class="player-bar">' +
     '<button class="btn sm ghost" data-act="player-close">← 목록</button>' +
     '<button class="btn sm sky" data-act="player-expand">⛶ 화면</button>' +
-    '<button class="btn sm ' + (rMode !== 'next' ? 'sun' : 'ghost') + '" data-act="player-repeat">' + rLabel + '</button>' +
+    '<button class="btn sm ' + (rMode === 'loop-all' ? 'sun' : 'ghost') + '" data-act="player-repeat" aria-pressed="' + (rMode === 'loop-all' ? 'true' : 'false') + '">' + rLabel + '</button>' +
     (hasAudio && s.vid ? '<button class="btn sm mint" data-act="player-toggle-audio">' + (App.player.audioMode ? '🎬 영상으로 보기' : '🎧 음원으로 듣기') + '</button>' : '') +
     (nxs ? '<button class="btn sm ghost" data-act="player-next">다음 ▶</button>' : '') +
     '</div>' +
+    /* 크게 보기: 단추를 영상 16:9 바깥 레터박스에 둔다 (영상을 가리지 않음) */
+    '<div class="theater-ctl" id="theater-ctl">' +
+    '<div class="tc tc-a">' +
+    '<button class="tcbtn" data-act="player-close" aria-label="그만 보기">✕</button>' +
+    '<button class="tcbtn wide" data-act="player-expand">작게 보기</button>' +
+    '<button class="tcbtn" data-act="player-tv" aria-label="TV 전체화면">📺 TV</button>' +
+    '</div>' +
+    '<div class="tc tc-b">' +
+    '<button class="tcbtn' + (rMode === 'loop-all' ? ' on' : '') + '" data-act="player-repeat" aria-pressed="' + (rMode === 'loop-all' ? 'true' : 'false') + '" aria-label="반복재생" title="반복재생">🔁</button>' +
+    '<button class="tcbtn wide" data-act="player-replay">⟲ 한 번 더</button>' +
+    (nxs ? '<button class="tcbtn wide" data-act="player-next">다음 편 ▶</button>' : '') +
+    '</div>' +
+    '</div>' +
     '<button class="bar-peek" id="bar-peek" type="button" aria-label="조작 단추 보기">☰</button>' +
     '<div class="next-overlay" id="next-overlay">' +
-    '<div class="nx-card">' +
-    '<div class="nx-emoji">🎬</div>' +
-    '<b class="nx-title" id="nx-title">3초 뒤 다음 영상으로 넘어가요</b>' +
-    '<div class="nx-count" id="nx-count">3</div>' +
-    '<div class="nx-sub" id="nx-sub">잠깐만 기다려 주세요</div>' +
-    (nxs ? '<div class="nx-next" id="nx-next">' + esc(cleanTitle(nxs.title)) + '</div>' : '<div class="nx-next" id="nx-next">마지막 영상이에요</div>') +
-    '<div class="nx-btns" id="nx-btns">' + nxButtonsHtml(!!nxs) + '</div>' +
+    '<div class="nx-panel">' +
+    '<div class="nx-head"><span class="nx-emoji" id="nx-emoji">⭐</span>' +
+    '<div class="nx-headtxt"><b class="nx-title" id="nx-title">다 봤어요!</b>' +
+    '<div class="nx-sub" id="nx-sub">' + esc(cleanTitle(s.title)) + '</div></div></div>' +
+    '<div class="nx-acts nx-btns" id="nx-btns">' +
+    nxButtonsHtml(!!nxs) +
+    '</div>' +
+    '<button class="nx-nextcard" id="nx-nextcard" data-act="player-next">' +
+    '<span class="nx-thumb"><img id="nx-thumbimg" src="' + (nxs && nxs.vid ? 'https://i.ytimg.com/vi/' + esc(nxs.vid) + '/mqdefault.jpg' : '') + '" alt=""><span class="nx-count" id="nx-count">4</span></span>' +
+    '<span class="nx-lead">다음 편 · 4초 뒤 시작</span>' +
+    '<b class="nx-next" id="nx-next">' + (nxs ? esc(cleanTitle(nxs.title)) : '마지막 편이에요') + '</b>' +
+    '</button>' +
+    '<div class="nx-foot"><span id="nx-hint">' + (nxs ? '4초 뒤에 다음 편이 저절로 시작돼요' : '한 번 더 보거나 처음으로 돌아갈 수 있어요') + '</span>' +
+    '<button class="nx-stop" data-act="player-stop">✋ 멈추기</button></div>' +
     '</div></div>' +
     '</div>' +
 
@@ -69896,7 +69970,7 @@ function mountPlayer(vid) {
       videoId: vid,
       width: '100%',
       height: '100%',
-      playerVars: { autoplay: 1, rel: 0, playsinline: 1, modestbranding: 1, start: (App.player && App.player.startSec) ? Math.floor(App.player.startSec) : undefined, origin: location.origin === 'null' ? undefined : location.origin },
+      playerVars: { autoplay: 1, rel: 0, playsinline: 1, modestbranding: 1, fs: 1, start: (App.player && App.player.startSec) ? Math.floor(App.player.startSec) : undefined, origin: location.origin === 'null' ? undefined : location.origin },
       events: {
         onReady: function (e) {
           YTP.videoId = vid;
@@ -69996,53 +70070,56 @@ function showPlayerFallback(msg) {
 
 function onVideoEnded() {
   var curCh = App.player ? channelOf(App.player.id) : null;
-  if (modeOf() === 'kid' && curCh && isDailyLimitReached(curCh)) {
-    var ov0 = document.getElementById('next-overlay');
-    if (ov0) {
-      var tt = ov0.querySelector('.nx-title'); if (tt) tt.textContent = '🌙 오늘은 여기까지!';
-      var sub = ov0.querySelector('.nx-sub'); if (sub) sub.textContent = '오늘 볼 편수(' + curCh.dailyLimit + '편)를 다 봤어요';
-      var em0 = ov0.querySelector('.nx-emoji'); if (em0) em0.textContent = '🌙';
-      var nx0 = ov0.querySelector('.nx-next'); if (nx0) nx0.textContent = '내일 또 만나요';
-      var nc = document.getElementById('nx-count'); if (nc) nc.textContent = '🌙';
-      var btns0 = ov0.querySelector('.nx-btns');
-      if (btns0) btns0.innerHTML = '<button class="btn primary" data-act="player-close">목록으로</button>';
-      ov0.classList.add('on');
-    }
-    return;
-  }
-  if (playerRepeatMode() === 'loop-one') {
-    YTP.countedId = null;
-    var au = document.getElementById('audio-player');
-    if (au) { au.currentTime = 0; try { au.play(); } catch (e) { } return; }
-    if (YTP.player && YTP.player.seekTo) { try { YTP.player.seekTo(0, true); YTP.player.playVideo(); return; } catch (e) { } }
-  }
   var curSong = App.player ? songById(App.player.id) : null;
-  var nx = nextInList();
   var ov = document.getElementById('next-overlay');
   if (!ov) return;
-  var ns = nx ? songById(nx) : null;
-  /* 카운트다운 카드 글·단추를 매번 새로 맞춘다 (퀴즈·오늘은 여기까지 뒤에 다시 끝난 경우) */
-  var t = ov.querySelector('.nx-next');
-  if (t) t.textContent = ns ? cleanTitle(ns.title) : '마지막 영상이에요';
-  var tt2 = ov.querySelector('.nx-title');
-  if (tt2) tt2.textContent = ns ? '3초 뒤 다음 영상으로 넘어가요' : '마지막 영상이에요';
-  var sb2 = ov.querySelector('.nx-sub');
-  if (sb2) sb2.textContent = ns ? '잠깐만 기다려 주세요' : '한 번 더 보거나 목록으로 돌아갈 수 있어요';
-  var em2 = ov.querySelector('.nx-emoji');
-  if (em2) em2.textContent = '🎬';
+  var tt = ov.querySelector('.nx-title');
+  var sb = ov.querySelector('.nx-sub');
+  var em = ov.querySelector('.nx-emoji');
   var btns = ov.querySelector('.nx-btns');
-  if (btns) btns.innerHTML = nxButtonsHtml(!!ns);
-  ov.classList.add('on');
-  YTP.overlayOn = true;
-  if (!ns) {
-    var nc0 = document.getElementById('nx-count');
-    if (nc0) nc0.textContent = '🎬';
+  var card = document.getElementById('nx-nextcard');
+  var img = document.getElementById('nx-thumbimg');
+  var lead = ov.querySelector('.nx-lead');
+  var nxt = ov.querySelector('.nx-next');
+  var hint = document.getElementById('nx-hint');
+  var cnt = document.getElementById('nx-count');
+
+  /* 오늘 볼 편수를 다 봤으면 다음 편으로 넘어가지 않고 여기서 멈춘다 */
+  if (modeOf() === 'kid' && curCh && isDailyLimitReached(curCh)) {
+    if (tt) tt.textContent = '🌙 오늘은 여기까지!';
+    if (sb) sb.textContent = '오늘 볼 편수(' + curCh.dailyLimit + '편)를 다 봤어요';
+    if (em) em.textContent = '🌙';
+    if (card) card.style.display = 'none';
+    if (hint) hint.textContent = '내일 또 만나요';
+    if (btns) btns.innerHTML = '<button class="nx-act" data-act="player-home"><b>🏠</b>처음으로</button>';
+    ov.classList.add('on');
+    YTP.overlayOn = true;
+    clearInterval(YTP.timer); YTP.timer = null;
     return;
   }
-  YTP.count = 3;
-  var el = document.getElementById('nx-count');
-  if (el) el.textContent = '3';
-  clearInterval(YTP.timer);
+
+  if (tt) tt.textContent = '다 봤어요!';
+  if (sb) sb.textContent = curSong ? cleanTitle(curSong.title) : '';
+  if (em) em.textContent = '⭐';
+  if (btns) btns.innerHTML = nxButtonsHtml();
+
+  var nx = nextInList();
+  var ns = nx ? songById(nx) : null;
+  if (card) card.style.display = ns ? '' : 'none';
+  if (lead) lead.textContent = '다음 편 · 4초 뒤 시작';
+  if (ns) {
+    if (img) img.src = ns.vid ? ('https://i.ytimg.com/vi/' + ns.vid + '/mqdefault.jpg') : '';
+    if (nxt) nxt.textContent = cleanTitle(ns.title);
+    if (hint) hint.textContent = '4초 뒤에 다음 편이 저절로 시작돼요';
+  } else {
+    if (hint) hint.textContent = '마지막 편이에요 · 한 번 더 보거나 처음으로 돌아갈 수 있어요';
+  }
+  ov.classList.add('on');
+  YTP.overlayOn = true;
+  clearInterval(YTP.timer); YTP.timer = null;
+  if (!ns) { if (cnt) cnt.textContent = '✓'; return; }
+  YTP.count = 4;
+  if (cnt) cnt.textContent = '4';
   YTP.timer = setInterval(function () {
     YTP.count--;
     var c = document.getElementById('nx-count');
@@ -70152,12 +70229,11 @@ function showBookEndQuiz(ov, curSong, ns) {
   renderQ();
 }
 
-/* 끝났을 때 카드의 단추 — 다음 편이 있으면 '지금 바로 다음'이 맨 위에 크게 */
-function nxButtonsHtml(hasNext) {
-  return (hasNext ? '<button class="btn primary" data-act="player-next">지금 바로 다음 ▶</button>'
-                 : '<button class="btn primary" data-act="player-close">목록으로</button>') +
-    '<button class="btn ghost" data-act="player-stop">✋ 멈추기</button>' +
-    '<button class="btn sun" data-act="player-replay">⟲ 한 번 더</button>';
+/* 끝났을 때 단추 3가지: 이전 편 · 한 번 더 · 처음으로 */
+function nxButtonsHtml() {
+  return '<button class="nx-act" data-act="player-prev"><b>‹</b>이전 편</button>' +
+    '<button class="nx-act" data-act="player-replay"><b>⟲</b>한 번 더</button>' +
+    '<button class="nx-act" data-act="player-home"><b>🏠</b>처음으로</button>';
 }
 
 function stopAutoNext() {
@@ -70184,19 +70260,48 @@ function replayCurrent() {
   }
 }
 
-function playNext() {
-  stopAutoNext();
-  var nx = nextInList();
-  if (!nx) { toast('마지막 영상이에요'); return; }
-  var ns = songById(nx);
+function playAt(id) {
+  var ns = songById(id);
+  if (!ns) return;
   var keepTheater = theaterOn();   /* 아이가 보던 크게 보기 상태를 다음 영상에서도 그대로 */
-  App.player.id = nx;
-  App.player.startSec = (ns ? (firstMatchingPartSec(ns, App.lib.subject, App.lib.sub) || 0) : 0);
+  stopAutoNext();
+  App.player.id = id;
+  App.player.startSec = firstMatchingPartSec(ns, App.lib.subject, App.lib.sub) || 0;
   App.player.audioMode = !!(ns && !ns.vid && (ns.hasAudio || ns.audioUrl));
-  if (App.player.list.indexOf(nx) < 0) App.player.list.unshift(nx);
+  if (App.player.list.indexOf(id) < 0) App.player.list.unshift(id);
   render();
   if (keepTheater) setTheater(true);
   window.scrollTo({ top: 0 });
+}
+
+function playNext() {
+  var nx = nextInList();
+  if (!nx) { toast('마지막 영상이에요'); return; }
+  playAt(nx);
+}
+
+function prevInList() {
+  var p = App.player;
+  if (!p) return null;
+  var list = p.list.filter(function (id) { return !!songById(id); });
+  var ix = list.indexOf(p.id);
+  if (ix > 0) return list[ix - 1];
+  if (playerRepeatMode() === 'loop-all' && list.length > 1) {
+    for (var i = list.length - 1; i >= 0; i--) if (list[i] !== p.id) return list[i];
+  }
+  return null;
+}
+
+function playPrev() {
+  var pv = prevInList();
+  if (!pv) { toast('이전 편이 없어요'); return; }
+  playAt(pv);
+}
+
+function goHomeFromPlayer() {
+  stopAutoNext();
+  closePlayer();
+  go('home');
 }
 
 /* ---------- 크게 보기(극장) + 전체화면 + 컨트롤 자동 숨김 ---------- */
@@ -70204,23 +70309,32 @@ var FCTL = { t: null, mv: 0, pe: null };
 
 function theaterOn() { return document.body.classList.contains('theater'); }
 function barNode() { return document.querySelector('.player-bar'); }
+function tcNode() { return document.getElementById('theater-ctl'); }
 function peekNode() { return document.getElementById('bar-peek'); }
 function clearBarTimer() { if (FCTL.t) { clearTimeout(FCTL.t); FCTL.t = null; } }
 
 /* ms 만큼 보여 주고 스르르 숨긴다. ms를 안 주면(0) 계속 보임 — 영상이 멈춰 있을 때 */
 function showPlayerBar(ms) {
   var bar = barNode();
-  var wasHidden = !!(bar && bar.classList.contains('hide'));
+  var tc = tcNode();
+  var wasHidden = !!((bar && bar.classList.contains('hide')) || (tc && tc.classList.contains('hide')));
   if (bar) bar.classList.remove('hide');
+  if (tc) tc.classList.remove('hide');
   var pk = peekNode();
   if (pk) pk.classList.remove('on');
   clearBarTimer();
   /* 숨었다 나타나는 순간에는 잠깐(0.36초) 단추를 받지 않는다 —
      보려고 톡 친 손가락에 '목록' 같은 단추가 바로 눌리지 않게 */
-  if (bar && wasHidden) {
-    bar.classList.add('pe');
+  if (wasHidden) {
+    [bar, tc].forEach(function (n) {
+      if (!n) return;
+      n.classList.add('pe');
+    });
     clearTimeout(FCTL.pe);
-    FCTL.pe = setTimeout(function () { FCTL.pe = null; var b = barNode(); if (b) b.classList.remove('pe'); }, 360);
+    FCTL.pe = setTimeout(function () {
+      FCTL.pe = null;
+      [barNode(), tcNode()].forEach(function (n) { if (n) n.classList.remove('pe'); });
+    }, 360);
   }
   if (!theaterOn() || !ms) return;
   FCTL.t = setTimeout(function () { FCTL.t = null; hidePlayerBar(); }, ms);
@@ -70228,8 +70342,7 @@ function showPlayerBar(ms) {
 
 function hidePlayerBar() {
   if (!theaterOn()) return;
-  var bar = barNode();
-  if (bar) { bar.classList.add('hide'); bar.classList.remove('pe'); }
+  [barNode(), tcNode()].forEach(function (n) { if (n) { n.classList.add('hide'); n.classList.remove('pe'); } });
   var pk = peekNode();
   if (pk) pk.classList.add('on');
 }
@@ -70250,8 +70363,11 @@ function goFullscreen() {
   } catch (e) { p = null; }
   function after() {
     setTimeout(function () {
-      if (!nativeFsOn()) { YTP.nativeFs = false; return; }
+      if (!nativeFsOn()) { YTP.nativeFs = false; document.body.classList.remove('fs-native'); return; }
       YTP.nativeFs = true;
+      /* 기기 자체 전체화면에서는 90도 회전을 쓰지 않는다 (이미 가로 화면이면 그대로 꽉 채움) */
+      document.body.classList.add('fs-native');
+      layoutTheaterBars();
       try {
         if (screen.orientation && screen.orientation.lock) {
           var q = screen.orientation.lock('landscape');
@@ -70272,13 +70388,15 @@ function leaveFullscreen() {
     if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
   } catch (e) { }
   YTP.nativeFs = false;
+  document.body.classList.remove('fs-native');
 }
 
 /* 사용자가 기기 자체의 '전체화면 끄기'(Esc·뒤로)로 나가면 앱도 크게 보기를 끈다 */
 function onFullscreenChange() {
-  if (nativeFsOn()) { YTP.nativeFs = true; return; }
+  if (nativeFsOn()) { YTP.nativeFs = true; document.body.classList.add('fs-native'); layoutTheaterBars(); return; }
   var wasNative = YTP.nativeFs;
   YTP.nativeFs = false;
+  document.body.classList.remove('fs-native');
   if (wasNative && theaterOn()) {
     try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) { }
     setTheater(false, true);
@@ -70289,16 +70407,36 @@ function setTheater(on, skipNative) {
   var want = (on === undefined) ? !theaterOn() : !!on;
   document.body.classList.toggle('theater', want);
   if (want) {
+    layoutTheaterBars();
     if (!skipNative) goFullscreen();
     showPlayerBar(4000);
   } else {
     if (!skipNative) leaveFullscreen();
     clearBarTimer();
-    var bar = barNode();
-    if (bar) bar.classList.remove('hide');
+    [barNode(), tcNode()].forEach(function (n) { if (n) n.classList.remove('hide'); });
     var pk = peekNode();
     if (pk) pk.classList.remove('on');
   }
+}
+
+/* 크게 보기에서 단추 자리 — 영상 16:9 바깥의 검은 여백(레터박스)을 찾아 그 안에 둔다 */
+function layoutTheaterBars() {
+  var wrap = document.getElementById('player-wrap');
+  var ctl = tcNode();
+  if (!wrap || !ctl) return;
+  var W = wrap.clientWidth, H = wrap.clientHeight;
+  if (!W || !H) return;
+  var vw, vh;
+  if (W / H > 16 / 9) { vh = H; vw = H * 16 / 9; } else { vw = W; vh = W * 9 / 16; }
+  var lr = Math.max(0, Math.round((W - vw) / 2));
+  var tb = Math.max(0, Math.round((H - vh) / 2));
+  wrap.style.setProperty('--lb-left', lr + 'px');
+  wrap.style.setProperty('--lb-right', lr + 'px');
+  wrap.style.setProperty('--lb-top', tb + 'px');
+  wrap.style.setProperty('--lb-bottom', tb + 'px');
+  var vertical = (tb < 34 && lr >= 34);   /* 위·아래 여백이 없고 좌우 여백이 있으면 좌우 기둥에 둔다 */
+  ctl.classList.toggle('lb-v', vertical);
+  ctl.classList.toggle('lb-h', !vertical);
 }
 
 function toggleTheater(on) { setTheater(on); }
@@ -70383,7 +70521,10 @@ document.addEventListener('mousemove', function () {
 document.addEventListener('fullscreenchange', onFullscreenChange, false);
 document.addEventListener('webkitfullscreenchange', onFullscreenChange, false);
 window.addEventListener('orientationchange', function () {
-  if (theaterOn()) showPlayerBar(4000);
+  if (theaterOn()) { layoutTheaterBars(); showPlayerBar(4000); }
+});
+window.addEventListener('resize', function () {
+  if (theaterOn()) layoutTheaterBars();
 });
 
 function printSongPdf(id) {
@@ -72065,13 +72206,13 @@ function openSongEditor(id, channelId, presetSubject, presetSubtopic) {
 function openChannelEditor(id) {
   var ch = id ? S.channels.filter(function (c) { return c.id === id; })[0] : null;
   var rMode = (ch && ch.repeatMode) || 'next';
+  if (rMode !== 'loop-all') rMode = 'next';
   var body = '<div class="field"><label>채널 이름 *</label><input type="text" id="ch-name" value="' + esc(ch ? ch.name : '') + '" placeholder="예: 한글 놀이 유튜브"></div>' +
     '<div class="field"><label>설명</label><input type="text" id="ch-memo" value="' + esc(ch ? (ch.memo || '') : '') + '" placeholder="어떤 채널인지 적어 두세요"></div>' +
     '<div class="field"><label>채널 주소 (선택)</label><input type="url" id="ch-url" value="' + esc(ch ? (ch.url || '') : '') + '" placeholder="https://www.youtube.com/@..."></div>' +
-    '<div class="field"><label>재생 반복 설정</label><select id="ch-repeat">' +
-    '<option value="next"' + (rMode === 'next' ? ' selected' : '') + '>▶ 순서대로 다음 영상</option>' +
-    '<option value="loop-one"' + (rMode === 'loop-one' ? ' selected' : '') + '>🔂 1곡 반복 재생</option>' +
-    '<option value="loop-all"' + (rMode === 'loop-all' ? ' selected' : '') + '>🔁 채널 전체 반복</option>' +
+    '<div class="field"><label>반복재생</label><select id="ch-repeat">' +
+    '<option value="next"' + (rMode === 'next' ? ' selected' : '') + '>🔁 끔 — 마지막 편에서 정지</option>' +
+    '<option value="loop-all"' + (rMode === 'loop-all' ? ' selected' : '') + '>🔁 켬 — 채널 끝에서 처음으로 돌아가 반복</option>' +
     '</select></div>' +
     '<div class="field"><label><input type="checkbox" id="ch-only-selected"' + (ch && ch.onlySelected ? ' checked' : '') + '> ⭐ 아이 모드에서 고른 영상만 열기 (꺼두면 전부 열어둠)</label></div>' +
     '<div class="field"><label>⏰ 하루에 볼 영상 제한 (편까지 · 비워 두면 제한 없음)</label>' +
@@ -72443,6 +72584,17 @@ function onClick(e) {
       case 'play': stopSpeak(); playSong(id, (App.view === 'books' ? bookFiltered().map(function (p) { return p.s; }) : libSongs()).map(function (x) { return x.id; })); break;
       case 'player-close': stopSpeak(); closePlayer(); break;
       case 'player-expand': toggleTheater(); break;
+      case 'player-tv': {
+        /* TV·미러링: 네이티브 전체화면을 먼저 시도하고, 안 되면 가로 전체 화면으로 */
+        setTheater(true);
+        goFullscreen();
+        setTimeout(function () {
+          toast(YTP.nativeFs ? '📺 TV 전체화면으로 열었어요' : '📺 가로 전체화면 — TV로 보려면 폰을 가로로 돌려 주세요');
+        }, 400);
+        break;
+      }
+      case 'player-prev': playPrev(); break;
+      case 'player-home': goHomeFromPlayer(); break;
       case 'player-next': playNext(); break;
       case 'print-song-pdf': if (typeof printSongPdf === 'function') printSongPdf(id); break;
       case 'start-song-quiz': {
@@ -72458,18 +72610,23 @@ function onClick(e) {
       case 'player-replay': if (typeof replayCurrent === 'function') replayCurrent(); break;
       case 'player-repeat': {
         /* 화면을 다시 그리면 #yt-player iframe이 새로 만들어져 영상이 끊긴다.
-           단추 글·색만 그 자리에서 바꾸고 재생은 그대로 둔다 */
+           단추 색만 그 자리에서 바꾸고 재생은 그대로 둔다 */
         if (!App.player) break;
         var curR = playerRepeatMode();
-        var nextR = curR === 'next' ? 'loop-one' : curR === 'loop-one' ? 'loop-all' : 'next';
+        var nextR = curR === 'loop-all' ? 'next' : 'loop-all';
         App.player.repeat = nextR;
         var rb = document.querySelector('.player-bar [data-act="player-repeat"]');
         if (rb) {
-          rb.textContent = nextR === 'loop-one' ? '🔂 1곡 반복' : nextR === 'loop-all' ? '🔁 전체 반복' : '▶ 순서대로';
-          rb.classList.toggle('sun', nextR !== 'next');
+          rb.classList.toggle('sun', nextR === 'loop-all');
           rb.classList.toggle('ghost', nextR === 'next');
+          rb.setAttribute('aria-pressed', nextR === 'loop-all' ? 'true' : 'false');
         }
-        toast(nextR === 'loop-one' ? '🔂 1곡 반복으로 켰어요' : nextR === 'loop-all' ? '🔁 전체 반복으로 켰어요' : '▶ 순서대로 재생해요');
+        var tb = document.querySelector('.theater-ctl [data-act="player-repeat"]');
+        if (tb) {
+          tb.classList.toggle('on', nextR === 'loop-all');
+          tb.setAttribute('aria-pressed', nextR === 'loop-all' ? 'true' : 'false');
+        }
+        toast(nextR === 'loop-all' ? '🔁 켜 두면 채널 끝에서 처음으로 돌아가 계속 틀어요' : '🔁 끄면 마지막 편에서 멈춰요');
         break;
       }
       case 'player-toggle-audio':
@@ -72710,10 +72867,10 @@ function onClick(e) {
       case 'ch-repeat-cycle': {
         var rch = S.channels.filter(function (c) { return c.id === id; })[0];
         if (!rch) break;
-        var cr = rch.repeatMode || 'next';
-        rch.repeatMode = cr === 'next' ? 'loop-one' : cr === 'loop-one' ? 'loop-all' : 'next';
+        var on = (rch.repeatMode || 'next') !== 'loop-all';
+        rch.repeatMode = on ? 'loop-all' : 'next';
         save(); render();
-        toast(rch.repeatMode === 'loop-one' ? '🔂 이 채널은 1곡 반복!' : rch.repeatMode === 'loop-all' ? '🔁 이 채널은 전체 반복!' : '▶ 순서대로 재생');
+        toast(on ? '🔁 켰어요 — 채널 끝에서 처음으로 돌아가 계속 틀어요' : '🔁 껐어요 — 마지막 편에서 멈춰요');
         break;
       }
       case 'ch-only-picked': {
