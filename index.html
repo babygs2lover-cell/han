@@ -63815,6 +63815,7 @@ function viewLibraryKid() {
   if (App.lib.ch === '전체' && !App.lib.q) {
     var palette = ['#EA580C', '#EC4899', '#F59E0B', '#10B981', '#2563EB', '#8B5CF6', '#0EA5E9'];
     var chList = S.channels.filter(function (ch) {
+      if (ch.solo) return false;
       if (App.lib.subject === '전체') return ch.songs.length > 0;
       return ch.songs.some(function (s) { return songMatchesTopic(s, App.lib.subject, App.lib.sub); });
     });
@@ -68188,7 +68189,7 @@ function onClick(e) {
         App.lib.ch = id || '전체';
         App.lib.sub = '전체';
         /* 아이 모드에서 채널 화면의 ⬅ 돌아가기: 섞인 채널 목록 대신 원래 과목 화면으로 */
-        if (!id && modeOf() === 'kid') { backToAreaOfLibSubject(App.lib.subject); break; }
+        if ((!id || id === '전체') && modeOf() === 'kid') { backToAreaOfLibSubject(App.lib.subject); break; }
         render(); break;
       case 'pick-toggle': {
         var ps = songById(id);
