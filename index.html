@@ -60332,6 +60332,15 @@ function load() {
     (d.channels || []).forEach(function (ch) {
       (ch.songs || []).forEach(function (s) { seedMap[s.id] = s; });
     });
+    /* 단독 곡 보관함은 이어서 보기 대상이 아니므로 저장된 값도 걷어낸다 */
+    var soloChIds = {};
+    (st.channels || []).forEach(function (ch) { if (ch.solo) soloChIds[ch.id] = 1; });
+    if (st.lastChannelId && soloChIds[st.lastChannelId]) st.lastChannelId = null;
+    if (st.lastChannelByArea) {
+      Object.keys(st.lastChannelByArea).forEach(function (a) {
+        if (soloChIds[st.lastChannelByArea[a]]) delete st.lastChannelByArea[a];
+      });
+    }
     var seedChMap = {};
     (d.channels || []).forEach(function (sc) { seedChMap[sc.id] = sc; });
     (st.channels || []).forEach(function (ch) {
@@ -60656,6 +60665,7 @@ function channelHasArea(ch, area) {
 }
 function noteLastChannel(ch) {
   if (!ch || !S) return;
+  if (ch.solo) return;   /* 단독 곡은 채널이 아니라 이어서 보기 대상에서 뺀다 */
   S.lastChannelId = ch.id;
   S.lastChannelByArea = S.lastChannelByArea || {};
   var areas = {};
