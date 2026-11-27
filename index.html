@@ -68011,9 +68011,15 @@ function viewKidArea(area) {
     var ix = 0;
     S.channels.forEach(function (ch, chi) {
       if (ch.solo) return;
-      /* 구별(section)이 있는 채널은 그 구별에서만 보인다 (🔤 파닉스·👩 엄마 공부 등) */
-      if (onlySection && ch.section !== onlySection) return;
-      if (!onlySection && ch.section) return;
+      /* 구별(section)이 있는 채널은 그 구별에서만 보인다 (🔤 파닉스·👩 엄마 공부 등).
+         🎵 영어동요는 구별이 없는 채널만 모은다. */
+      if (onlySection === 'songs') {
+        if (ch.section) return;
+      } else if (onlySection) {
+        if (ch.section !== onlySection) return;
+      } else if (ch.section) {
+        return;
+      }
       var list = ch.songs.filter(function (s) {
         if (s.subject !== subj) return false;
         if (onlyKind && (s.kind || 'song') !== onlyKind) return false;
