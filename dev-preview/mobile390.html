@@ -15,8 +15,12 @@
   <div class="wrap">
     <div>
       <div class="label">iPhone 390 × 844</div>
-      <iframe class="phone" src="../index.html?v=103" title="한결 학습 놀이터 390 미리보기"></iframe>
+      <iframe class="phone" title="한결 학습 놀이터 390 미리보기"></iframe>
     </div>
   </div>
+  <script>
+    /* 바깥 주소의 ?v= 값을 그대로 앱 주소로 넘겨 캐시를 비운다 */
+    document.querySelector('.phone').src = '../index.html' + location.search;
+  </script>
 </body>
 </html>
