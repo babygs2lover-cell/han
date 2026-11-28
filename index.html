@@ -848,7 +848,10 @@ body.fv-lock{overflow:hidden;}
 body.theater{overflow:hidden;}
 /* 크게 보기: 영상이 화면을 꽉 채우고, 단추 줄은 그 위에 떠 있다가 4초 뒤 스르르 숨는다 */
 body.theater .player-wrap{position:fixed;inset:0;z-index:70;border-radius:0;display:block;background:#000;}
-body.theater .player-frame{position:absolute;inset:0;width:100%;max-width:100%;height:100%;max-height:none;aspect-ratio:auto;}
+/* 영상 칸을 16:9로 정확히 줄여, 남는 검은 여백이 손가락을 받게 한다 */
+body.theater .player-frame{position:absolute;inset:auto;
+  left:var(--lb-left,0px);right:var(--lb-right,0px);top:var(--lb-top,0px);bottom:var(--lb-bottom,0px);
+  width:auto;max-width:none;height:auto;max-height:none;aspect-ratio:auto;}
 body.theater .player-frame > .audio-player-box{height:100%;border-radius:0;}
 body.theater .player-bar{position:absolute;left:0;right:0;bottom:0;z-index:12;width:100%;
   background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.55) 62%,rgba(0,0,0,0));
@@ -859,36 +862,80 @@ body.theater .player-bar.pe{pointer-events:none;}
 body.theater .player-bar .btn.ghost{color:#fff;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.08);}
 body.theater .player-below{display:none;}
 body.theater .player-top{display:none;}
-/* 단추가 다 숨은 뒤 오른쪽 위에 남는 작은 손잡이 (유튜브 재생기의 아래 단추들과 안 겹치게) */
+/* 단추가 다 숨은 뒤 여백 가운데에 남는 작은 손잡이 (영상은 가리지 않는다) */
 .bar-peek{display:none;}
-body.theater .bar-peek{display:flex;position:absolute;right:10px;top:calc(10px + env(safe-area-inset-top));z-index:13;
+body.theater .bar-peek{display:flex;position:absolute;z-index:13;
   width:40px;height:40px;border-radius:999px;align-items:center;justify-content:center;
   background:rgba(18,12,9,.5);color:#fff;font-size:16px;line-height:1;border:1px solid rgba(255,255,255,.22);
   opacity:0;pointer-events:none;transition:opacity .3s ease;}
 body.theater .bar-peek.on{opacity:.9;pointer-events:auto;}
+body.theater.lb-v .bar-peek{right:calc(var(--lb-right,0px) / 2);top:50%;transform:translate(50%,-50%);}
+body.theater.lb-h .bar-peek{right:50%;bottom:calc(var(--lb-bottom,0px) / 2);transform:translate(50%,50%);}
+body.theater.lb-o .bar-peek{right:10px;top:calc(10px + env(safe-area-inset-top));}
 /* 세로 화면(가로 고정이 안 되는 기기): 영상을 옆으로 눕혀 꽉 채운다.
    이미 가로이거나 기기 자체 전체화면(fs-native)이면 회전하지 않고 가로 화면을 그대로 채운다 */
 @media (orientation: portrait){
   body.theater:not(.fs-native) .player-wrap{inset:auto;top:50%;left:50%;width:100dvh;height:100vw;transform:translate(-50%,-50%) rotate(90deg);padding:0 env(safe-area-inset-bottom) 0 env(safe-area-inset-top);}
-  body.theater .player-frame{height:100%;}
+  body.theater .player-frame{height:auto;}
 }
 
-/* --- 크게 보기: 조작 단추는 영상 16:9 바깥 검은 여백(레터박스)에만 둔다 --- */
+/* --- 크게 보기: 조작 단추는 영상 16:9 바깥 검은 여백(레터박스)에만 둔다 ---
+   위: ✕ · 작게 보기 · 📺 · ‹ 이전 편  /  아래: 🐢 느리게 → CC → 🔁 반복재생 → 🌙 화면 끄기 → 다음 편 */
 body.theater .player-bar{display:none;}
 .theater-ctl{display:none;}
 body.theater .theater-ctl{display:block;position:absolute;inset:0;z-index:12;pointer-events:none;}
-.theater-ctl .tc{position:absolute;display:flex;gap:6px;pointer-events:auto;transition:opacity .35s ease;}
+.theater-ctl .tc{position:absolute;display:flex;pointer-events:auto;transition:opacity .35s ease;}
+.theater-ctl .tcg{display:flex;align-items:center;justify-content:center;}
 .theater-ctl.hide .tc{opacity:0;pointer-events:none;}
 .theater-ctl.pe .tc{pointer-events:none;}
-.theater-ctl.lb-h .tc-a{top:0;left:0;right:0;height:var(--lb-top,0px);align-items:center;justify-content:space-between;padding:0 12px;}
-.theater-ctl.lb-h .tc-b{bottom:0;left:0;right:0;height:var(--lb-bottom,0px);align-items:center;justify-content:flex-end;padding:0 12px;}
-.theater-ctl.lb-v .tc-a{left:0;top:0;bottom:0;width:var(--lb-left,0px);flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0;}
-.theater-ctl.lb-v .tc-b{right:0;top:0;bottom:0;width:var(--lb-right,0px);flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0;}
-.tcbtn{border:1px solid rgba(255,255,255,.3);background:rgba(16,12,10,.62);color:#fff;border-radius:999px;
-  padding:8px 7px;font-size:11.5px;font-weight:800;line-height:1.05;letter-spacing:-.3px;
-  display:inline-flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap;max-width:100%;}
+
+/* (1) 좌우 여백이 넉넉할 때: 왼쪽·오른쪽 기둥 */
+.theater-ctl.lb-v .tc{top:0;bottom:0;flex-direction:column;justify-content:space-between;align-items:center;padding:10px 2px;}
+.theater-ctl.lb-v .tc-a{left:0;width:var(--lb-left,0px);}
+.theater-ctl.lb-v .tc-b{right:0;width:var(--lb-right,0px);}
+.theater-ctl.lb-v .tcg{flex-direction:column;gap:6px;width:100%;}
+.theater-ctl.lb-v .tcbtn{width:100%;max-width:68px;}
+.theater-ctl.lb-v .tcbtn .tcl{font-size:10.5px;}
+.theater-ctl.lb-v .tcbtn.x,.theater-ctl.lb-v .tcbtn.ico{width:30px;height:30px;max-width:30px;padding:0;}
+
+/* (2) 위·아래 여백이 넉넉할 때: 위·아래 줄 */
+.theater-ctl.lb-h .tc{left:0;right:0;height:var(--lb-top,0px);flex-direction:row;align-items:center;justify-content:space-between;padding:0 12px;}
+.theater-ctl.lb-h .tc-a{top:0;}
+.theater-ctl.lb-h .tc-b{bottom:0;height:var(--lb-bottom,0px);}
+.theater-ctl.lb-h .tcg{flex-direction:row;gap:6px;}
+
+/* (3) 여백이 거의 없을 때: 영상 위에 살짝 겹쳐서 */
+.theater-ctl.lb-o .tc{left:0;right:0;flex-direction:row;align-items:center;justify-content:space-between;padding:8px 10px;}
+.theater-ctl.lb-o .tc-a{top:0;background:linear-gradient(to bottom,rgba(0,0,0,.72),rgba(0,0,0,0));}
+.theater-ctl.lb-o .tc-b{bottom:0;background:linear-gradient(to top,rgba(0,0,0,.72),rgba(0,0,0,0));}
+.theater-ctl.lb-o .tcg{flex-direction:row;gap:6px;}
+
+.tcbtn{border:1px solid rgba(255,255,255,.28);background:rgba(14,12,11,.68);color:#fff;border-radius:13px;
+  padding:6px 4px;font-weight:800;letter-spacing:-.2px;
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  white-space:nowrap;max-width:100%;min-width:0;box-sizing:border-box;}
 .tcbtn:active{transform:scale(.96);}
-.tcbtn.on{background:#F6A21A;border-color:#F6A21A;color:#231408;}
+.tcbtn .tci{font-size:14px;line-height:1;font-weight:400;}
+.tcbtn .tcl{font-size:9.5px;line-height:1.05;}
+.tcbtn.x{border-radius:999px;width:30px;height:30px;padding:0;}
+.tcbtn.x .tci{font-size:14px;}
+.tcbtn.ico{border-radius:999px;width:30px;height:30px;padding:0;background:rgba(14,12,11,.5);}
+.tcbtn.ico .tci{font-size:12px;}
+.tcbtn.next{border-color:rgba(255,255,255,.42);}
+.theater-ctl.lb-h .tcbtn,.theater-ctl.lb-o .tcbtn{flex-direction:row;gap:4px;padding:7px 9px;border-radius:999px;}
+.theater-ctl.lb-h .tcbtn .tcl,.theater-ctl.lb-o .tcbtn .tcl{font-size:11.5px;}
+.theater-ctl.lb-h .tcbtn.x,.theater-ctl.lb-o .tcbtn.x,
+.theater-ctl.lb-h .tcbtn.ico,.theater-ctl.lb-o .tcbtn.ico{width:32px;height:32px;padding:0;}
+.tcbtn.on{background:#fff;border-color:#fff;color:#151210;}
+
+/* --- 🌙 화면 끄기: 소리는 그대로, 화면만 검정 --- */
+.screen-off{position:fixed;inset:0;background:#000;z-index:300;display:none;
+  align-items:center;justify-content:center;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+.screen-off.on{display:flex;}
+.so-hint{color:#6E655C;font-size:13px;font-weight:700;text-align:center;padding:0 28px;line-height:1.7;
+  opacity:1;transition:opacity .9s ease;}
+.so-hint.dim{opacity:0;}
 .player-fallback{
   position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:8px;color:#fff;text-align:center;padding:18px;background:#2a211c;
@@ -912,6 +959,10 @@ body.theater .next-overlay{position:absolute;z-index:14;}
 .next-overlay{background:#17171A;display:none;padding:0;overflow-y:auto;place-items:stretch;}
 .next-overlay.on{display:block;}
 body.theater .next-overlay{position:absolute;inset:0;z-index:14;}
+/* 반복재생이 꺼져 있을 때: 작은 화면(세로)으로 돌아가 영상 아래에 카드가 이어 붙는다 */
+body:not(.theater) .next-overlay{position:relative;inset:auto;z-index:1;background:#17171A;}
+body:not(.theater) .next-overlay.on{display:block;}
+body.ended:not(.theater) .player-bar{display:none;}
 .nx-panel{max-width:460px;margin:0 auto;padding:20px 16px calc(20px + env(safe-area-inset-bottom));color:#fff;}
 .nx-head{display:flex;gap:10px;align-items:flex-start;margin:4px 0 16px;}
 .nx-emoji{font-size:28px;line-height:1.1;}
@@ -1204,6 +1255,7 @@ button.vcard{font-family:inherit;font-size:inherit;color:inherit;-webkit-appeara
 <div id="cheer"></div>
 <div id="print-area"></div>
 <div id="fx"></div>
+<div class="screen-off" id="screen-off" aria-hidden="true"><div class="so-hint" id="so-hint"></div></div>
 <div class="toast" id="toast"></div>
 
 <script id="seed-data" type="application/json">{
@@ -69731,7 +69783,7 @@ var YTP = {
   player: null, apiReady: false, apiLoading: false, apiFailed: false,
   pending: null, videoId: null, timer: null, count: 0, overlayOn: false,
   countedId: null, audioObjUrl: null, startSec: 0, audioMode: false,
-  nativeFs: false
+  nativeFs: false, rate: 1, cc: false, autoTheaterDone: false
 };
 
 function currentPlayerList() {
@@ -69754,12 +69806,16 @@ function playSong(id, list, startSec) {
   if (!s.vid && !s.hasAudio && !s.audioUrl) { openSong(id); return; }
   stopSpeak();
   var sec = (startSec !== undefined && startSec !== null) ? Number(startSec) : firstMatchingPartSec(s, App.lib.subject, App.lib.sub);
+  /* 닫을 때 돌아갈 목록 — 영상 카드를 누른 자리(홈·검색·원서 서재 등)로 바로 돌아간다 */
+  var backView = (App.view && App.view !== 'player') ? App.view
+    : ((App.player && App.player.backView) || 'library');
   App.player = {
     id: id,
     list: (list && list.length) ? list.slice() : libSongs().map(function (x) { return x.id; }),
     startSec: sec || 0,
     repeat: (App.player && App.player.repeat) ? App.player.repeat : (ch && ch.repeatMode ? ch.repeatMode : 'next'),
-    audioMode: !s.vid && !!(s.hasAudio || s.audioUrl)
+    audioMode: !s.vid && !!(s.hasAudio || s.audioUrl),
+    backView: backView
   };
   YTP.countedId = null;
   if (App.player.list.indexOf(id) < 0) App.player.list.unshift(id);
@@ -69767,8 +69823,17 @@ function playSong(id, list, startSec) {
   App.view = 'player';
   try { history.replaceState(null, '', '#player'); } catch (e) { }
   render();
-  toggleTheater(s.subject !== '영어');
+  startTheaterForPlayback();   /* 목록에서 영상 카드를 누르면 바로 크게 보기로 */
   window.scrollTo({ top: 0 });
+}
+
+/* 영상을 틀면 언제나 크게 보기(theater)로 시작한다 — 음원만 듣는 모드일 때만 작은 화면 */
+function startTheaterForPlayback() {
+  if (!App.player || App.player.audioMode) { setTheater(false, true); return; }
+  document.body.classList.add('theater');
+  document.body.classList.remove('ended');
+  layoutTheaterBars();
+  showPlayerBar(4000);
 }
 
 function markPlayedOnce(id) {
@@ -69821,6 +69886,8 @@ function viewPlayer() {
   /* 반복은 🔁 반복재생 한 가지 — 켜면 채널 끝에서 처음으로 돌아가고, 끄면 마지막 편에서 멈춘다 */
   var rLabel = '🔁 반복재생';
   var hasAudio = !!(s.hasAudio || s.audioUrl);
+  var slowOn = (YTP.rate || 1) !== 1;
+  var ccOn = !!YTP.cc;
 
   var html = '<div class="player-page">' +
     '<div class="player-top"><button class="iconbtn" data-act="player-close" aria-label="뒤로">←</button>' +
@@ -69842,21 +69909,32 @@ function viewPlayer() {
     (hasAudio && s.vid ? '<button class="btn sm mint" data-act="player-toggle-audio">' + (App.player.audioMode ? '🎬 영상으로 보기' : '🎧 음원으로 듣기') + '</button>' : '') +
     (nxs ? '<button class="btn sm ghost" data-act="player-next">다음 ▶</button>' : '') +
     '</div>' +
-    /* 크게 보기: 단추를 영상 16:9 바깥 레터박스에 둔다 (영상을 가리지 않음) */
+    /* 크게 보기: 단추를 영상 16:9 바깥 레터박스에만 둔다 (영상을 가리지 않음)
+       위: ✕ · 작게 보기 · ‹ 이전 편 / 아래: 🐢 느리게 → CC → 🔁 반복재생 → 🌙 화면 끄기 → 다음 편 */
     '<div class="theater-ctl" id="theater-ctl">' +
     '<div class="tc tc-a">' +
-    '<button class="tcbtn" data-act="player-close" aria-label="그만 보기">✕</button>' +
-    '<button class="tcbtn wide" data-act="player-expand">작게 보기</button>' +
-    '<button class="tcbtn" data-act="player-tv" aria-label="TV 전체화면">📺 TV</button>' +
+    '<div class="tcg">' +
+    '<button class="tcbtn x" data-act="player-close" aria-label="닫기" title="닫기"><span class="tci">✕</span></button>' +
+    '<button class="tcbtn" data-act="player-expand" title="작게 보기"><span class="tcl">작게 보기</span></button>' +
+    '<button class="tcbtn ico" data-act="player-tv" aria-label="TV 전체화면" title="TV 전체화면"><span class="tci">📺</span></button>' +
+    '</div>' +
+    '<div class="tcg">' +
+    '<button class="tcbtn" data-act="player-prev" title="이전 편"><span class="tci">‹</span><span class="tcl">이전 편</span></button>' +
+    '</div>' +
     '</div>' +
     '<div class="tc tc-b">' +
-    '<button class="tcbtn wide" data-act="player-prev">‹ 이전 편</button>' +
-    '<button class="tcbtn' + (rMode === 'loop-all' ? ' on' : '') + '" data-act="player-repeat" aria-pressed="' + (rMode === 'loop-all' ? 'true' : 'false') + '" aria-label="반복재생" title="반복재생">🔁</button>' +
-    '<button class="tcbtn wide" data-act="player-replay">⟲ 한 번 더</button>' +
-    (nxs ? '<button class="tcbtn wide" data-act="player-next">다음 편 ▶</button>' : '') +
+    '<div class="tcg">' +
+    '<button class="tcbtn' + (slowOn ? ' on' : '') + '" data-act="player-slow" aria-pressed="' + (slowOn ? 'true' : 'false') + '" title="0.75배속"><span class="tci">🐢</span><span class="tcl">느리게</span></button>' +
+    '<button class="tcbtn' + (ccOn ? ' on' : '') + '" data-act="player-cc" aria-pressed="' + (ccOn ? 'true' : 'false') + '" title="자막"><span class="tcl">CC</span></button>' +
+    '<button class="tcbtn' + (rMode === 'loop-all' ? ' on' : '') + '" data-act="player-repeat" aria-pressed="' + (rMode === 'loop-all' ? 'true' : 'false') + '" title="반복재생"><span class="tci">🔁</span><span class="tcl">반복재생</span></button>' +
+    '<button class="tcbtn" data-act="player-screen-off" title="화면 끄기"><span class="tci">🌙</span><span class="tcl">화면 끄기</span></button>' +
+    '</div>' +
+    '<div class="tcg">' +
+    (nxs ? '<button class="tcbtn next" data-act="player-next" title="다음 편"><span class="tcl">다음 편</span><span class="tci">›</span></button>' : '') +
     '</div>' +
     '</div>' +
-    '<button class="bar-peek" id="bar-peek" type="button" aria-label="조작 단추 보기">☰</button>' +
+    '</div>' +
+    '<button class="bar-peek" id="bar-peek" type="button" data-act="player-bar-show" aria-label="조작 단추 보기">☰</button>' +
     '<div class="next-overlay" id="next-overlay">' +
     '<div class="nx-panel">' +
     '<div class="nx-head"><span class="nx-emoji" id="nx-emoji">⭐</span>' +
@@ -69866,11 +69944,11 @@ function viewPlayer() {
     nxButtonsHtml(!!nxs) +
     '</div>' +
     '<button class="nx-nextcard" id="nx-nextcard" data-act="player-next">' +
-    '<span class="nx-thumb"><img id="nx-thumbimg" src="' + (nxs && nxs.vid ? 'https://i.ytimg.com/vi/' + esc(nxs.vid) + '/mqdefault.jpg' : '') + '" alt=""><span class="nx-count" id="nx-count">4</span></span>' +
-    '<span class="nx-lead">다음 편 · 4초 뒤 시작</span>' +
+    '<span class="nx-thumb"><img id="nx-thumbimg" src="' + (nxs && nxs.vid ? 'https://i.ytimg.com/vi/' + esc(nxs.vid) + '/mqdefault.jpg' : '') + '" alt=""><span class="nx-count" id="nx-count">5</span></span>' +
+    '<span class="nx-lead">다음 편 · 5초 뒤 시작</span>' +
     '<b class="nx-next" id="nx-next">' + (nxs ? esc(cleanTitle(nxs.title)) : '마지막 편이에요') + '</b>' +
     '</button>' +
-    '<div class="nx-foot"><span id="nx-hint">' + (nxs ? '4초 뒤에 다음 편이 저절로 시작돼요' : '한 번 더 보거나 처음으로 돌아갈 수 있어요') + '</span>' +
+    '<div class="nx-foot"><span id="nx-hint">' + (nxs ? '5초 뒤에 다음 편이 저절로 시작돼요' : '한 번 더 보거나 처음으로 돌아갈 수 있어요') + '</span>' +
     '<button class="nx-stop" data-act="player-stop">✋ 멈추기</button></div>' +
     '</div></div>' +
     '</div>' +
@@ -69986,6 +70064,8 @@ function mountPlayer(vid) {
           clearTimeout(YTP.watch);
           clearInterval(YTP.poll);
           try { e.target.playVideo(); } catch (err) { }
+          try { if (playerRate() !== 1 && e.target.setPlaybackRate) e.target.setPlaybackRate(playerRate()); } catch (err) { }
+          if (YTP.cc) setTimeout(function () { applyCc(); }, 700);
         },
         onStateChange: onYTState,
         onError: function (e) {
@@ -70030,11 +70110,7 @@ function onYTState(e) {
   YTP.started = true;
   if (e.data === window.YT.PlayerState.PLAYING && App.player) {
     markPlayedOnce(App.player.id);
-    var cur = songById(App.player.id);
-    if (cur && cur.subject === '영어' && !YTP.autoTheaterDone) {
-      YTP.autoTheaterDone = true;
-      toggleTheater(true);
-    }
+    if (playerRate() !== 1) applyPlaybackRate();   /* 유튜브가 배속을 되돌릴 때가 있어 다시 맞춘다 */
   }
   if (e.data === window.YT.PlayerState.PLAYING && theaterOn()) showPlayerBar(4000);
   if (e.data === window.YT.PlayerState.PAUSED) showPlayerBar(0);
@@ -70100,25 +70176,49 @@ function onVideoEnded() {
     if (card) card.style.display = 'none';
     if (hint) hint.textContent = '내일 또 만나요';
     if (btns) btns.innerHTML = '<button class="nx-act" data-act="player-home"><b>🏠</b>처음으로</button>';
+    if (theaterOn()) setTheater(false);
+    document.body.classList.add('ended');
     ov.classList.add('on');
     YTP.overlayOn = true;
     clearInterval(YTP.timer); YTP.timer = null;
     return;
   }
 
+  var nx = nextInList();
+  var ns = nx ? songById(nx) : null;
+
+  /* 🔁 반복재생 켜짐: 화면은 그대로 두고 다음 편(마지막 뒤엔 1번 편)을 바로 이어서 */
+  if (playerRepeatMode() === 'loop-all') {
+    clearInterval(YTP.timer); YTP.timer = null;
+    var keepSmall = !theaterOn();
+    stopAutoNext();
+    if (ns) {
+      playAt(nx);
+      if (keepSmall) setTheater(false, true);   /* 작게 보던 중이었으면 그대로 작게 */
+    } else if (curSong) {
+      replayCurrent();
+    }
+    return;
+  }
+
+  /* 🔁 반복재생 꺼짐: 작은 화면(세로)으로 돌아가 ⭐ 다 봤어요 카드를 띄우고 5초 뒤 다음 편 */
+  if (theaterOn()) {
+    setTheater(false);
+    try { window.scrollTo({ top: 0 }); } catch (e) { }
+  }
+  document.body.classList.add('ended');
+
   if (tt) tt.textContent = '다 봤어요!';
   if (sb) sb.textContent = curSong ? cleanTitle(curSong.title) : '';
   if (em) em.textContent = '⭐';
   if (btns) btns.innerHTML = nxButtonsHtml();
 
-  var nx = nextInList();
-  var ns = nx ? songById(nx) : null;
   if (card) card.style.display = ns ? '' : 'none';
-  if (lead) lead.textContent = '다음 편 · 4초 뒤 시작';
+  if (lead) lead.textContent = '다음 편 · 5초 뒤 시작';
   if (ns) {
     if (img) img.src = ns.vid ? ('https://i.ytimg.com/vi/' + ns.vid + '/mqdefault.jpg') : '';
     if (nxt) nxt.textContent = cleanTitle(ns.title);
-    if (hint) hint.textContent = '4초 뒤에 다음 편이 저절로 시작돼요';
+    if (hint) hint.textContent = '5초 뒤에 다음 편이 저절로 시작돼요';
   } else {
     if (hint) hint.textContent = '마지막 편이에요 · 한 번 더 보거나 처음으로 돌아갈 수 있어요';
   }
@@ -70126,8 +70226,8 @@ function onVideoEnded() {
   YTP.overlayOn = true;
   clearInterval(YTP.timer); YTP.timer = null;
   if (!ns) { if (cnt) cnt.textContent = '✓'; return; }
-  YTP.count = 4;
-  if (cnt) cnt.textContent = '4';
+  YTP.count = 5;
+  if (cnt) cnt.textContent = '5';
   YTP.timer = setInterval(function () {
     YTP.count--;
     var c = document.getElementById('nx-count');
@@ -70248,6 +70348,7 @@ function stopAutoNext() {
   if (YTP.timer) { clearInterval(YTP.timer); YTP.timer = null; }
   var ov = document.getElementById('next-overlay');
   if (ov) ov.classList.remove('on');
+  document.body.classList.remove('ended');
   YTP.overlayOn = false;
   if (theaterOn()) showPlayerBar(4000);
 }
@@ -70271,14 +70372,13 @@ function replayCurrent() {
 function playAt(id) {
   var ns = songById(id);
   if (!ns) return;
-  var keepTheater = theaterOn();   /* 아이가 보던 크게 보기 상태를 다음 영상에서도 그대로 */
   stopAutoNext();
   App.player.id = id;
   App.player.startSec = firstMatchingPartSec(ns, App.lib.subject, App.lib.sub) || 0;
   App.player.audioMode = !!(ns && !ns.vid && (ns.hasAudio || ns.audioUrl));
   if (App.player.list.indexOf(id) < 0) App.player.list.unshift(id);
   render();
-  if (keepTheater) setTheater(true);
+  startTheaterForPlayback();   /* 다음 편도 바로 큰 화면으로 */
   window.scrollTo({ top: 0 });
 }
 
@@ -70421,6 +70521,9 @@ function setTheater(on, skipNative) {
   } else {
     if (!skipNative) leaveFullscreen();
     clearBarTimer();
+    document.body.classList.remove('lb-v');
+    document.body.classList.remove('lb-h');
+    document.body.classList.remove('lb-o');
     [barNode(), tcNode()].forEach(function (n) { if (n) n.classList.remove('hide'); });
     var pk = peekNode();
     if (pk) pk.classList.remove('on');
@@ -70442,19 +70545,167 @@ function layoutTheaterBars() {
   wrap.style.setProperty('--lb-right', lr + 'px');
   wrap.style.setProperty('--lb-top', tb + 'px');
   wrap.style.setProperty('--lb-bottom', tb + 'px');
-  var vertical = (tb < 34 && lr >= 34);   /* 위·아래 여백이 없고 좌우 여백이 있으면 좌우 기둥에 둔다 */
-  ctl.classList.toggle('lb-v', vertical);
-  ctl.classList.toggle('lb-h', !vertical);
+  /* 세로 폰을 돌렸을 때처럼 좌우 여백이 넉넉하면 좌우 기둥(lb-v),
+     위·아래 여백이 넉넉하면 위·아래 줄(lb-h), 둘 다 좁으면 영상 위에 겹쳐서(lb-o) */
+  var mode = (lr >= tb && lr >= 40) ? 'v' : (tb >= 26 ? 'h' : 'o');
+  ctl.classList.toggle('lb-v', mode === 'v');
+  ctl.classList.toggle('lb-h', mode === 'h');
+  ctl.classList.toggle('lb-o', mode === 'o');
+  document.body.classList.toggle('lb-v', mode === 'v');
+  document.body.classList.toggle('lb-h', mode === 'h');
+  document.body.classList.toggle('lb-o', mode === 'o');
 }
 
 function toggleTheater(on) { setTheater(on); }
 
+/* ---------- 🐢 느리게 (0.75× ↔ 1×) ---------- */
+function playerRate() { return (YTP.rate && YTP.rate !== 1) ? YTP.rate : 1; }
+
+function applyPlaybackRate() {
+  var r = playerRate();
+  try { if (YTP.player && YTP.player.setPlaybackRate) YTP.player.setPlaybackRate(r); } catch (e) { }
+  try {
+    var list = document.querySelectorAll('#audio-player, .player-frame video, .player-frame audio');
+    for (var i = 0; i < list.length; i++) { try { list[i].playbackRate = r; } catch (e) { } }
+  } catch (e) { }
+}
+
+function updateSlowUi() {
+  var on = playerRate() !== 1;
+  var list = document.querySelectorAll('[data-act="player-slow"]');
+  for (var i = 0; i < list.length; i++) {
+    list[i].classList.toggle('on', on);
+    list[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+}
+
+function toggleSlow() {
+  YTP.rate = (playerRate() === 1) ? 0.75 : 1;
+  applyPlaybackRate();
+  updateSlowUi();
+  setTimeout(applyPlaybackRate, 500);   /* 재생기가 막 준비됐을 때 한 번 더 */
+  toast(YTP.rate === 1 ? '🐢 다시 원래 속도(1×)로 틀어요' : '🐢 조금 느리게(0.75×) 틀어요');
+}
+
+/* ---------- CC (유튜브 자막 켜기/끄기) ---------- */
+function ccOnState() { return !!YTP.cc; }
+
+function updateCcUi() {
+  var on = ccOnState();
+  var list = document.querySelectorAll('[data-act="player-cc"]');
+  for (var i = 0; i < list.length; i++) {
+    list[i].classList.toggle('on', on);
+    list[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+}
+
+/* 자막 모듈을 불러오고 tracklist가 준비될 때까지 조금 기다렸다가 켠다 */
+function applyCc() {
+  var p = YTP.player;
+  if (!p || !p.loadModule || !p.setOption) return false;
+  try {
+    if (!YTP.cc) {
+      try { p.unloadModule('captions'); } catch (e) { }
+      try { p.setOption('captions', 'track', {}); } catch (e) { }
+      return true;
+    }
+    p.loadModule('captions');
+    var tries = 0;
+    var setTrack = function () {
+      var list = [];
+      try { list = p.getOption('captions', 'tracklist') || []; } catch (e) { list = []; }
+      if (!list.length && tries < 5) { tries++; setTimeout(setTrack, 260); return; }
+      var pick = {};
+      for (var i = 0; i < list.length; i++) {
+        var lc = String(list[i].languageCode || '');
+        if (lc.indexOf('ko') === 0) { pick = { languageCode: list[i].languageCode, name: list[i].name }; break; }
+      }
+      if (!pick.languageCode && list.length) pick = { languageCode: list[0].languageCode, name: list[0].name };
+      try { p.setOption('captions', 'track', pick); } catch (e) { }
+      if (!list.length) {
+        /* 이 영상엔 자막이 없음 — 단추를 다시 끔 상태로 */
+        YTP.cc = false;
+        updateCcUi();
+        toast('이 영상에는 켤 자막이 없어요');
+      }
+    };
+    setTrack();
+  } catch (e) { }
+  return true;
+}
+
+function toggleCc() {
+  var au = document.getElementById('audio-player');
+  if (au) { toast('자막은 유튜브 영상에서 켤 수 있어요'); return; }
+  YTP.cc = !YTP.cc;
+  var ok = applyCc();
+  updateCcUi();
+  if (!ok) { toast('지금은 자막을 켤 수 없어요'); return; }
+  toast(YTP.cc ? 'CC 자막을 켰어요' : 'CC 자막을 껐어요');
+}
+
+/* ---------- 🌙 화면 끄기 (소리는 그대로, 화면만 검정) ---------- */
+var SO = { on: false, wired: false, hintT: null, lp: null, lastTap: 0 };
+
+function soHint(text, ms) {
+  var h = document.getElementById('so-hint');
+  if (!h) return;
+  h.textContent = text;
+  h.classList.remove('dim');
+  clearTimeout(SO.hintT);
+  SO.hintT = setTimeout(function () { var n = document.getElementById('so-hint'); if (n) n.classList.add('dim'); }, ms || 2000);
+}
+
+function screenOffOn() {
+  var el = document.getElementById('screen-off');
+  if (!el) return;
+  wireScreenOff();
+  SO.on = true;
+  SO.lastTap = 0;
+  el.classList.add('on');
+  soHint('🌙 화면을 껐어요 · 두 번 누르면 켜져요', 2200);
+  clearBarTimer();
+}
+
+function screenOffOff() {
+  var el = document.getElementById('screen-off');
+  if (el) el.classList.remove('on');
+  SO.on = false;
+  SO.lastTap = 0;
+  clearTimeout(SO.lp); SO.lp = null;
+  clearTimeout(SO.hintT); SO.hintT = null;
+  var h = document.getElementById('so-hint');
+  if (h) h.classList.add('dim');
+  if (theaterOn()) showPlayerBar(4000);
+}
+
+function wireScreenOff() {
+  var el = document.getElementById('screen-off');
+  if (!el || SO.wired) return;
+  SO.wired = true;
+  el.addEventListener('pointerdown', function () {
+    clearTimeout(SO.lp);
+    SO.lp = setTimeout(screenOffOff, 650);   /* 길게 누르면 바로 켜기 */
+  }, false);
+  el.addEventListener('pointerup', function () {
+    clearTimeout(SO.lp); SO.lp = null;
+    var now = Date.now();
+    if (SO.lastTap && now - SO.lastTap < 520) { screenOffOff(); return; }
+    SO.lastTap = now;
+    soHint('한 번 더 누르면 화면이 켜져요', 1600);
+  }, false);
+  el.addEventListener('pointercancel', function () { clearTimeout(SO.lp); SO.lp = null; }, false);
+  el.addEventListener('pointerleave', function () { clearTimeout(SO.lp); SO.lp = null; }, false);
+}
+
 function closePlayer() {
+  var back = (App.player && App.player.backView) || 'library';
   stopAutoNext();
+  document.body.classList.remove('ended');
   toggleTheater(false);
   if (YTP.player && YTP.player.stopVideo) { try { YTP.player.stopVideo(); } catch (e) { } }
   App.player = null;
-  go('library');
+  go(back === 'player' ? 'library' : back);
 }
 
 function mountAudioPlayer(s) {
@@ -70493,7 +70744,7 @@ function mountPlayerIfNeeded() {
   if (App.view !== 'player' || !App.player) return;
   var s = songById(App.player.id);
   if (!s) return;
-  if (theaterOn()) showPlayerBar(4000);
+  if (theaterOn()) { layoutTheaterBars(); showPlayerBar(4000); }
   if (App.player.audioMode) { mountAudioPlayer(s); return; }
   if (YTP.apiFailed) { showPlayerFallback('영상 재생기를 불러오지 못했어요'); return; }
   mountPlayer(s.vid || '');
@@ -72602,6 +72853,10 @@ function onClick(e) {
         break;
       }
       case 'player-prev': playPrev(); break;
+      case 'player-slow': if (typeof toggleSlow === 'function') toggleSlow(); break;
+      case 'player-cc': if (typeof toggleCc === 'function') toggleCc(); break;
+      case 'player-screen-off': if (typeof screenOffOn === 'function') screenOffOn(); break;
+      case 'player-bar-show': if (typeof showPlayerBar === 'function') showPlayerBar(4000); break;
       case 'player-home': goHomeFromPlayer(); break;
       case 'player-next': playNext(); break;
       case 'print-song-pdf': if (typeof printSongPdf === 'function') printSongPdf(id); break;
@@ -73200,7 +73455,11 @@ function boot() {
 
   window.addEventListener('hashchange', function () {
     var h = (location.hash || '').replace('#', '');
-    if (h && VIEWS.some(function (v) { return v.key === h; }) && h !== App.view) { App.view = h; render(); }
+    if (h && VIEWS.some(function (v) { return v.key === h; }) && h !== App.view) {
+      if (App.view === 'player' && typeof toggleTheater === 'function') toggleTheater(false);
+      App.view = h;
+      render();
+    }
   });
 
   window.addEventListener('error', function (ev) {
