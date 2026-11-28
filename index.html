@@ -70612,9 +70612,12 @@ function applyCc() {
     p.loadModule('captions');
     var tries = 0;
     var setTrack = function () {
-      var list = [];
-      try { list = p.getOption('captions', 'tracklist') || []; } catch (e) { list = []; }
-      if (!list.length && tries < 5) { tries++; setTimeout(setTrack, 260); return; }
+      var got = null;
+      try { got = p.getOption('captions', 'tracklist'); } catch (e) { got = null; }
+      /* tracklist를 아직 못 읽으면(undefined) 조금 더 기다린다 — 섣부른 판단으로 끄지 않게 */
+      if ((got === null || got === undefined) && tries < 8) { tries++; setTimeout(setTrack, 260); return; }
+      var list = got || [];
+      if (!list.length && tries < 6) { tries++; setTimeout(setTrack, 260); return; }
       var pick = {};
       for (var i = 0; i < list.length; i++) {
         var lc = String(list[i].languageCode || '');
@@ -70622,7 +70625,7 @@ function applyCc() {
       }
       if (!pick.languageCode && list.length) pick = { languageCode: list[0].languageCode, name: list[0].name };
       try { p.setOption('captions', 'track', pick); } catch (e) { }
-      if (!list.length) {
+      if (got !== null && got !== undefined && !list.length) {
         /* 이 영상엔 자막이 없음 — 단추를 다시 끔 상태로 */
         YTP.cc = false;
         updateCcUi();
